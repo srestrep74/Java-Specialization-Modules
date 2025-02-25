@@ -5,16 +5,27 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
 
 import com.sro.SpringCoreTask1.dao.TrainerDAO;
 import com.sro.SpringCoreTask1.exceptions.EntityNotFoundException;
+import com.sro.SpringCoreTask1.exceptions.StorageInitializationException;
+import com.sro.SpringCoreTask1.mappers.TrainerMapper;
 import com.sro.SpringCoreTask1.models.Trainer;
+import com.sro.SpringCoreTask1.util.storage.InitialData;
+import com.sro.SpringCoreTask1.util.storage.JsonFileReader;
+
+import jakarta.annotation.PostConstruct;
 
 @Repository
 public class TrainerDAOImpl implements TrainerDAO{
     
     private final Map<Long, Trainer> trainerStorage;
+
+    @Value("${storage.init.file}")
+    private Resource initDataFile;
 
     public TrainerDAOImpl(Map<Long, Trainer> trainerStorage) {
         this.trainerStorage = trainerStorage;
@@ -51,5 +62,20 @@ public class TrainerDAOImpl implements TrainerDAO{
         this.trainerStorage.put(trainer.getUserId(), trainer);
         return trainer;
     }
+
+    @PostConstruct
+    public void initializeData(){
+        try {
+            InitialData initialData = JsonFileReader.readJsonFile(initDataFile, InitialData.class);
+            
+            initialData.getTrainers().forEach(trainerDto -> 
+                this.save(TrainerMapper.toEntity(trainerDto))
+            );
+
+        }catch (Exception e) {
+            throw new StorageInitializationException("Failed to initialize storage with data: ", e);
+        }
+    }
+
 
 }

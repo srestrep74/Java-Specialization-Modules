@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.sro.SpringCoreTask1.models.Trainee;
-import com.sro.SpringCoreTask1.models.Trainer;
-import com.sro.SpringCoreTask1.models.Training;
+import com.sro.SpringCoreTask1.dto.TraineeDTO;
+import com.sro.SpringCoreTask1.dto.TrainerDTO;
+import com.sro.SpringCoreTask1.dto.TrainingDTO;
 import com.sro.SpringCoreTask1.models.id.TrainingId;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainerService;
@@ -26,19 +26,19 @@ public class TrainingFacade {
     }
 
     // Trainee Methods
-    public Trainee saveTrainee(Trainee trainee) {
+    public TraineeDTO saveTrainee(TraineeDTO trainee) {
         return traineeService.save(trainee);
     }
 
-    public Trainee updateTrainee(Trainee trainee) {
+    public TraineeDTO updateTrainee(TraineeDTO trainee) {
         return traineeService.update(trainee);
     }
 
-    public Trainee findTraineeById(Long id) {
+    public TraineeDTO findTraineeById(Long id) {
         return traineeService.findById(id);
     }
 
-    public List<Trainee> findAllTrainees() {
+    public List<TraineeDTO> findAllTrainees() {
         return traineeService.findAll();
     }
 
@@ -47,19 +47,19 @@ public class TrainingFacade {
     }
 
     // Trainer Methods
-    public Trainer saveTrainer(Trainer trainer) {
+    public TrainerDTO saveTrainer(TrainerDTO trainer) {
         return trainerService.save(trainer);
     }
 
-    public Trainer updateTrainer(Trainer trainer) {
+    public TrainerDTO updateTrainer(TrainerDTO trainer) {
         return trainerService.update(trainer);
     }
 
-    public Trainer findTrainerById(Long id) {    
+    public TrainerDTO findTrainerById(Long id) {    
         return trainerService.findById(id);
     }
 
-    public List<Trainer> findAllTrainers() {
+    public List<TrainerDTO> findAllTrainers() {
         return trainerService.findAll();
     }
 
@@ -68,19 +68,19 @@ public class TrainingFacade {
     }
 
     // Training Methods
-    public Training saveTraining(Training training) {
+    public TrainingDTO saveTraining(TrainingDTO training) {
         return trainingService.save(training);
     }
 
-    public Training updateTraining(Training training) {
+    public TrainingDTO updateTraining(TrainingDTO training) {
         return trainingService.update(training);
     }
 
-    public Training findTrainingById(TrainingId id) {
+    public TrainingDTO findTrainingById(TrainingId id) {
         return trainingService.findById(id);
     }
 
-    public List<Training> findAllTrainings() {
+    public List<TrainingDTO> findAllTrainings() {
         return trainingService.findAll();
     }
 

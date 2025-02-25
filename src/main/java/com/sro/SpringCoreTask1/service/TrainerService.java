@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sro.SpringCoreTask1.dao.TrainerDAO;
+import com.sro.SpringCoreTask1.dto.TrainerDTO;
+import com.sro.SpringCoreTask1.mappers.TrainerMapper;
 import com.sro.SpringCoreTask1.models.Trainer;
 import com.sro.SpringCoreTask1.util.ProfileUtil;
 
@@ -16,30 +18,33 @@ public class TrainerService {
     private TrainerDAO trainerDAO;
 
 
-    public Trainer save(Trainer trainer) {
+    public TrainerDTO save(TrainerDTO trainerDTO) {
         List<String> existingUsernames = trainerDAO.findAll().stream().map(Trainer::getUserName).toList();
+
+        Trainer trainer = TrainerMapper.toEntity(trainerDTO);
         
         String username = ProfileUtil.generateUsername(trainer.getFirstName(), trainer.getLastName(), existingUsernames);
         String password = ProfileUtil.generatePassword();
 
         trainer.setUserName(username);
         trainer.setPassword(password);
-        return trainerDAO.save(trainer);
+        return TrainerMapper.toDTO(trainerDAO.save(trainer));
     }
 
-    public Trainer findById(Long id) {
-        return this.trainerDAO.findById(id).get();
+    public TrainerDTO findById(Long id) {
+        return this.trainerDAO.findById(id).map(TrainerMapper::toDTO).orElse(null);
     }
 
-    public List<Trainer> findAll() {
-        return this.trainerDAO.findAll();
+    public List<TrainerDTO> findAll() {
+        return this.trainerDAO.findAll().stream().map(TrainerMapper::toDTO).toList();
     }
 
     public void delete(Long id) {
         this.trainerDAO.delete(id);
     }
 
-    public Trainer update(Trainer trainer) {
-        return this.trainerDAO.update(trainer);
+    public TrainerDTO update(TrainerDTO trainerDTO) {
+        Trainer trainer = TrainerMapper.toEntity(trainerDTO);
+        return TrainerMapper.toDTO(this.trainerDAO.update(trainer));
     }
 }

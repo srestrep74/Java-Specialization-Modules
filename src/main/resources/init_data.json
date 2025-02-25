@@ -8,8 +8,7 @@
         "isActive": true,
         "userId": 1,
         "address": "123 Main St, Springfield",
-        "dateOfBirth": "1990-05-15",
-        "training": null
+        "dateOfBirth": "1990-05-15"
       },
       {
         "firstName": "Jane",
@@ -19,8 +18,7 @@
         "isActive": true,
         "userId": 2,
         "address": "456 Elm St, Shelbyville",
-        "dateOfBirth": "1985-08-22",
-        "training": null
+        "dateOfBirth": "1985-08-22"
       },
       {
         "firstName": "Alice",
@@ -30,8 +28,7 @@
         "isActive": false,
         "userId": 3,
         "address": "789 Oak St, Capital City",
-        "dateOfBirth": "1995-12-10",
-        "training": null
+        "dateOfBirth": "1995-12-10"
       }
     ],
     "trainers": [
@@ -89,8 +86,7 @@
           "isActive": true,
           "userId": 1,
           "address": "123 Main St, Springfield",
-          "dateOfBirth": "1990-05-15",
-          "training": null
+          "dateOfBirth": "1990-05-15"
         },
         "trainer": {
           "firstName": "Bob",
@@ -124,8 +120,7 @@
           "isActive": true,
           "userId": 2,
           "address": "456 Elm St, Shelbyville",
-          "dateOfBirth": "1985-08-22",
-          "training": null
+          "dateOfBirth": "1985-08-22"
         },
         "trainer": {
           "firstName": "Charlie",
@@ -159,8 +154,7 @@
           "isActive": false,
           "userId": 3,
           "address": "789 Oak St, Capital City",
-          "dateOfBirth": "1995-12-10",
-          "training": null
+          "dateOfBirth": "1995-12-10"
         },
         "trainer": {
           "firstName": "Eve",

@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sro.SpringCoreTask1.dao.TrainingDAO;
+import com.sro.SpringCoreTask1.dto.TrainingDTO;
+import com.sro.SpringCoreTask1.mappers.TrainingMapper;
 import com.sro.SpringCoreTask1.models.Training;
 import com.sro.SpringCoreTask1.models.id.TrainingId;
 
@@ -15,23 +17,25 @@ public class TrainingService {
     @Autowired
     private TrainingDAO trainingDAO;
 
-    public Training save(Training training) {
-        return trainingDAO.save(training);
+    public TrainingDTO save(TrainingDTO trainingDTO) {
+        Training training = TrainingMapper.toEntity(trainingDTO);
+        return TrainingMapper.toDTO(this.trainingDAO.save(training));
     }
 
-    public Training findById(TrainingId id) {
-        return this.trainingDAO.findById(id).get();
+    public TrainingDTO findById(TrainingId id) {
+        return this.trainingDAO.findById(id).map(TrainingMapper::toDTO).orElse(null);
     }
 
-    public List<Training> findAll() {
-        return this.trainingDAO.findAll();
+    public List<TrainingDTO> findAll() {
+        return this.trainingDAO.findAll().stream().map(TrainingMapper::toDTO).toList();
     }
 
     public void delete(TrainingId id) {
         this.trainingDAO.delete(id);
     }
 
-    public Training update(Training training) {
-        return this.trainingDAO.update(training);
+    public TrainingDTO update(TrainingDTO trainingDTO) {
+        Training training = TrainingMapper.toEntity(trainingDTO);
+        return TrainingMapper.toDTO(this.trainingDAO.update(training));
     }
 }

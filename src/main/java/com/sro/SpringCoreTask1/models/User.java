@@ -1,7 +1,5 @@
 package com.sro.SpringCoreTask1.models;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,13 +16,12 @@ public class User {
     private String password;
     private boolean isActive;
 
-    @JsonCreator
     public User(
-        @JsonProperty("firstName") String firstName,
-        @JsonProperty("lastName") String lastName,
-        @JsonProperty("userName") String userName,
-        @JsonProperty("password") String password,
-        @JsonProperty("isActive") boolean isActive
+        String firstName,
+        String lastName,
+        String userName,
+        String password,
+        boolean isActive
     ) {
         this.firstName = firstName;
         this.lastName = lastName;

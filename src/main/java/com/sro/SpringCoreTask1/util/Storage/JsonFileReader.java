@@ -1,4 +1,4 @@
-package com.sro.SpringCoreTask1.util.Storage;
+package com.sro.SpringCoreTask1.util.storage;
 
 import java.io.InputStream;
 
