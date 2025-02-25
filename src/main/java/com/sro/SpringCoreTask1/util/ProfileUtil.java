@@ -11,6 +11,10 @@ public class ProfileUtil {
         String username = baseUsername;
         int serialNumber = 1;  
 
+        if (existingUsernames == null) {
+            existingUsernames = List.of();
+        }
+
         while (existingUsernames.contains(username)) {
             username = baseUsername + serialNumber++;
         }
