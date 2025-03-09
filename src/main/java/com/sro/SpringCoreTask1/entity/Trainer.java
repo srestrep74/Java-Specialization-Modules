@@ -5,15 +5,11 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -28,14 +24,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Trainer extends User{
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
-
-    @OneToOne
-    @JoinColumn(name = "user_id", unique = true)
-    private User user;
 
     @ManyToOne
     @JoinColumn(name = "training_type_id")
@@ -55,8 +43,10 @@ public class Trainer extends User{
     @Override
     public String toString() {
         return "Trainer{" +
-                "id=" + id +
-                ", user=" + user +
+                "id=" + this.getId() +
+                ", firstName='" + this.getFirstName() + '\'' +
+                ", lastName='" + this.getLastName() + '\'' +
+                ", username='" + this.getUsername() + '\'' +
                 ", trainingType=" + trainingType +
                 '}';
     }
