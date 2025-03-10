@@ -1,39 +1,43 @@
 package com.sro.SpringCoreTask1;
 
-import java.util.Arrays;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.sro.SpringCoreTask1.config.AppConfig;
-import com.sro.SpringCoreTask1.entity.Trainer;
-import com.sro.SpringCoreTask1.entity.TrainingType;
-import com.sro.SpringCoreTask1.repository.TrainerRepository;
-import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
+import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
+import com.sro.SpringCoreTask1.dto.request.TrainingTypeRequestDTO;
+import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
+import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
+import com.sro.SpringCoreTask1.service.TrainerService;
+import com.sro.SpringCoreTask1.service.TrainingTypeService;
 
 public class SpringCoreTask1Application {
 
     public static void main(String[] args) throws Exception {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-        Arrays.stream(context.getBeanDefinitionNames()).forEach(System.out::println);
+        TrainingTypeRequestDTO trainingType = new TrainingTypeRequestDTO(
+            "Strength"
+        );
 
-        TrainingType trainingType = new TrainingType();
-        trainingType.setTrainingTypeName("Strength");
-
-        TrainingTypeRepository trainingTypeRepository = context.getBean(TrainingTypeRepository.class);
-        trainingTypeRepository.save(trainingType);
+        TrainingTypeService trainingTypeService = context.getBean(TrainingTypeService.class);
+        TrainingTypeResponseDTO savedTrainingType =  trainingTypeService.save(trainingType);
         
 
-        Trainer trainer = new Trainer();
-        trainer.setFirstName("Bob");
-        trainer.setLastName("Brown");
-        trainer.setUsername("bob.brown");
-        trainer.setPassword("p6q7r8s9t0");
-        trainer.setActive(true);
-        trainer.setTrainingType(trainingType);
+        TrainerRequestDTO trainer = new TrainerRequestDTO(
+            "Sebas",
+            "Restrepo",
+            "sebas.restrepo",
+            "p6q7r8s9t0",
+            true,
+            savedTrainingType.id()
+        );
 
         // 🔹 Obtener el Bean como TrainerRepository (NO TrainerRepositoryImpl)
-        TrainerRepository trainerRepository = context.getBean(TrainerRepository.class);
-        trainerRepository.save(trainer);
+        TrainerService trainerService = context.getBean(TrainerService.class);
+        TrainerResponseDTO savedTrainer = trainerService.save(trainer);
+
+        context.close();
+
     }
 }
