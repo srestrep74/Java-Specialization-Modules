@@ -1,10 +1,16 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -44,5 +50,18 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Override
     public Trainee update(Trainee entity) {
         return em.merge(entity);
+    }
+
+    @Override
+    public Optional<Trainee> findByUsername(String username) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaQuery<Trainee> cq = cb.createQuery(Trainee.class);
+        Root<Trainee> trainee = cq.from(Trainee.class);
+
+        Predicate usernamePredicate = cb.equal(trainee.get("username"), username);
+        cq.where(usernamePredicate);
+
+        TypedQuery<Trainee> query = this.em.createQuery(cq);
+        return Optional.ofNullable(query.getSingleResult());
     }
 }

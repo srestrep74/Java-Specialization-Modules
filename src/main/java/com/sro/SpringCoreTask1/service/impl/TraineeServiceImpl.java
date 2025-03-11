@@ -57,4 +57,10 @@ public class TraineeServiceImpl implements TraineeService{
     public void deleteById(Long id) {
         this.traineeRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TraineeResponseDTO> findByUsername(String username) {
+        return this.traineeRepository.findByUsername(username).map(this.traineeMapper::toDTO);
+    }
 }
