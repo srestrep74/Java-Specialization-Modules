@@ -64,4 +64,11 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         TypedQuery<Trainee> query = this.em.createQuery(cq);
         return Optional.ofNullable(query.getSingleResult());
     }
+
+    @Override
+    public void deleteByUsername(String username) {
+        this.em.createQuery("DELETE FROM Trainee t WHERE t.username = :username")
+                .setParameter("username", username)
+                .executeUpdate();
+    }
 }

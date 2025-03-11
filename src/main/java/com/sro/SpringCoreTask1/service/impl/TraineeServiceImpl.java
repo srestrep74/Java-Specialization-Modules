@@ -63,4 +63,10 @@ public class TraineeServiceImpl implements TraineeService{
     public Optional<TraineeResponseDTO> findByUsername(String username) {
         return this.traineeRepository.findByUsername(username).map(this.traineeMapper::toDTO);
     }
+
+    @Override
+    @Transactional
+    public void deleteByUsername(String username) {
+        this.traineeRepository.deleteByUsername(username);
+    }
 }
