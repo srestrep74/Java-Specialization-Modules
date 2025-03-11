@@ -57,4 +57,10 @@ public class TrainerServiceImpl implements TrainerService{
     public void deleteById(Long id) {
         this.trainerRepository.deleteById(id);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<TrainerResponseDTO> findByUsername(String username) { 
+        return this.trainerRepository.findByUsername(username).map(this.trainerMapper::toDTO); 
+    }
 }

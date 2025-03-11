@@ -16,26 +16,10 @@ public class SpringCoreTask1Application {
     public static void main(String[] args) throws Exception {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-        TrainingTypeRequestDTO trainingType = new TrainingTypeRequestDTO(
-            "Strength"
-        );
-
-        TrainingTypeService trainingTypeService = context.getBean(TrainingTypeService.class);
-        TrainingTypeResponseDTO savedTrainingType =  trainingTypeService.save(trainingType);
-        
-
-        TrainerRequestDTO trainer = new TrainerRequestDTO(
-            "Sebas",
-            "Restrepo",
-            "sebas.restrepo",
-            "p6q7r8s9t0",
-            true,
-            savedTrainingType.id()
-        );
-
-        // 🔹 Obtener el Bean como TrainerRepository (NO TrainerRepositoryImpl)
         TrainerService trainerService = context.getBean(TrainerService.class);
-        TrainerResponseDTO savedTrainer = trainerService.save(trainer);
+
+        TrainerResponseDTO trainerResponseDTO = trainerService.findByUsername("sebas.restrepo").get();
+        System.out.println(trainerResponseDTO);
 
         context.close();
 

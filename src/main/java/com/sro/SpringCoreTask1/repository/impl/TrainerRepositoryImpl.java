@@ -5,6 +5,11 @@ import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -44,5 +49,18 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     @Override
     public Trainer update(Trainer entity) {
         return em.merge(entity);
+    }
+
+    @Override
+    public Optional<Trainer> findByUsername(String username) {
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
+        Root<Trainer> trainer = cq.from(Trainer.class);
+
+        Predicate usernamePredicate = cb.equal(trainer.get("username"), username);
+        cq.where(usernamePredicate);
+
+        TypedQuery<Trainer> query = this.em.createQuery(cq);
+        return Optional.ofNullable(query.getSingleResult());
     }
 }
