@@ -1,7 +1,6 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
-import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

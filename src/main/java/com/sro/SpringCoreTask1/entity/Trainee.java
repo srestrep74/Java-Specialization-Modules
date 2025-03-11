@@ -7,10 +7,8 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Past;
 
@@ -34,10 +32,6 @@ public class Trainee extends User {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Training> trainings;
 
@@ -46,14 +40,13 @@ public class Trainee extends User {
 
     @Override
     public String toString() {
-        return "Trainee{" +
+        return "Trainer{" +
                 "id=" + this.getId() +
                 ", firstName='" + this.getFirstName() + '\'' +
                 ", lastName='" + this.getLastName() + '\'' +
                 ", username='" + this.getUsername() + '\'' +
-                ", address='" + address + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
-                ", user=" + user +
+                ", address='" + address + '\'' +
                 '}';
     }
 
