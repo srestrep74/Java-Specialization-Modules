@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.sro.SpringCoreTask1.config.AppConfig;
-import com.sro.SpringCoreTask1.dto.TrainingFilterDTO;
+import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
 import com.sro.SpringCoreTask1.service.TrainingService;
@@ -18,9 +18,9 @@ public class SpringCoreTask1Application {
 
         TrainingService trainingService = context.getBean(TrainingService.class);
         
-        TrainingFilterDTO trainingFilterDTO = new TrainingFilterDTO(6L, null, null, "sebas.brown", null);
+        TraineeTrainingFilterDTO trainingFilterDTO = new TraineeTrainingFilterDTO(6L, null, null, "sebas.brown", null);
 
-        List<TrainingResponseDTO> trainings = trainingService.findTrainingsByFilters(trainingFilterDTO);
+        List<TrainingResponseDTO> trainings = trainingService.findTrainingsByTraineeWithFilters(trainingFilterDTO);
 
         trainings.forEach(training -> System.out.println(training));
 

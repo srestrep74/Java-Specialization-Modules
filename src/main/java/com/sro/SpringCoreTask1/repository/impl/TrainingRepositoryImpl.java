@@ -1,6 +1,6 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
-import com.sro.SpringCoreTask1.dto.TrainingFilterDTO;
+import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
 import jakarta.persistence.EntityManager;
@@ -54,7 +54,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    public List<Training> findTrainingsByFilters(TrainingFilterDTO filterDTO){
+    public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO){
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
         CriteriaQuery<Training> cq = cb.createQuery(Training.class);
         Root<Training> training = cq.from(Training.class);
