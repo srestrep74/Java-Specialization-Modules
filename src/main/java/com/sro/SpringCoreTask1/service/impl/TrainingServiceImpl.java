@@ -8,26 +8,41 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
+import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.Training;
+import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.mappers.TrainingMapper;
+import com.sro.SpringCoreTask1.repository.TraineeRepository;
+import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
+import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainingService;
 
 @Service
 public class TrainingServiceImpl implements TrainingService{
     
     private final TrainingRepository trainingRepository;
+    private final TrainerRepository trainerRepository;
+    private final TraineeRepository traineeRepository;
+    private final TrainingTypeRepository trainingTypeRepository;
     private final TrainingMapper trainingMapper;
 
-    public TrainingServiceImpl(TrainingRepository trainingRepository, TrainingMapper trainingMapper) {
+    public TrainingServiceImpl(TrainingRepository trainingRepository, TrainerRepository trainerRepository, TraineeRepository traineeRepository, TrainingTypeRepository trainingTypeRepository, TrainingMapper trainingMapper) {
         this.trainingRepository = trainingRepository;
+        this.trainerRepository = trainerRepository;
+        this.traineeRepository = traineeRepository;
+        this.trainingTypeRepository = trainingTypeRepository;
         this.trainingMapper = trainingMapper;
     }
 
     @Override
     @Transactional
     public TrainingResponseDTO save(TrainingRequestDTO trainingRequestDTO) {
-        Training training = this.trainingMapper.toEntity(trainingRequestDTO);
+        Trainee trainee = this.traineeRepository.findById(trainingRequestDTO.traineeId()).get();
+        Trainer trainer = this.trainerRepository.findById(trainingRequestDTO.trainerId()).get();
+        TrainingType trainingType = this.trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId()).get();
+        Training training = this.trainingMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
         Training savedTraining = this.trainingRepository.save(training);
         return this.trainingMapper.toDTO(savedTraining);
     }
@@ -47,7 +62,10 @@ public class TrainingServiceImpl implements TrainingService{
     @Override
     @Transactional
     public TrainingResponseDTO update(TrainingRequestDTO trainingRequestDTO) {
-        Training training = this.trainingMapper.toEntity(trainingRequestDTO);
+        Trainee trainee = this.traineeRepository.findById(trainingRequestDTO.traineeId()).get();
+        Trainer trainer = this.trainerRepository.findById(trainingRequestDTO.trainerId()).get();
+        TrainingType trainingType = this.trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId()).get();
+        Training training = this.trainingMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
         Training updatedTraining = this.trainingRepository.update(training);
         return this.trainingMapper.toDTO(updatedTraining);
     }

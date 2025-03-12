@@ -9,25 +9,30 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.mappers.TrainerMapper;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
+import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainerService;
 
 @Service
 public class TrainerServiceImpl implements TrainerService{
     
     private final TrainerRepository trainerRepository;
+    private final TrainingTypeRepository trainingTypeRepository;
     private final TrainerMapper trainerMapper;
 
-    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainerMapper trainerMapper) {
+    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, TrainerMapper trainerMapper) {
         this.trainerRepository = trainerRepository;
+        this.trainingTypeRepository = trainingTypeRepository;
         this.trainerMapper = trainerMapper;
     }
 
     @Override
     @Transactional
     public TrainerResponseDTO save(TrainerRequestDTO trainerRequestDTO) {
-        Trainer trainer = this.trainerMapper.toEntity(trainerRequestDTO);
+        TrainingType trainingType = this.trainingTypeRepository.findById(trainerRequestDTO.trainingTypeId()).get();
+        Trainer trainer = this.trainerMapper.toEntity(trainerRequestDTO, trainingType);
         Trainer savedTrainer = this.trainerRepository.save(trainer);
         return this.trainerMapper.toDTO(savedTrainer);
     }
@@ -47,8 +52,10 @@ public class TrainerServiceImpl implements TrainerService{
     @Override
     @Transactional
     public TrainerResponseDTO update(TrainerRequestDTO trainerRequestDTO) {
-        Trainer trainer = this.trainerMapper.toEntity(trainerRequestDTO);
-        Trainer updatedTrainer = this.trainerRepository.update(trainer);
+        TrainingType trainingType = this.trainingTypeRepository.findById(trainerRequestDTO.trainingTypeId()).get();
+
+        Trainer trainer = this.trainerMapper.toEntity(trainerRequestDTO, trainingType);
+        Trainer updatedTrainer = this.trainerRepository.save(trainer);
         return this.trainerMapper.toDTO(updatedTrainer);
     }
 
