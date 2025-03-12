@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
+import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
 import jakarta.persistence.EntityManager;
@@ -73,6 +74,37 @@ public class TrainingRepositoryImpl implements TrainingRepository {
         Optional.ofNullable(filterDTO.trainerName())
                 .filter(name -> !name.isEmpty())
                 .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainer").get("username")), "%" + name.toLowerCase() + "%")));
+
+        Optional.ofNullable(filterDTO.trainingType())
+                .filter(type -> !type.isEmpty())
+                .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
+
+        cq.where(predicates.toArray(new Predicate[0]));
+        TypedQuery<Training> query = em.createQuery(cq);
+        
+        return query.getResultList();
+    }
+
+    @Override
+    public List<Training> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO){
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaQuery<Training> cq = cb.createQuery(Training.class);
+        Root<Training> training = cq.from(Training.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        Optional.ofNullable(filterDTO.trainerId())
+                .ifPresent(id -> predicates.add(cb.equal(training.get("trainer").get("id"), id)));
+        
+        Optional.ofNullable(filterDTO.fromDate())
+                .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
+
+        Optional.ofNullable(filterDTO.toDate())
+                .ifPresent(to -> predicates.add(cb.lessThanOrEqualTo(training.get("trainingDate"), to)));
+
+        Optional.ofNullable(filterDTO.traineeName())
+                .filter(name -> !name.isEmpty())
+                .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainee").get("username")), "%" + name.toLowerCase() + "%")));
 
         Optional.ofNullable(filterDTO.trainingType())
                 .filter(type -> !type.isEmpty())

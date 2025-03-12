@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
+import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
 import com.sro.SpringCoreTask1.entity.Trainee;
@@ -85,5 +86,15 @@ public class TrainingServiceImpl implements TrainingService{
         }
 
         return this.trainingRepository.findTrainingsByTraineeWithFilters(filterDTO).stream().map(this.trainingMapper::toDTO).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainingResponseDTO> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO){
+        if(filterDTO == null){
+            throw new IllegalArgumentException("The filter can't be null");
+        }
+
+        return this.trainingRepository.findTrainingsByTrainerWithFilters(filterDTO).stream().map(this.trainingMapper::toDTO).toList();
     }
 }
