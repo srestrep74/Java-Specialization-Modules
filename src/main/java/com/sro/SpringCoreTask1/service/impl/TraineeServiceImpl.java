@@ -77,40 +77,34 @@ public class TraineeServiceImpl implements TraineeService{
     @Override
     @Transactional
     public void addTrainerToTrainee(Long traineeId, Long trainerId){
-        Optional<Trainee> traineeOpt = this.traineeRepository.findById(traineeId);
-        Optional<Trainer> trainerOpt = this.trainerRepository.findById(trainerId);
+        Trainee trainee = this.traineeRepository.findById(traineeId).orElseThrow(
+            () -> new IllegalArgumentException("Trainee not found")
+        );
 
-        if(traineeOpt.isPresent() && trainerOpt.isPresent()){
-            Trainee trainee = traineeOpt.get();
-            Trainer trainer = trainerOpt.get();
+        Trainer trainer = this.trainerRepository.findById(trainerId).orElseThrow(
+            () -> new IllegalArgumentException("Trainer not found")
+        );
 
-            trainee.getTrainers().add(trainer);
+        if(!trainer.getTrainees().contains(trainee)){
             trainer.getTrainees().add(trainee);
-
-            this.traineeRepository.update(trainee);
-            this.trainerRepository.update(trainer);
-        }else {
-            throw new IllegalArgumentException("Trainee or Trainer not found");
+            //this.trainerRepository.save(trainer);
         }
     }
 
     @Override
     @Transactional
     public void removeTrainerFromTrainee(Long traineeId, Long trainerId){
-        Optional<Trainee> traineeOpt = this.traineeRepository.findById(traineeId);
-        Optional<Trainer> trainerOpt = this.trainerRepository.findById(trainerId);
+        Trainee trainee = this.traineeRepository.findById(traineeId).orElseThrow(
+            () -> new IllegalArgumentException("Trainee not found")
+        );
 
-        if(traineeOpt.isPresent() && trainerOpt.isPresent()){
-            Trainee trainee = traineeOpt.get();
-            Trainer trainer = trainerOpt.get();
+        Trainer trainer = this.trainerRepository.findById(trainerId).orElseThrow(
+            () -> new IllegalArgumentException("Trainer not found")
+        );
 
-            trainee.getTrainers().remove(trainer);
+        if(trainer.getTrainees().contains(trainee)){
             trainer.getTrainees().remove(trainee);
-
-            this.traineeRepository.update(trainee);
-            this.trainerRepository.update(trainer);
-        }else{
-            throw new IllegalArgumentException("Trainee or Trainer not found");
+            //this.traineeRepository.save(trainee);
         }
     }
 }

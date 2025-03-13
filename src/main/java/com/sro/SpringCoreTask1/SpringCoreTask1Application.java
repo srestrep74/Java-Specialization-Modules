@@ -11,6 +11,7 @@ import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
+import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.service.TrainingService;
 
@@ -21,11 +22,10 @@ public class SpringCoreTask1Application {
 
         TrainingService trainingService = context.getBean(TrainingService.class);
 
-        TrainerService trainerService = context.getBean(TrainerService.class);
-        
-        List<TrainerResponseDTO> trainers = trainerService.getTrainersNotAssignedToTrainee("trainee1");
+        TraineeService traineeService = context.getBean(TraineeService.class);
 
-        trainers.forEach(trainer -> System.out.println(trainer));
+        traineeService.removeTrainerFromTrainee(6L, 1L);
+
         context.close();
 
     }
