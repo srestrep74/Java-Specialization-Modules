@@ -1,5 +1,6 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
+import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import jakarta.persistence.EntityManager;
@@ -7,6 +8,8 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
@@ -62,5 +65,22 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
         TypedQuery<Trainer> query = this.em.createQuery(cq);
         return Optional.ofNullable(query.getSingleResult());
+    }
+
+    @Override
+    public List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername){
+        CriteriaBuilder cb = this.em.getCriteriaBuilder();
+        CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
+        Root<Trainer> trainer = cq.from(Trainer.class);
+
+        Join<Trainer, Trainee> trainerTraineeJoin = trainer.join("trainees", JoinType.LEFT);
+
+        Predicate traineeMatch = cb.equal(trainerTraineeJoin.get("username"), traineeUsername);
+        Predicate trainerNotAssigned = cb.isNull(trainerTraineeJoin.get("id"));
+
+        cq.select(trainer).where(cb.or(trainerNotAssigned, cb.not(traineeMatch)));
+
+        TypedQuery<Trainer> query = this.em.createQuery(cq);
+        return query.getResultList();
     }
 }

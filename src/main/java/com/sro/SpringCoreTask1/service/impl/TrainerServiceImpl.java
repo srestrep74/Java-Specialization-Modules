@@ -70,4 +70,10 @@ public class TrainerServiceImpl implements TrainerService{
     public Optional<TrainerResponseDTO> findByUsername(String username) { 
         return this.trainerRepository.findByUsername(username).map(this.trainerMapper::toDTO); 
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TrainerResponseDTO> getTrainersNotAssignedToTrainee(String traineeUsername){
+        return this.trainerRepository.findTrainersNotAssignedToTrainee(traineeUsername).stream().map(this.trainerMapper::toDTO).toList();
+    }
 }

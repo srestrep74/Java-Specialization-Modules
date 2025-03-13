@@ -9,7 +9,9 @@ import com.sro.SpringCoreTask1.config.AppConfig;
 import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
+import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
+import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.service.TrainingService;
 
 public class SpringCoreTask1Application {
@@ -18,14 +20,12 @@ public class SpringCoreTask1Application {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
         TrainingService trainingService = context.getBean(TrainingService.class);
+
+        TrainerService trainerService = context.getBean(TrainerService.class);
         
-        TrainerTrainingFilterDTO trainingFilterDTO = new TrainerTrainingFilterDTO(1L, null, null, "trainee1", null);
+        List<TrainerResponseDTO> trainers = trainerService.getTrainersNotAssignedToTrainee("trainee1");
 
-        List<TrainingResponseDTO> trainings = trainingService.findTrainingsByTrainerWithFilters(trainingFilterDTO);
-
-        trainings.forEach(training -> System.out.println(training));
-
-
+        trainers.forEach(trainer -> System.out.println(trainer));
         context.close();
 
     }
