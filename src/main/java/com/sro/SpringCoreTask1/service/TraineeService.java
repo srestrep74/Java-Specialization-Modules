@@ -10,4 +10,6 @@ import com.sro.SpringCoreTask1.service.base.BaseService;
 public interface TraineeService extends BaseService<TraineeRequestDTO, TraineeResponseDTO, Long>{
     Optional<TraineeResponseDTO> findByUsername(String username);
     void deleteByUsername(String username);
+    void addTrainerToTrainee(Long traineeId, Long trainerId);
+    void removeTrainerFromTrainee(Long traineeId, Long trainerId);
 }

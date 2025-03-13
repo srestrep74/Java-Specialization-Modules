@@ -9,18 +9,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.mappers.TraineeMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
+import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.TraineeService;
 
 @Service
 public class TraineeServiceImpl implements TraineeService{
     
     private final TraineeRepository traineeRepository;
+    private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
 
-    public TraineeServiceImpl(TraineeRepository traineeRepository, TraineeMapper traineeMapper) {
+    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TraineeMapper traineeMapper) {
         this.traineeRepository = traineeRepository;
+        this.trainerRepository = trainerRepository;
         this.traineeMapper = traineeMapper;
     }
 
@@ -68,5 +72,45 @@ public class TraineeServiceImpl implements TraineeService{
     @Transactional
     public void deleteByUsername(String username) {
         this.traineeRepository.deleteByUsername(username);
+    }
+
+    @Override
+    @Transactional
+    public void addTrainerToTrainee(Long traineeId, Long trainerId){
+        Optional<Trainee> traineeOpt = this.traineeRepository.findById(traineeId);
+        Optional<Trainer> trainerOpt = this.trainerRepository.findById(trainerId);
+
+        if(traineeOpt.isPresent() && trainerOpt.isPresent()){
+            Trainee trainee = traineeOpt.get();
+            Trainer trainer = trainerOpt.get();
+
+            trainee.getTrainers().add(trainer);
+            trainer.getTrainees().add(trainee);
+
+            this.traineeRepository.update(trainee);
+            this.trainerRepository.update(trainer);
+        }else {
+            throw new IllegalArgumentException("Trainee or Trainer not found");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void removeTrainerFromTrainee(Long traineeId, Long trainerId){
+        Optional<Trainee> traineeOpt = this.traineeRepository.findById(traineeId);
+        Optional<Trainer> trainerOpt = this.trainerRepository.findById(trainerId);
+
+        if(traineeOpt.isPresent() && trainerOpt.isPresent()){
+            Trainee trainee = traineeOpt.get();
+            Trainer trainer = trainerOpt.get();
+
+            trainee.getTrainers().remove(trainer);
+            trainer.getTrainees().remove(trainee);
+
+            this.traineeRepository.update(trainee);
+            this.trainerRepository.update(trainer);
+        }else{
+            throw new IllegalArgumentException("Trainee or Trainer not found");
+        }
     }
 }
