@@ -3,7 +3,6 @@ package com.sro.SpringCoreTask1.repository.impl;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +13,11 @@ import java.util.Optional;
 @Repository
 public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
 
-    @PersistenceContext
     private EntityManager em;
+
+    public TrainingTypeRepositoryImpl(EntityManager em){
+        this.em = em;
+    }
 
     @Override
     @Transactional

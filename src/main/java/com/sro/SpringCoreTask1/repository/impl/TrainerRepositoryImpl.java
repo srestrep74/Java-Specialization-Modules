@@ -4,7 +4,6 @@ import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -21,8 +20,11 @@ import java.util.Optional;
 @Repository
 public class TrainerRepositoryImpl implements TrainerRepository {
 
-    @PersistenceContext
     private EntityManager em;
+
+    public TrainerRepositoryImpl(EntityManager em) {
+        this.em = em;
+    }
 
     @Override
     public Trainer save(Trainer entity) {
