@@ -53,10 +53,7 @@
       "username": "mike.taylor",
       "password": "password123",
       "active": true,
-      "trainingType": {
-        "id": 1,
-        "trainingTypeName": "Yoga"
-      }
+      "trainingTypeId": 1
     },
     {
       "firstName": "Sarah",
@@ -64,10 +61,7 @@
       "username": "sarah.wilson",
       "password": "password123",
       "active": true,
-      "trainingType": {
-        "id": 2,
-        "trainingTypeName": "Weightlifting"
-      }
+      "trainingTypeId": 2
     },
     {
       "firstName": "David",
@@ -75,10 +69,7 @@
       "username": "david.moore",
       "password": "password123",
       "active": true,
-      "trainingType": {
-        "id": 3,
-        "trainingTypeName": "Cardio"
-      }
+      "trainingTypeId": 3
     },
     {
       "firstName": "Laura",
@@ -86,10 +77,7 @@
       "username": "laura.anderson",
       "password": "password123",
       "active": true,
-      "trainingType": {
-        "id": 4,
-        "trainingTypeName": "Pilates"
-      }
+      "trainingTypeId": 4
     },
     {
       "firstName": "Kevin",
@@ -97,10 +85,7 @@
       "username": "kevin.thomas",
       "password": "password123",
       "active": true,
-      "trainingType": {
-        "id": 5,
-        "trainingTypeName": "CrossFit"
-      }
+      "trainingTypeId": 5
     }
   ],
   "trainingTypes": [
@@ -125,156 +110,41 @@
       "trainingName": "Morning Yoga",
       "trainingDate": "2023-10-01",
       "duration": 60,
-      "trainee": {
-        "id": 1,
-        "firstName": "John",
-        "lastName": "Doe",
-        "username": "john.doe",
-        "password": "password123",
-        "active": true,
-        "address": "123 Main St",
-        "dateOfBirth": "1990-01-01"
-      },
-      "trainer": {
-        "id": 6,
-        "firstName": "Mike",
-        "lastName": "Taylor",
-        "username": "mike.taylor",
-        "password": "password123",
-        "active": true,
-        "trainingType": {
-          "id": 1,
-          "trainingTypeName": "Yoga"
-        }
-      },
-      "trainingType": {
-        "id": 1,
-        "trainingTypeName": "Yoga"
-      }
+      "traineeId": 1,
+      "trainerId": 6,
+      "trainingTypeId": 1
     },
     {
       "trainingName": "Evening Weightlifting",
       "trainingDate": "2023-10-02",
       "duration": 90,
-      "trainee": {
-        "id": 2,
-        "firstName": "Jane",
-        "lastName": "Smith",
-        "username": "jane.smith",
-        "password": "password123",
-        "active": true,
-        "address": "456 Elm St",
-        "dateOfBirth": "1995-05-05"
-      },
-      "trainer": {
-        "id": 7,
-        "firstName": "Sarah",
-        "lastName": "Wilson",
-        "username": "sarah.wilson",
-        "password": "password123",
-        "active": true,
-        "trainingType": {
-          "id": 2,
-          "trainingTypeName": "Weightlifting"
-        }
-      },
-      "trainingType": {
-        "id": 2,
-        "trainingTypeName": "Weightlifting"
-      }
+      "traineeId": 2,
+      "trainerId": 7,
+      "trainingTypeId": 2
     },
     {
       "trainingName": "Cardio Blast",
       "trainingDate": "2023-10-03",
       "duration": 45,
-      "trainee": {
-        "id": 3,
-        "firstName": "Alice",
-        "lastName": "Johnson",
-        "username": "alice.johnson",
-        "password": "password123",
-        "active": true,
-        "address": "789 Oak St",
-        "dateOfBirth": "1985-03-15"
-      },
-      "trainer": {
-        "id": 8,
-        "firstName": "David",
-        "lastName": "Moore",
-        "username": "david.moore",
-        "password": "password123",
-        "active": true,
-        "trainingType": {
-          "id": 3,
-          "trainingTypeName": "Cardio"
-        }
-      },
-      "trainingType": {
-        "id": 3,
-        "trainingTypeName": "Cardio"
-      }
+      "traineeId": 3,
+      "trainerId": 8,
+      "trainingTypeId": 3
     },
     {
       "trainingName": "Pilates Core",
       "trainingDate": "2023-10-04",
       "duration": 60,
-      "trainee": {
-        "id": 4,
-        "firstName": "Bob",
-        "lastName": "Brown",
-        "username": "bob.brown",
-        "password": "password123",
-        "active": true,
-        "address": "321 Pine St",
-        "dateOfBirth": "1988-07-20"
-      },
-      "trainer": {
-        "id": 9,
-        "firstName": "Laura",
-        "lastName": "Anderson",
-        "username": "laura.anderson",
-        "password": "password123",
-        "active": true,
-        "trainingType": {
-          "id": 4,
-          "trainingTypeName": "Pilates"
-        }
-      },
-      "trainingType": {
-        "id": 4,
-        "trainingTypeName": "Pilates"
-      }
+      "traineeId": 4,
+      "trainerId": 9,
+      "trainingTypeId": 4
     },
     {
       "trainingName": "CrossFit Challenge",
       "trainingDate": "2023-10-05",
       "duration": 75,
-      "trainee": {
-        "id": 5,
-        "firstName": "Charlie",
-        "lastName": "Davis",
-        "username": "charlie.davis",
-        "password": "password123",
-        "active": true,
-        "address": "654 Maple St",
-        "dateOfBirth": "1992-11-30"
-      },
-      "trainer": {
-        "id": 10,
-        "firstName": "Kevin",
-        "lastName": "Thomas",
-        "username": "kevin.thomas",
-        "password": "password123",
-        "active": true,
-        "trainingType": {
-          "id": 5,
-          "trainingTypeName": "CrossFit"
-        }
-      },
-      "trainingType": {
-        "id": 5,
-        "trainingTypeName": "CrossFit"
-      }
+      "traineeId": 5,
+      "trainerId": 10,
+      "trainingTypeId": 5
     }
   ]
 }

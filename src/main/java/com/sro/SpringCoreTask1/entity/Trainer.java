@@ -35,7 +35,7 @@ public class Trainer extends User{
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Training> trainings = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinTable(
         name = "trainers_trainees",
         joinColumns = @JoinColumn(name = "trainer_id"),
@@ -52,6 +52,16 @@ public class Trainer extends User{
                 ", username='" + this.getUsername() + '\'' +
                 ", trainingType=" + trainingType +
                 '}';
+    }
+
+    public void addTrainee(Trainee trainee) {
+        this.trainees.add(trainee);
+        trainee.getTrainers().add(this);
+    }
+
+    public void removeTrainee(Trainee trainee) {
+        this.trainees.remove(trainee);
+        trainee.getTrainers().remove(this);
     }
 
 }

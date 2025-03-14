@@ -2,10 +2,10 @@ package com.sro.SpringCoreTask1.util.storage;
 
 import java.util.List;
 
-import com.sro.SpringCoreTask1.entity.Trainee;
-import com.sro.SpringCoreTask1.entity.Trainer;
-import com.sro.SpringCoreTask1.entity.Training;
-import com.sro.SpringCoreTask1.entity.TrainingType;
+import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
+import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
+import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
+import com.sro.SpringCoreTask1.dto.request.TrainingTypeRequestDTO;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,8 +13,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class InitialData {
-    private List<Trainer> trainers;
-    private List<Trainee> trainees;
-    private List<Training> trainings;
-    private List<TrainingType> trainingTypes;
+    private List<TrainerRequestDTO> trainers;
+    private List<TraineeRequestDTO> trainees;
+    private List<TrainingRequestDTO> trainings;
+    private List<TrainingTypeRequestDTO> trainingTypes;
 }

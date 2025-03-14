@@ -47,9 +47,12 @@ public class TrainingServiceImpl implements TrainingService {
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
             TrainingType trainingType = this.trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainingRequestDTO.trainingTypeId()));
+                    
+            trainer.addTrainee(trainee);
 
             Training training = this.trainingMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
             Training savedTraining = this.trainingRepository.save(training);
+
             return this.trainingMapper.toDTO(savedTraining);
         } catch (ResourceNotFoundException e) {
             throw e; 

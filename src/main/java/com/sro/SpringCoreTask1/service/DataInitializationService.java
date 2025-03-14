@@ -5,10 +5,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.sro.SpringCoreTask1.exception.StorageInitializationException;
-import com.sro.SpringCoreTask1.repository.TraineeRepository;
-import com.sro.SpringCoreTask1.repository.TrainerRepository;
-import com.sro.SpringCoreTask1.repository.TrainingRepository;
-import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.util.storage.InitialData;
 import com.sro.SpringCoreTask1.util.storage.JsonFileReader;
 
@@ -17,19 +13,19 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class DataInitializationService {
 
-    private final TrainerRepository trainerRepository;
-    private final TraineeRepository traineeRepository;
-    private final TrainingRepository trainingRepository;
-    private final TrainingTypeRepository trainingTypeRepository;
+    private final TraineeService traineeService;
+    private final TrainerService trainerService;
+    private final TrainingService trainingService;
+    private final TrainingTypeService trainingTypeService;
 
     @Value("${storage.init.file}")
     Resource initDataFile;
 
-    public DataInitializationService(TrainerRepository trainerRepository, TraineeRepository traineeRepository, TrainingRepository trainingRepository, TrainingTypeRepository trainingTypeRepository) {
-        this.trainerRepository = trainerRepository;
-        this.traineeRepository = traineeRepository;
-        this.trainingRepository = trainingRepository;
-        this.trainingTypeRepository = trainingTypeRepository;
+    public DataInitializationService(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService, TrainingTypeService trainingTypeService) {
+        this.traineeService = traineeService;
+        this.trainerService = trainerService;
+        this.trainingService = trainingService;
+        this.trainingTypeService = trainingTypeService;
     }
 
     @PostConstruct
@@ -37,10 +33,10 @@ public class DataInitializationService {
         try {
             InitialData initialData = JsonFileReader.readJsonFile(initDataFile, InitialData.class);
 
-            initialData.getTrainingTypes().forEach(this.trainingTypeRepository::save);
-            initialData.getTrainees().forEach(this.traineeRepository::save);
-            initialData.getTrainers().forEach(this.trainerRepository::save);
-            initialData.getTrainings().forEach(this.trainingRepository::save);
+            initialData.getTrainingTypes().forEach(this.trainingTypeService::save);
+            initialData.getTrainees().forEach(this.traineeService::save);
+            initialData.getTrainers().forEach(this.trainerService::save);
+            initialData.getTrainings().forEach(this.trainingService::save);
         } catch (Exception e) {
             throw new StorageInitializationException("Failed to initialize storage with data: ", e);
         }
