@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
@@ -31,19 +32,19 @@ public class TraineeRepositoryImpl implements TraineeRepository {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Error saving Trainee", e);
+            throw e; 
         }
     }
 
     @Override
     public Optional<Trainee> findById(Long id) {
-        return Optional.ofNullable(em.find(Trainee.class, id));
+        return Optional.ofNullable(em.find(Trainee.class, id)); 
     }
 
     @Override
     public List<Trainee> findAll() {
         TypedQuery<Trainee> query = em.createQuery("SELECT t FROM Trainee t", Trainee.class);
-        return query.getResultList();
+        return query.getResultList(); 
     }
 
     @Override
@@ -60,7 +61,7 @@ public class TraineeRepositoryImpl implements TraineeRepository {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Error deleting Trainee", e);
+            throw e; 
         }
     }
 
@@ -76,25 +77,19 @@ public class TraineeRepositoryImpl implements TraineeRepository {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Error updating Trainee", e);
+            throw e; 
         }
     }
 
     @Override
     public Optional<Trainee> findByUsername(String username) {
-        EntityTransaction transaction = em.getTransaction();
         try {
-            transaction.begin();
             String sql = "SELECT * FROM trainee WHERE username = :username";
             Trainee trainee = (Trainee) em.createNativeQuery(sql, Trainee.class).setParameter("username", username).getSingleResult();
-            transaction.commit();
             return Optional.ofNullable(trainee);
         } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw new RuntimeException("Error finding Trainee by username", e);
-        } 
+            throw e; 
+        }
     }
 
     @Override
@@ -107,13 +102,15 @@ public class TraineeRepositoryImpl implements TraineeRepository {
                     .executeUpdate();
             transaction.commit();
             if (deletedCount == 0) {
-                throw new RuntimeException("No Trainee found with username: " + username);
+                throw new ResourceNotFoundException("No Trainee found with username: " + username);
             }
+        } catch (ResourceNotFoundException e) {
+            throw e; 
         } catch (Exception e) {
             if (transaction.isActive()) {
                 transaction.rollback();
             }
-            throw new RuntimeException("Error deleting Trainee by username", e);
+            throw e; 
         }
     }
 }

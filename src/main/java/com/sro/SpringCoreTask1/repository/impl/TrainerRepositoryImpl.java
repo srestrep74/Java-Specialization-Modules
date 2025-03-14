@@ -9,11 +9,9 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
-
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,7 +20,7 @@ import java.util.Optional;
 @Repository
 public class TrainerRepositoryImpl implements TrainerRepository {
 
-    private EntityManager em;
+    private final EntityManager em;
 
     public TrainerRepositoryImpl(EntityManager em) {
         this.em = em;
@@ -35,22 +33,24 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             tx.begin();
             em.persist(entity);
             tx.commit();
+            return entity;
         } catch (Exception e) {
-            tx.rollback();
-            throw e;
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e; 
         }
-        return entity;
     }
 
     @Override
     public Optional<Trainer> findById(Long id) {
-        return Optional.ofNullable(em.find(Trainer.class, id));
+        return Optional.ofNullable(em.find(Trainer.class, id)); 
     }
 
     @Override
     public List<Trainer> findAll() {
         TypedQuery<Trainer> query = em.createQuery("SELECT t FROM Trainer t", Trainer.class);
-        return query.getResultList();
+        return query.getResultList(); 
     }
 
     @Override
@@ -58,14 +58,16 @@ public class TrainerRepositoryImpl implements TrainerRepository {
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            Trainer entity = findById(id).orElse(null);
+            Trainer entity = em.find(Trainer.class, id);
             if (entity != null) {
                 em.remove(entity);
             }
             tx.commit();
         } catch (Exception e) {
-            tx.rollback();
-            throw e;
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e; 
         }
     }
 
@@ -78,49 +80,50 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             tx.commit();
             return mergedEntity;
         } catch (Exception e) {
-            tx.rollback();
-            throw e;
+            if (tx.isActive()) {
+                tx.rollback();
+            }
+            throw e; 
         }
     }
 
     @Override
     public Optional<Trainer> findByUsername(String username) {
-        CriteriaBuilder cb = this.em.getCriteriaBuilder();
-        CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
-        Root<Trainer> trainer = cq.from(Trainer.class);
+        try {
+            CriteriaBuilder cb = this.em.getCriteriaBuilder();
+            CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
+            Root<Trainer> trainer = cq.from(Trainer.class);
 
-        Predicate usernamePredicate = cb.equal(trainer.get("username"), username);
-        cq.where(usernamePredicate);
+            Predicate usernamePredicate = cb.equal(trainer.get("username"), username);
+            cq.where(usernamePredicate);
 
-        TypedQuery<Trainer> query = this.em.createQuery(cq);
-        return Optional.ofNullable(query.getSingleResult());
+            TypedQuery<Trainer> query = this.em.createQuery(cq);
+            return Optional.ofNullable(query.getSingleResult());
+        } catch (Exception e) {
+            throw e; 
+        }
     }
 
     @Override
     public List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername) {
-        CriteriaBuilder cb = this.em.getCriteriaBuilder();
-        CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
-        Root<Trainer> trainer = cq.from(Trainer.class);
+        try {
+            CriteriaBuilder cb = this.em.getCriteriaBuilder();
+            CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
+            Root<Trainer> trainer = cq.from(Trainer.class);
 
-        /* 
-        Join<Trainer, Trainee> trainerTraineeJoin = trainer.join("trainees", JoinType.LEFT);
+            Subquery<Long> subquery = cq.subquery(Long.class);
+            Root<Trainer> subTrainer = subquery.from(Trainer.class);
+            Join<Trainer, Trainee> assignedTrainees = subTrainer.join("trainees");
 
-        Predicate traineeMatch = cb.equal(trainerTraineeJoin.get("username"), traineeUsername);
-        Predicate trainerNotAssigned = cb.isNull(trainerTraineeJoin.get("id"));
+            subquery.select(subTrainer.get("id"))
+                    .where(cb.equal(assignedTrainees.get("username"), traineeUsername));
 
-        cq.select(trainer).where(cb.or(trainerNotAssigned, cb.not(traineeMatch)));
-        */
+            cq.select(trainer).where(cb.not(trainer.get("id").in(subquery)));
 
-        Subquery<Long> subquery = cq.subquery(Long.class);
-        Root<Trainer> subTrainer = subquery.from(Trainer.class);
-        Join<Trainer, Trainee> assignedTrainees = subTrainer.join("trainees");
-
-        subquery.select(subTrainer.get("id"))
-                .where(cb.equal(assignedTrainees.get("username"), traineeUsername));
-
-        cq.select(trainer).where(cb.not(trainer.get("id").in(subquery)));
-
-        TypedQuery<Trainer> query = this.em.createQuery(cq);
-        return query.getResultList();
+            TypedQuery<Trainer> query = this.em.createQuery(cq);
+            return query.getResultList();
+        } catch (Exception e) {
+            throw e; 
+        }
     }
 }

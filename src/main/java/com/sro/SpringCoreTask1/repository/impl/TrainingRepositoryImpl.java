@@ -38,19 +38,19 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw e;
+            throw e; 
         }
     }
 
     @Override
     public Optional<Training> findById(Long id) {
-        return Optional.ofNullable(em.find(Training.class, id));
+        return Optional.ofNullable(em.find(Training.class, id)); 
     }
 
     @Override
     public List<Training> findAll() {
         TypedQuery<Training> query = em.createQuery("SELECT t FROM Training t", Training.class);
-        return query.getResultList();
+        return query.getResultList(); 
     }
 
     @Override
@@ -67,7 +67,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw e;
+            throw e; 
         }
     }
 
@@ -83,69 +83,77 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             if (tx.isActive()) {
                 tx.rollback();
             }
-            throw e;
+            throw e; 
         }
     }
 
     @Override
     public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Training> cq = cb.createQuery(Training.class);
-        Root<Training> training = cq.from(Training.class);
+        try {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Training> cq = cb.createQuery(Training.class);
+            Root<Training> training = cq.from(Training.class);
 
-        List<Predicate> predicates = new ArrayList<>();
+            List<Predicate> predicates = new ArrayList<>();
 
-        Optional.ofNullable(filterDTO.traineeId())
-                .ifPresent(id -> predicates.add(cb.equal(training.get("trainee").get("id"), id)));
+            Optional.ofNullable(filterDTO.traineeId())
+                    .ifPresent(id -> predicates.add(cb.equal(training.get("trainee").get("id"), id)));
 
-        Optional.ofNullable(filterDTO.fromDate())
-                .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
+            Optional.ofNullable(filterDTO.fromDate())
+                    .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
 
-        Optional.ofNullable(filterDTO.toDate())
-                .ifPresent(to -> predicates.add(cb.lessThanOrEqualTo(training.get("trainingDate"), to)));
+            Optional.ofNullable(filterDTO.toDate())
+                    .ifPresent(to -> predicates.add(cb.lessThanOrEqualTo(training.get("trainingDate"), to)));
 
-        Optional.ofNullable(filterDTO.trainerName())
-                .filter(name -> !name.isEmpty())
-                .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainer").get("username")), "%" + name.toLowerCase() + "%")));
+            Optional.ofNullable(filterDTO.trainerName())
+                    .filter(name -> !name.isEmpty())
+                    .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainer").get("username")), "%" + name.toLowerCase() + "%")));
 
-        Optional.ofNullable(filterDTO.trainingType())
-                .filter(type -> !type.isEmpty())
-                .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
+            Optional.ofNullable(filterDTO.trainingType())
+                    .filter(type -> !type.isEmpty())
+                    .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
 
-        cq.where(predicates.toArray(new Predicate[0]));
-        TypedQuery<Training> query = em.createQuery(cq);
+            cq.where(predicates.toArray(new Predicate[0]));
+            TypedQuery<Training> query = em.createQuery(cq);
 
-        return query.getResultList();
+            return query.getResultList();
+        } catch (Exception e) {
+            throw e; 
+        }
     }
 
     @Override
     public List<Training> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Training> cq = cb.createQuery(Training.class);
-        Root<Training> training = cq.from(Training.class);
+        try {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Training> cq = cb.createQuery(Training.class);
+            Root<Training> training = cq.from(Training.class);
 
-        List<Predicate> predicates = new ArrayList<>();
+            List<Predicate> predicates = new ArrayList<>();
 
-        Optional.ofNullable(filterDTO.trainerId())
-                .ifPresent(id -> predicates.add(cb.equal(training.get("trainer").get("id"), id)));
+            Optional.ofNullable(filterDTO.trainerId())
+                    .ifPresent(id -> predicates.add(cb.equal(training.get("trainer").get("id"), id)));
 
-        Optional.ofNullable(filterDTO.fromDate())
-                .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
+            Optional.ofNullable(filterDTO.fromDate())
+                    .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
 
-        Optional.ofNullable(filterDTO.toDate())
-                .ifPresent(to -> predicates.add(cb.lessThanOrEqualTo(training.get("trainingDate"), to)));
+            Optional.ofNullable(filterDTO.toDate())
+                    .ifPresent(to -> predicates.add(cb.lessThanOrEqualTo(training.get("trainingDate"), to)));
 
-        Optional.ofNullable(filterDTO.traineeName())
-                .filter(name -> !name.isEmpty())
-                .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainee").get("username")), "%" + name.toLowerCase() + "%")));
+            Optional.ofNullable(filterDTO.traineeName())
+                    .filter(name -> !name.isEmpty())
+                    .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainee").get("username")), "%" + name.toLowerCase() + "%")));
 
-        Optional.ofNullable(filterDTO.trainingType())
-                .filter(type -> !type.isEmpty())
-                .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
+            Optional.ofNullable(filterDTO.trainingType())
+                    .filter(type -> !type.isEmpty())
+                    .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
 
-        cq.where(predicates.toArray(new Predicate[0]));
-        TypedQuery<Training> query = em.createQuery(cq);
+            cq.where(predicates.toArray(new Predicate[0]));
+            TypedQuery<Training> query = em.createQuery(cq);
 
-        return query.getResultList();
+            return query.getResultList();
+        } catch (Exception e) {
+            throw e; 
+        }
     }
 }

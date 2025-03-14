@@ -25,11 +25,11 @@ public class SpringCoreTask1Application {
 
         TraineeService traineeService = context.getBean(TraineeService.class);
 
-        traineeService.removeTrainerFromTrainee(6L, 1L);
+        traineeService.addTrainerToTrainee(6L, 11L);
 
-        List<TrainerResponseDTO> trainings = trainerService.getTrainersNotAssignedToTrainee("trainee1");
+        //List<TrainerResponseDTO> trainings = trainerService.getTrainersNotAssignedToTrainee("trainee133");
 
-        trainings.forEach(trainer -> System.out.println(trainer));
+        //trainings.forEach(trainer -> System.out.println(trainer));
 
         context.close();
 
