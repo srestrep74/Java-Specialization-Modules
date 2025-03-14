@@ -5,10 +5,6 @@ import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -86,15 +82,19 @@ public class TraineeRepositoryImpl implements TraineeRepository {
 
     @Override
     public Optional<Trainee> findByUsername(String username) {
-        CriteriaBuilder cb = this.em.getCriteriaBuilder();
-        CriteriaQuery<Trainee> cq = cb.createQuery(Trainee.class);
-        Root<Trainee> trainee = cq.from(Trainee.class);
-
-        Predicate usernamePredicate = cb.equal(trainee.get("username"), username);
-        cq.where(usernamePredicate);
-
-        TypedQuery<Trainee> query = this.em.createQuery(cq);
-        return Optional.ofNullable(query.getSingleResult());
+        EntityTransaction transaction = em.getTransaction();
+        try {
+            transaction.begin();
+            String sql = "SELECT * FROM trainee WHERE username = :username";
+            Trainee trainee = (Trainee) em.createNativeQuery(sql, Trainee.class).setParameter("username", username).getSingleResult();
+            transaction.commit();
+            return Optional.ofNullable(trainee);
+        } catch (Exception e) {
+            if (transaction.isActive()) {
+                transaction.rollback();
+            }
+            throw new RuntimeException("Error finding Trainee by username", e);
+        } 
     }
 
     @Override
