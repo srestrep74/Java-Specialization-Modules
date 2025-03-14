@@ -77,8 +77,11 @@ public class TraineeServiceImpl implements TraineeService{
         );
 
         if(!trainer.getTrainees().contains(trainee)){
+            trainee.getTrainers().add(trainer);
             trainer.getTrainees().add(trainee);
-            //this.trainerRepository.save(trainer);
+
+            this.traineeRepository.save(trainee);
+            this.trainerRepository.save(trainer);
         }
     }
 
@@ -94,7 +97,10 @@ public class TraineeServiceImpl implements TraineeService{
 
         if(trainer.getTrainees().contains(trainee)){
             trainer.getTrainees().remove(trainee);
-            //this.traineeRepository.save(trainee);
+            trainee.getTrainers().remove(trainer);
+
+            this.traineeRepository.save(trainee);
+            this.trainerRepository.save(trainer);
         }
     }
 }

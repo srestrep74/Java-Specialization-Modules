@@ -21,9 +21,13 @@ public class SpringCoreTask1Application {
     public static void main(String[] args) throws Exception {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
 
-        TrainingService trainingService = context.getBean(TrainingService.class);
+        TrainerService trainerService = context.getBean(TrainerService.class);
 
-        List<TrainingResponseDTO> trainings = trainingService.findAll();
+        TraineeService traineeService = context.getBean(TraineeService.class);
+
+        traineeService.removeTrainerFromTrainee(6L, 1L);
+
+        List<TrainerResponseDTO> trainings = trainerService.getTrainersNotAssignedToTrainee("trainee1");
 
         trainings.forEach(trainer -> System.out.println(trainer));
 

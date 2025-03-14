@@ -1,7 +1,9 @@
 package com.sro.SpringCoreTask1.entity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -13,13 +15,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "trainers")
-@EqualsAndHashCode(callSuper = true)
 public class Trainer extends User{
 
     @ManyToOne
@@ -35,7 +41,7 @@ public class Trainer extends User{
         joinColumns = @JoinColumn(name = "trainer_id"),
         inverseJoinColumns = @JoinColumn(name = "trainee_id")
     )
-    private List<Trainee> trainees = new ArrayList<>();
+    private Set<Trainee> trainees = new HashSet<>();
 
     @Override
     public String toString() {

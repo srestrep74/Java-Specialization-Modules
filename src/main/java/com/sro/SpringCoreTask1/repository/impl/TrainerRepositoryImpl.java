@@ -12,6 +12,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 
 import org.springframework.stereotype.Repository;
 
@@ -101,12 +102,23 @@ public class TrainerRepositoryImpl implements TrainerRepository {
         CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
         Root<Trainer> trainer = cq.from(Trainer.class);
 
+        /* 
         Join<Trainer, Trainee> trainerTraineeJoin = trainer.join("trainees", JoinType.LEFT);
 
         Predicate traineeMatch = cb.equal(trainerTraineeJoin.get("username"), traineeUsername);
         Predicate trainerNotAssigned = cb.isNull(trainerTraineeJoin.get("id"));
 
         cq.select(trainer).where(cb.or(trainerNotAssigned, cb.not(traineeMatch)));
+        */
+
+        Subquery<Long> subquery = cq.subquery(Long.class);
+        Root<Trainer> subTrainer = subquery.from(Trainer.class);
+        Join<Trainer, Trainee> assignedTrainees = subTrainer.join("trainees");
+
+        subquery.select(subTrainer.get("id"))
+                .where(cb.equal(assignedTrainees.get("username"), traineeUsername));
+
+        cq.select(trainer).where(cb.not(trainer.get("id").in(subquery)));
 
         TypedQuery<Trainer> query = this.em.createQuery(cq);
         return query.getResultList();

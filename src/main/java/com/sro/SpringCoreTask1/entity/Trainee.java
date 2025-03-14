@@ -2,7 +2,9 @@ package com.sro.SpringCoreTask1.entity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -13,13 +15,17 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Past;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "trainees")
-@EqualsAndHashCode(callSuper = true)
 public class Trainee extends User {
 
     @Column(name = "address")
@@ -33,7 +39,7 @@ public class Trainee extends User {
     private List<Training> trainings = new ArrayList<>();
 
     @ManyToMany(mappedBy = "trainees")
-    private List<Trainer> trainers = new ArrayList<>();
+    private Set<Trainer> trainers = new HashSet<>();
 
     @Override
     public String toString() {
