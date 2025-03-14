@@ -4,6 +4,7 @@ import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
@@ -11,6 +12,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;

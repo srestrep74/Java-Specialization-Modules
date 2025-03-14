@@ -3,6 +3,7 @@ package com.sro.SpringCoreTask1.repository.impl;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
@@ -12,6 +13,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

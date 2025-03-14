@@ -2,9 +2,11 @@ package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
+
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
