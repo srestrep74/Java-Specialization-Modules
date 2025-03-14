@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
@@ -39,7 +38,6 @@ public class TrainingServiceImpl implements TrainingService{
     }
 
     @Override
-    @Transactional
     public TrainingResponseDTO save(TrainingRequestDTO trainingRequestDTO) {
         Trainee trainee = this.traineeRepository.findById(trainingRequestDTO.traineeId()).get();
         Trainer trainer = this.trainerRepository.findById(trainingRequestDTO.trainerId()).get();
@@ -50,19 +48,16 @@ public class TrainingServiceImpl implements TrainingService{
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<TrainingResponseDTO> findById(Long id) { 
         return this.trainingRepository.findById(id).map(this.trainingMapper::toDTO); 
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TrainingResponseDTO> findAll() {
         return this.trainingRepository.findAll().stream().map(this.trainingMapper::toDTO).toList();
     }
 
     @Override
-    @Transactional
     public TrainingResponseDTO update(TrainingRequestDTO trainingRequestDTO) {
         Trainee trainee = this.traineeRepository.findById(trainingRequestDTO.traineeId()).get();
         Trainer trainer = this.trainerRepository.findById(trainingRequestDTO.trainerId()).get();
@@ -73,13 +68,11 @@ public class TrainingServiceImpl implements TrainingService{
     }
 
     @Override
-    @Transactional
     public void deleteById(Long id) {
         this.trainingRepository.deleteById(id);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TrainingResponseDTO> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO){
         if(filterDTO == null){
             throw new IllegalArgumentException("The filter can't be null");
@@ -89,7 +82,6 @@ public class TrainingServiceImpl implements TrainingService{
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TrainingResponseDTO> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO){
         if(filterDTO == null){
             throw new IllegalArgumentException("The filter can't be null");

@@ -9,6 +9,7 @@ import com.sro.SpringCoreTask1.config.AppConfig;
 import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
+import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
 import com.sro.SpringCoreTask1.service.TraineeService;
@@ -22,9 +23,9 @@ public class SpringCoreTask1Application {
 
         TrainingService trainingService = context.getBean(TrainingService.class);
 
-        TraineeService traineeService = context.getBean(TraineeService.class);
+        List<TrainingResponseDTO> trainings = trainingService.findAll();
 
-        traineeService.removeTrainerFromTrainee(6L, 1L);
+        trainings.forEach(trainer -> System.out.println(trainer));
 
         context.close();
 

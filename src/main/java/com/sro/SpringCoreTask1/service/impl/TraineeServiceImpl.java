@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
@@ -29,7 +28,6 @@ public class TraineeServiceImpl implements TraineeService{
     }
 
     @Override
-    @Transactional
     public TraineeResponseDTO save(TraineeRequestDTO traineeRequestDTO) {
         Trainee trainee = this.traineeMapper.toEntity(traineeRequestDTO);
         Trainee savedTrainee = this.traineeRepository.save(trainee);
@@ -37,19 +35,16 @@ public class TraineeServiceImpl implements TraineeService{
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<TraineeResponseDTO> findById(Long id) {
         return this.traineeRepository.findById(id).map(this.traineeMapper::toDTO);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<TraineeResponseDTO> findAll() {
         return this.traineeRepository.findAll().stream().map(this.traineeMapper::toDTO).toList();
     }
 
     @Override
-    @Transactional
     public TraineeResponseDTO update(TraineeRequestDTO traineeRequestDTO) {
         Trainee trainee = this.traineeMapper.toEntity(traineeRequestDTO);
         Trainee updatedTrainee = this.traineeRepository.update(trainee);
@@ -57,25 +52,21 @@ public class TraineeServiceImpl implements TraineeService{
     }
 
     @Override
-    @Transactional
     public void deleteById(Long id) {
         this.traineeRepository.deleteById(id);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<TraineeResponseDTO> findByUsername(String username) {
         return this.traineeRepository.findByUsername(username).map(this.traineeMapper::toDTO);
     }
 
     @Override
-    @Transactional
     public void deleteByUsername(String username) {
         this.traineeRepository.deleteByUsername(username);
     }
 
     @Override
-    @Transactional
     public void addTrainerToTrainee(Long traineeId, Long trainerId){
         Trainee trainee = this.traineeRepository.findById(traineeId).orElseThrow(
             () -> new IllegalArgumentException("Trainee not found")
@@ -92,7 +83,6 @@ public class TraineeServiceImpl implements TraineeService{
     }
 
     @Override
-    @Transactional
     public void removeTrainerFromTrainee(Long traineeId, Long trainerId){
         Trainee trainee = this.traineeRepository.findById(traineeId).orElseThrow(
             () -> new IllegalArgumentException("Trainee not found")

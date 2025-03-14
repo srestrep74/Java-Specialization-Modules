@@ -4,6 +4,7 @@ import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -28,7 +29,15 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
     @Override
     public Trainer save(Trainer entity) {
-        em.persist(entity);
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            em.persist(entity);
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
         return entity;
     }
 
@@ -45,15 +54,32 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
     @Override
     public void deleteById(Long id) {
-        Trainer entity = findById(id).orElse(null);
-        if (entity != null) {
-            em.remove(entity);
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Trainer entity = findById(id).orElse(null);
+            if (entity != null) {
+                em.remove(entity);
+            }
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
         }
     }
 
     @Override
     public Trainer update(Trainer entity) {
-        return em.merge(entity);
+        EntityTransaction tx = em.getTransaction();
+        try {
+            tx.begin();
+            Trainer mergedEntity = em.merge(entity);
+            tx.commit();
+            return mergedEntity;
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
     }
 
     @Override
@@ -70,7 +96,7 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     }
 
     @Override
-    public List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername){
+    public List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername) {
         CriteriaBuilder cb = this.em.getCriteriaBuilder();
         CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
         Root<Trainer> trainer = cq.from(Trainer.class);
