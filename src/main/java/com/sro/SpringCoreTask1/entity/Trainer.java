@@ -1,5 +1,6 @@
 package com.sro.SpringCoreTask1.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -18,7 +19,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @Entity
 @Table(name = "trainers")
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 public class Trainer extends User{
 
     @ManyToOne
@@ -26,7 +27,7 @@ public class Trainer extends User{
     private TrainingType trainingType;
 
     @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Training> trainings;
+    private List<Training> trainings = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -34,7 +35,7 @@ public class Trainer extends User{
         joinColumns = @JoinColumn(name = "trainer_id"),
         inverseJoinColumns = @JoinColumn(name = "trainee_id")
     )
-    private List<Trainee> trainees;
+    private List<Trainee> trainees = new ArrayList<>();
 
     @Override
     public String toString() {
