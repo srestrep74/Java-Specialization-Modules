@@ -109,11 +109,8 @@ public class TraineeServiceImpl implements TraineeService {
                 throw new ResourceAlreadyExistsException("Trainer already assigned to Trainee");
             }
 
-            trainee.getTrainers().add(trainer);
-            trainer.getTrainees().add(trainee);
-
-            this.traineeRepository.save(trainee);
-            this.trainerRepository.save(trainer);
+            trainer.addTrainee(trainee);
+            trainerRepository.save(trainer);
         } catch (ResourceNotFoundException | ResourceAlreadyExistsException e) {
             throw e;
         } catch (Exception e) {
@@ -133,12 +130,9 @@ public class TraineeServiceImpl implements TraineeService {
             if (!trainer.getTrainees().contains(trainee)) {
                 throw new ResourceNotFoundException("Trainer not assigned to Trainee");
             }
-
-            trainer.getTrainees().remove(trainee);
-            trainee.getTrainers().remove(trainer);
-
-            this.traineeRepository.save(trainee);
-            this.trainerRepository.save(trainer);
+            
+            trainer.removeTrainee(trainee);
+            trainerRepository.save(trainer);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
