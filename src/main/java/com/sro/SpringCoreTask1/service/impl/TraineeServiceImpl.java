@@ -139,4 +139,32 @@ public class TraineeServiceImpl implements TraineeService {
             throw new DatabaseOperationException("Error removing Trainer from Trainee", e);
         }
     }
+
+    @Override
+    public void activateTrainee(Long traineeId) {
+        try {
+            Trainee trainee = this.traineeRepository.findById(traineeId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + traineeId));
+            trainee.setActive(true);
+            this.traineeRepository.save(trainee);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error activating Trainee", e);
+        }
+    }
+
+    @Override
+    public void deactivateTrainee(Long traineeId) {
+        try {
+            Trainee trainee = this.traineeRepository.findById(traineeId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + traineeId));
+            trainee.setActive(false);
+            this.traineeRepository.save(trainee);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error deactivating Trainee", e);
+        }
+    }
 }

@@ -11,4 +11,6 @@ import com.sro.SpringCoreTask1.service.base.BaseService;
 public interface TrainerService extends BaseService<TrainerRequestDTO, TrainerResponseDTO, Long> {
     Optional<TrainerResponseDTO> findByUsername(String username);
     List<TrainerResponseDTO> getTrainersNotAssignedToTrainee(String traineeUsername);
+    void activateTrainer(Long trainerId);
+    void deactivateTrainer(Long trainerId);
 }

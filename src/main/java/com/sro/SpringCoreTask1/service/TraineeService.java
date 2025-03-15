@@ -12,4 +12,6 @@ public interface TraineeService extends BaseService<TraineeRequestDTO, TraineeRe
     void deleteByUsername(String username);
     void addTrainerToTrainee(Long traineeId, Long trainerId);
     void removeTrainerFromTrainee(Long traineeId, Long trainerId);
+    void activateTrainee(Long traineeId);
+    void deactivateTrainee(Long traineeId);
 }

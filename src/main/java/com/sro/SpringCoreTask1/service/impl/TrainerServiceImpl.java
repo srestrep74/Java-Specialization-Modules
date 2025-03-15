@@ -105,4 +105,32 @@ public class TrainerServiceImpl implements TrainerService {
             throw new DatabaseOperationException("Error finding Trainers not assigned to Trainee", e);
         }
     }
+
+    @Override
+    public void activateTrainer(Long trainerId) {
+        try {
+            Trainer trainer = this.trainerRepository.findById(trainerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
+            trainer.setActive(true);
+            this.trainerRepository.save(trainer);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error activating Trainer", e);
+        }
+    }
+
+    @Override
+    public void deactivateTrainer(Long trainerId) {
+        try {
+            Trainer trainer = this.trainerRepository.findById(trainerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
+            trainer.setActive(false);
+            this.trainerRepository.save(trainer);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error deactivating Trainer", e);
+        }
+    }
 }

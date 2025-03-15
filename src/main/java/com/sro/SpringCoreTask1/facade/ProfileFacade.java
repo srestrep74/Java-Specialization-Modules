@@ -101,8 +101,21 @@ public class ProfileFacade {
         return traineeService.update(traineeRequestDTO);
     }
 
-    // Deactivate and active profiles 
-    // -----------------------------------
+    public void activateTrainee(Long traineeId) {
+        traineeService.activateTrainee(traineeId);
+    }
+
+    public void deactivateTrainee(Long traineeId) {
+        traineeService.deactivateTrainee(traineeId);
+    }
+
+    public void activateTrainer(Long trainerId) {
+        trainerService.activateTrainer(trainerId);
+    }
+
+    public void deactivateTrainer(Long trainerId) {
+        trainerService.deactivateTrainer(trainerId);
+    }
 
     public void deleteTraineeProfileByUsername(String username) {
         traineeService.deleteByUsername(username);
