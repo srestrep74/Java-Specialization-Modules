@@ -43,7 +43,7 @@ public class Trainee extends User {
 
     @Override
     public String toString() {
-        return "Trainer{" +
+        return "Trainee{" +
                 "id=" + this.getId() +
                 ", firstName='" + this.getFirstName() + '\'' +
                 ", lastName='" + this.getLastName() + '\'' +

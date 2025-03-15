@@ -86,7 +86,9 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Override
     public Optional<Trainee> findByUsername(String username) {
         try {
-            String sql = "SELECT * FROM trainee WHERE username = :username";
+            String sql = "SELECT u.id, u.first_name, u.last_name, u.username, u.password, u.is_active, t.address, t.date_of_birth FROM trainees t " + 
+                         "INNER JOIN users u ON t.id = u.id " + 
+                         "WHERE u.username = :username";
             Trainee trainee = (Trainee) em.createNativeQuery(sql, Trainee.class).setParameter("username", username).getSingleResult();
             return Optional.ofNullable(trainee);
         } catch (Exception e) {
