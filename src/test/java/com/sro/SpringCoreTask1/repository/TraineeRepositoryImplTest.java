@@ -54,9 +54,7 @@ class TraineeRepositoryImplTest {
     @Test
     void save_ShouldPersistTrainee_WhenValid() {
         when(entityManager.getTransaction()).thenReturn(transaction);
-
         Trainee result = traineeRepository.save(trainee);
-
         verify(entityManager).persist(trainee);
         verify(transaction).begin();
         verify(transaction).commit();
@@ -66,9 +64,7 @@ class TraineeRepositoryImplTest {
     @Test
     void findById_ShouldReturnTrainee_WhenExists() {
         when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
-
         Optional<Trainee> result = traineeRepository.findById(1L);
-
         assertTrue(result.isPresent());
         assertEquals(trainee, result.get());
     }
@@ -76,9 +72,7 @@ class TraineeRepositoryImplTest {
     @Test
     void findById_ShouldReturnEmpty_WhenNotExists() {
         when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
-
         Optional<Trainee> result = traineeRepository.findById(1L);
-
         assertFalse(result.isPresent());
     }
 
@@ -86,9 +80,7 @@ class TraineeRepositoryImplTest {
     void findAll_ShouldReturnList_WhenTraineesExist() {
         when(entityManager.createQuery("SELECT t FROM Trainee t", Trainee.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(List.of(trainee));
-
         List<Trainee> result = traineeRepository.findAll();
-
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals(trainee, result.get(0));
@@ -98,9 +90,7 @@ class TraineeRepositoryImplTest {
     void deleteById_ShouldRemoveTrainee_WhenExists() {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
-
         boolean result = traineeRepository.deleteById(1L);
-
         verify(entityManager).remove(trainee);
         verify(transaction).begin();
         verify(transaction).commit();
@@ -111,9 +101,7 @@ class TraineeRepositoryImplTest {
     void deleteById_ShouldReturnFalse_WhenNotExists() {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
-
         boolean result = traineeRepository.deleteById(1L);
-
         assertFalse(result);
     }
 
@@ -122,9 +110,7 @@ class TraineeRepositoryImplTest {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
         when(entityManager.merge(trainee)).thenReturn(trainee);
-
         Optional<Trainee> result = traineeRepository.update(trainee);
-
         assertTrue(result.isPresent());
         assertEquals(trainee, result.get());
     }
@@ -133,9 +119,7 @@ class TraineeRepositoryImplTest {
     void update_ShouldReturnEmpty_WhenTraineeDoesNotExist() {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
-
         Optional<Trainee> result = traineeRepository.update(trainee);
-
         assertFalse(result.isPresent());
     }
 
@@ -144,9 +128,7 @@ class TraineeRepositoryImplTest {
         when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
         when(query.setParameter("username", "johndoe")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(trainee);
-
         Optional<Trainee> result = traineeRepository.findByUsername("johndoe");
-
         assertTrue(result.isPresent());
         assertEquals(trainee, result.get());
     }
@@ -156,9 +138,7 @@ class TraineeRepositoryImplTest {
         when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
         when(query.setParameter("username", "johndoe")).thenReturn(query);
         when(query.getSingleResult()).thenThrow(new NoResultException());
-
         Optional<Trainee> result = traineeRepository.findByUsername("johndoe");
-
         assertFalse(result.isPresent());
     }
 
@@ -168,9 +148,7 @@ class TraineeRepositoryImplTest {
         when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
         when(query.setParameter("username", "johndoe")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(trainee);
-
         boolean result = traineeRepository.deleteByUsername("johndoe");
-
         verify(entityManager).remove(trainee);
         verify(transaction).begin();
         verify(transaction).commit();
@@ -183,9 +161,7 @@ class TraineeRepositoryImplTest {
         when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
         when(query.setParameter("username", "johndoe")).thenReturn(query);
         when(query.getSingleResult()).thenThrow(new NoResultException());
-
         boolean result = traineeRepository.deleteByUsername("johndoe");
-
         assertFalse(result);
     }
 }

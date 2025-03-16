@@ -10,6 +10,7 @@ import com.sro.SpringCoreTask1.repository.impl.TrainerRepositoryImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -23,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,9 +70,7 @@ class TrainerRepositoryImplTest {
     @Test
     void save_ShouldPersistTrainer_WhenValid() {
         when(entityManager.getTransaction()).thenReturn(transaction);
-
         Trainer result = trainerRepository.save(trainer);
-
         verify(entityManager).persist(trainer);
         verify(transaction).begin();
         verify(transaction).commit();
@@ -78,11 +78,20 @@ class TrainerRepositoryImplTest {
     }
 
     @Test
+    void save_ShouldRollbackTransaction_WhenPersistenceExceptionOccurs() {
+        when(entityManager.getTransaction()).thenReturn(transaction);
+        when(transaction.isActive()).thenReturn(true);
+        doThrow(new PersistenceException("DB error")).when(entityManager).persist(any(Trainer.class));
+        assertThrows(PersistenceException.class, () -> trainerRepository.save(trainer));
+        verify(transaction).begin();
+        verify(transaction).rollback();
+        verify(transaction, never()).commit();
+    }
+
+    @Test
     void findById_ShouldReturnTrainer_WhenExists() {
         when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
-
         Optional<Trainer> result = trainerRepository.findById(1L);
-
         assertTrue(result.isPresent());
         assertEquals(trainer, result.get());
     }
@@ -90,9 +99,7 @@ class TrainerRepositoryImplTest {
     @Test
     void findById_ShouldReturnEmpty_WhenNotExists() {
         when(entityManager.find(Trainer.class, 1L)).thenReturn(null);
-
         Optional<Trainer> result = trainerRepository.findById(1L);
-
         assertFalse(result.isPresent());
     }
 
@@ -100,21 +107,25 @@ class TrainerRepositoryImplTest {
     void findAll_ShouldReturnList_WhenTrainersExist() {
         when(entityManager.createQuery("SELECT t FROM Trainer t", Trainer.class)).thenReturn(query);
         when(query.getResultList()).thenReturn(List.of(trainer));
-
         List<Trainer> result = trainerRepository.findAll();
-
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
         assertEquals(trainer, result.get(0));
     }
 
     @Test
+    void findAll_ShouldReturnEmptyList_WhenNoTrainersExist() {
+        when(entityManager.createQuery("SELECT t FROM Trainer t", Trainer.class)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+        List<Trainer> result = trainerRepository.findAll();
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     void deleteById_ShouldRemoveTrainer_WhenExists() {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
-
         boolean result = trainerRepository.deleteById(1L);
-
         verify(entityManager).remove(trainer);
         verify(transaction).begin();
         verify(transaction).commit();
@@ -125,10 +136,20 @@ class TrainerRepositoryImplTest {
     void deleteById_ShouldReturnFalse_WhenNotExists() {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(null);
-
         boolean result = trainerRepository.deleteById(1L);
-
         assertFalse(result);
+    }
+
+    @Test
+    void deleteById_ShouldRollbackAndRethrow_WhenExceptionOccurs() {
+        when(entityManager.getTransaction()).thenReturn(transaction);
+        when(transaction.isActive()).thenReturn(true);
+        when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
+        doThrow(new PersistenceException("Delete error")).when(entityManager).remove(any(Trainer.class));
+        assertThrows(PersistenceException.class, () -> trainerRepository.deleteById(1L));
+        verify(transaction).begin();
+        verify(transaction).rollback();
+        verify(transaction, never()).commit();
     }
 
     @Test
@@ -136,9 +157,7 @@ class TrainerRepositoryImplTest {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
         when(entityManager.merge(trainer)).thenReturn(trainer);
-
         Optional<Trainer> result = trainerRepository.update(trainer);
-
         assertTrue(result.isPresent());
         assertEquals(trainer, result.get());
     }
@@ -147,49 +166,34 @@ class TrainerRepositoryImplTest {
     void update_ShouldReturnEmpty_WhenTrainerDoesNotExist() {
         when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(null);
-
         Optional<Trainer> result = trainerRepository.update(trainer);
-
         assertFalse(result.isPresent());
     }
 
-   @Test
+    @Test
     void findByUsername_ShouldReturnTrainer_WhenExists() {
         when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
         when(criteriaBuilder.createQuery(Trainer.class)).thenReturn(criteriaQuery);
         when(criteriaQuery.from(Trainer.class)).thenReturn(root);
         when(criteriaBuilder.equal(root.get("username"), "johndoe")).thenReturn(mock(Predicate.class));
-
         when(criteriaQuery.where(any(Predicate.class))).thenReturn(criteriaQuery);
         when(entityManager.createQuery(criteriaQuery)).thenReturn(query);
         when(query.getSingleResult()).thenReturn(trainer);
-
         Optional<Trainer> result = trainerRepository.findByUsername("johndoe");
-
         assertTrue(result.isPresent());
         assertEquals(trainer, result.get());
     }
 
-
     @Test
     void findByUsername_ShouldReturnEmpty_WhenNotExists() {
-        CriteriaBuilder cb = mock(CriteriaBuilder.class);
-        CriteriaQuery<Trainer> cq = mock(CriteriaQuery.class);
-        Root<Trainer> trainerRoot = mock(Root.class);
-        TypedQuery<Trainer> typedQuery = mock(TypedQuery.class);
-    
-        when(entityManager.getCriteriaBuilder()).thenReturn(cb);
-        when(cb.createQuery(Trainer.class)).thenReturn(cq);
-        when(cq.from(Trainer.class)).thenReturn(trainerRoot);
-        when(entityManager.createQuery(cq)).thenReturn(typedQuery);
-
-        when(typedQuery.getSingleResult()).thenThrow(new NoResultException());
-    
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createQuery(Trainer.class)).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(Trainer.class)).thenReturn(root);
+        when(criteriaBuilder.equal(root.get("username"), "johndoe")).thenReturn(mock(Predicate.class));
+        when(criteriaQuery.where(any(Predicate.class))).thenReturn(criteriaQuery);
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(query);
+        when(query.getSingleResult()).thenThrow(new NoResultException());
         Optional<Trainer> result = trainerRepository.findByUsername("johndoe");
-    
         assertFalse(result.isPresent());
     }
-    
-    
-    
 }
