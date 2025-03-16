@@ -1,23 +1,8 @@
 package com.sro.SpringCoreTask1.facade;
 
-import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
-import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
-import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
-import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
-import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
-import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
-import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
-import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
-import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
-import com.sro.SpringCoreTask1.service.AuthService;
-import com.sro.SpringCoreTask1.service.TraineeService;
-import com.sro.SpringCoreTask1.service.TrainerService;
-import com.sro.SpringCoreTask1.service.TrainingService;
 
 @Component
 public class ProfileFacade {
