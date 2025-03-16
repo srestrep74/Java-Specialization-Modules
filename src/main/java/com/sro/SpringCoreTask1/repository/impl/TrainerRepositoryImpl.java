@@ -6,7 +6,8 @@ import com.sro.SpringCoreTask1.repository.TrainerRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Join;
@@ -22,94 +23,98 @@ import java.util.Optional;
 @Repository
 public class TrainerRepositoryImpl implements TrainerRepository {
 
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
-    public TrainerRepositoryImpl(EntityManager em) {
-        this.em = em;
+    public TrainerRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @Override
-    public Trainer save(Trainer entity) {
-        EntityTransaction tx = em.getTransaction();
+    public Trainer save(Trainer trainer) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            em.persist(entity);
-            tx.commit();
-            return entity;
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e; 
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            entityManager.persist(trainer);
+            transaction.commit();
+            return trainer;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
     public Optional<Trainer> findById(Long id) {
-        return Optional.ofNullable(em.find(Trainer.class, id)); 
+        return Optional.ofNullable(entityManager.find(Trainer.class, id));
     }
 
     @Override
     public List<Trainer> findAll() {
-        TypedQuery<Trainer> query = em.createQuery("SELECT t FROM Trainer t", Trainer.class);
-        return query.getResultList(); 
+        return entityManager.createQuery("SELECT t FROM Trainer t", Trainer.class)
+                           .getResultList();
     }
 
     @Override
-    public void deleteById(Long id) {
-        EntityTransaction tx = em.getTransaction();
+    public boolean deleteById(Long id) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            Trainer entity = em.find(Trainer.class, id);
-            if (entity != null) {
-                em.remove(entity);
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            Trainer trainer = entityManager.find(Trainer.class, id);
+            if (trainer == null) {
+                rollbackTransaction(transaction);
+                return false;
             }
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e; 
+            entityManager.remove(trainer);
+            transaction.commit();
+            return true;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
-    public Trainer update(Trainer entity) {
-        EntityTransaction tx = em.getTransaction();
+    public Optional<Trainer> update(Trainer trainer) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            Trainer mergedEntity = em.merge(entity);
-            tx.commit();
-            return mergedEntity;
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            Trainer existingTrainer = entityManager.find(Trainer.class, trainer.getId());
+            if (existingTrainer == null) {
+                rollbackTransaction(transaction);
+                return Optional.empty();
             }
-            throw e; 
+            Trainer updatedTrainer = entityManager.merge(trainer);
+            transaction.commit();
+            return Optional.of(updatedTrainer);
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
     public Optional<Trainer> findByUsername(String username) {
         try {
-            CriteriaBuilder cb = this.em.getCriteriaBuilder();
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
             Root<Trainer> trainer = cq.from(Trainer.class);
 
             Predicate usernamePredicate = cb.equal(trainer.get("username"), username);
             cq.where(usernamePredicate);
 
-            TypedQuery<Trainer> query = this.em.createQuery(cq);
-            return Optional.ofNullable(query.getSingleResult());
-        } catch (Exception e) {
-            throw e; 
+            return Optional.ofNullable(entityManager.createQuery(cq).getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
         }
     }
 
     @Override
     public List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername) {
         try {
-            CriteriaBuilder cb = this.em.getCriteriaBuilder();
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
             Root<Trainer> trainer = cq.from(Trainer.class);
 
@@ -122,10 +127,15 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
             cq.select(trainer).where(cb.not(trainer.get("id").in(subquery)));
 
-            TypedQuery<Trainer> query = this.em.createQuery(cq);
-            return query.getResultList();
-        } catch (Exception e) {
-            throw e; 
+            return entityManager.createQuery(cq).getResultList();
+        } catch (PersistenceException e) {
+            throw e;
+        }
+    }
+
+    private void rollbackTransaction(EntityTransaction transaction) {
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
         }
     }
 }

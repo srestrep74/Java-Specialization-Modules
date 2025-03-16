@@ -5,7 +5,7 @@ import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.PersistenceException;
 
 import org.springframework.stereotype.Repository;
 
@@ -15,70 +15,81 @@ import java.util.Optional;
 @Repository
 public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
 
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
-    public TrainingTypeRepositoryImpl(EntityManager em) {
-        this.em = em;
+    public TrainingTypeRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @Override
-    public TrainingType save(TrainingType entity) {
-        EntityTransaction tx = em.getTransaction();
+    public TrainingType save(TrainingType trainingType) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            em.persist(entity);
-            tx.commit();
-            return entity;
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            entityManager.persist(trainingType);
+            transaction.commit();
+            return trainingType;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
             throw e;
         }
     }
 
     @Override
     public Optional<TrainingType> findById(Long id) {
-        return Optional.ofNullable(em.find(TrainingType.class, id));
+        return Optional.ofNullable(entityManager.find(TrainingType.class, id));
     }
 
     @Override
     public List<TrainingType> findAll() {
-        TypedQuery<TrainingType> query = em.createQuery("SELECT t FROM TrainingType t", TrainingType.class);
-        return query.getResultList();
+        return entityManager.createQuery("SELECT t FROM TrainingType t", TrainingType.class)
+                           .getResultList();
     }
 
     @Override
-    public void deleteById(Long id) {
-        EntityTransaction tx = em.getTransaction();
+    public boolean deleteById(Long id) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            TrainingType entity = findById(id).orElse(null);
-            if (entity != null) {
-                em.remove(entity);
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            TrainingType trainingType = entityManager.find(TrainingType.class, id);
+            if (trainingType == null) {
+                rollbackTransaction(transaction);
+                return false;
             }
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
+            entityManager.remove(trainingType);
+            transaction.commit();
+            return true;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
             throw e;
         }
     }
 
     @Override
-    public TrainingType update(TrainingType entity) {
-        EntityTransaction tx = em.getTransaction();
+    public Optional<TrainingType> update(TrainingType trainingType) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            TrainingType mergedEntity = em.merge(entity);
-            tx.commit();
-            return mergedEntity;
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            TrainingType existingTrainingType = entityManager.find(TrainingType.class, trainingType.getId());
+            if (existingTrainingType == null) {
+                rollbackTransaction(transaction);
+                return Optional.empty();
             }
+            TrainingType updatedTrainingType = entityManager.merge(trainingType);
+            transaction.commit();
+            return Optional.of(updatedTrainingType);
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
             throw e;
+        }
+    }
+
+    private void rollbackTransaction(EntityTransaction transaction) {
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
         }
     }
 }

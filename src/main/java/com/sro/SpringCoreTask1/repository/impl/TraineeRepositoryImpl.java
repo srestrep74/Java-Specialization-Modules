@@ -1,12 +1,12 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
-import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceException;
 
 import org.springframework.stereotype.Repository;
 
@@ -16,105 +16,115 @@ import java.util.Optional;
 @Repository
 public class TraineeRepositoryImpl implements TraineeRepository {
 
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
-    public TraineeRepositoryImpl(EntityManager em) {
-        this.em = em;
+    public TraineeRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @Override
-    public Trainee save(Trainee entity) {
-        EntityTransaction transaction = em.getTransaction();
+    public Trainee save(Trainee trainee) {
+        EntityTransaction transaction = null;
         try {
+            transaction = entityManager.getTransaction();
             transaction.begin();
-            em.persist(entity);
+            entityManager.persist(trainee);
             transaction.commit();
-            return entity;
-        } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw e; 
+            return trainee;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
     public Optional<Trainee> findById(Long id) {
-        return Optional.ofNullable(em.find(Trainee.class, id)); 
+        return Optional.ofNullable(entityManager.find(Trainee.class, id));
     }
 
     @Override
     public List<Trainee> findAll() {
-        TypedQuery<Trainee> query = em.createQuery("SELECT t FROM Trainee t", Trainee.class);
-        return query.getResultList(); 
+        return entityManager.createQuery("SELECT t FROM Trainee t", Trainee.class)
+                           .getResultList();
     }
 
     @Override
-    public void deleteById(Long id) {
-        EntityTransaction transaction = em.getTransaction();
+    public boolean deleteById(Long id) {
+        EntityTransaction transaction = null;
         try {
+            transaction = entityManager.getTransaction();
             transaction.begin();
-            Trainee entity = em.find(Trainee.class, id);
-            if (entity != null) {
-                em.remove(entity);
+            Trainee trainee = this.entityManager.find(Trainee.class, id);
+            if (trainee == null) {
+                rollbackTransaction(transaction);
+                return false;
             }
+            entityManager.remove(trainee);
             transaction.commit();
-        } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw e; 
+            return true;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
-    public Trainee update(Trainee entity) {
-        EntityTransaction transaction = em.getTransaction();
+    public Optional<Trainee> update(Trainee trainee) {
+        EntityTransaction transaction = null;
         try {
+            transaction = entityManager.getTransaction();
             transaction.begin();
-            Trainee updatedEntity = em.merge(entity);
-            transaction.commit();
-            return updatedEntity;
-        } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
+            Trainee existingTrainee = this.entityManager.find(Trainee.class, trainee.getId());
+            if (existingTrainee == null) {
+                rollbackTransaction(transaction);
+                return Optional.empty();
             }
-            throw e; 
+            Trainee updatedTrainee = entityManager.merge(trainee);
+            transaction.commit();
+            return Optional.of(updatedTrainee);
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
     public Optional<Trainee> findByUsername(String username) {
         try {
-            String sql = "SELECT u.id, u.first_name, u.last_name, u.username, u.password, u.is_active, t.address, t.date_of_birth FROM trainees t " + 
-                         "INNER JOIN users u ON t.id = u.id " + 
-                         "WHERE u.username = :username";
-            Trainee trainee = (Trainee) em.createNativeQuery(sql, Trainee.class).setParameter("username", username).getSingleResult();
-            return Optional.ofNullable(trainee);
-        } catch (Exception e) {
-            throw e; 
-        }
+            String sql = "SELECT t FROM Trainee t WHERE t.username = :username";
+            Trainee trainee = entityManager.createQuery(sql, Trainee.class)
+                                          .setParameter("username", username)
+                                          .getSingleResult();
+            return Optional.of(trainee);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } 
     }
 
     @Override
-    public void deleteByUsername(String username) {
-        EntityTransaction transaction = em.getTransaction();
+    public boolean deleteByUsername(String username) {
+        EntityTransaction transaction = null;
         try {
+            transaction = entityManager.getTransaction();
             transaction.begin();
-            int deletedCount = em.createQuery("DELETE FROM Trainee t WHERE t.username = :username")
-                    .setParameter("username", username)
-                    .executeUpdate();
+            Trainee trainee = entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)
+                                          .setParameter("username", username)
+                                          .getSingleResult();
+            entityManager.remove(trainee);
             transaction.commit();
-            if (deletedCount == 0) {
-                throw new ResourceNotFoundException("No Trainee found with username: " + username);
-            }
-        } catch (ResourceNotFoundException e) {
-            throw e; 
-        } catch (Exception e) {
-            if (transaction.isActive()) {
-                transaction.rollback();
-            }
-            throw e; 
+            return true;
+        } catch (NoResultException e) {
+            rollbackTransaction(transaction);
+            return false;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
+        }
+    }
+
+    private void rollbackTransaction(EntityTransaction transaction) {
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
         }
     }
 }

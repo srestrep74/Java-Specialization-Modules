@@ -7,6 +7,7 @@ import com.sro.SpringCoreTask1.repository.TrainingRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -22,77 +23,82 @@ import java.util.Optional;
 @Repository
 public class TrainingRepositoryImpl implements TrainingRepository {
 
-    private final EntityManager em;
+    private final EntityManager entityManager;
 
-    public TrainingRepositoryImpl(EntityManager em) {
-        this.em = em;
+    public TrainingRepositoryImpl(EntityManager entityManager) {
+        this.entityManager = entityManager;
     }
 
     @Override
-    public Training save(Training entity) {
-        EntityTransaction tx = em.getTransaction();
+    public Training save(Training training) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            em.persist(entity);
-            tx.commit();
-            return entity;
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e; 
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            entityManager.persist(training);
+            transaction.commit();
+            return training;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
     public Optional<Training> findById(Long id) {
-        return Optional.ofNullable(em.find(Training.class, id)); 
+        return Optional.ofNullable(entityManager.find(Training.class, id));
     }
 
     @Override
     public List<Training> findAll() {
-        TypedQuery<Training> query = em.createQuery("SELECT t FROM Training t", Training.class);
-        return query.getResultList(); 
+        return entityManager.createQuery("SELECT t FROM Training t", Training.class)
+                           .getResultList();
     }
 
     @Override
-    public void deleteById(Long id) {
-        EntityTransaction tx = em.getTransaction();
+    public boolean deleteById(Long id) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            Training entity = findById(id).orElse(null);
-            if (entity != null) {
-                em.remove(entity);
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            Training training = entityManager.find(Training.class, id);
+            if (training == null) {
+                rollbackTransaction(transaction);
+                return false;
             }
-            tx.commit();
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
-            }
-            throw e; 
+            entityManager.remove(training);
+            transaction.commit();
+            return true;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
-    public Training update(Training entity) {
-        EntityTransaction tx = em.getTransaction();
+    public Optional<Training> update(Training training) {
+        EntityTransaction transaction = null;
         try {
-            tx.begin();
-            Training updatedEntity = em.merge(entity);
-            tx.commit();
-            return updatedEntity;
-        } catch (Exception e) {
-            if (tx.isActive()) {
-                tx.rollback();
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            Training existingTraining = entityManager.find(Training.class, training.getId());
+            if (existingTraining == null) {
+                rollbackTransaction(transaction);
+                return Optional.empty();
             }
-            throw e; 
+            Training updatedTraining = entityManager.merge(training);
+            transaction.commit();
+            return Optional.of(updatedTraining);
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
         }
     }
 
     @Override
     public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO) {
         try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Training> cq = cb.createQuery(Training.class);
             Root<Training> training = cq.from(Training.class);
 
@@ -116,18 +122,18 @@ public class TrainingRepositoryImpl implements TrainingRepository {
                     .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
 
             cq.where(predicates.toArray(new Predicate[0]));
-            TypedQuery<Training> query = em.createQuery(cq);
+            TypedQuery<Training> query = entityManager.createQuery(cq);
 
             return query.getResultList();
-        } catch (Exception e) {
-            throw e; 
+        } catch (PersistenceException e) {
+            throw e;
         }
     }
 
     @Override
     public List<Training> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO) {
         try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Training> cq = cb.createQuery(Training.class);
             Root<Training> training = cq.from(Training.class);
 
@@ -151,11 +157,17 @@ public class TrainingRepositoryImpl implements TrainingRepository {
                     .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
 
             cq.where(predicates.toArray(new Predicate[0]));
-            TypedQuery<Training> query = em.createQuery(cq);
+            TypedQuery<Training> query = entityManager.createQuery(cq);
 
             return query.getResultList();
-        } catch (Exception e) {
-            throw e; 
+        } catch (PersistenceException e) {
+            throw e;
+        }
+    }
+
+    private void rollbackTransaction(EntityTransaction transaction) {
+        if (transaction != null && transaction.isActive()) {
+            transaction.rollback();
         }
     }
 }

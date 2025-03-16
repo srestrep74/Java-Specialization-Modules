@@ -22,6 +22,7 @@ import com.sro.SpringCoreTask1.service.TrainingService;
 @Component
 public class ProfileFacade {
 
+    /* 
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingService trainingService;
@@ -139,4 +140,6 @@ public class ProfileFacade {
 
     // Update Trainees trainings list
     // --------------------------------------------
+
+    */
 }
