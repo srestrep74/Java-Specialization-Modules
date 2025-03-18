@@ -11,6 +11,7 @@ import com.sro.SpringCoreTask1.mappers.TraineeMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.TraineeService;
+import com.sro.SpringCoreTask1.util.ProfileUtil;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -33,12 +34,15 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     public TraineeResponseDTO save(TraineeRequestDTO traineeRequestDTO) {
-        if(traineeRequestDTO.username() == null || traineeRequestDTO.username().isEmpty()) {
-            throw new IllegalArgumentException("Trainee username cannot be null or empty");
+
+        if(traineeRequestDTO == null) {
+            throw new IllegalArgumentException("Trainee cannot be null");
         }
 
         try {
             Trainee trainee = this.traineeMapper.toEntity(traineeRequestDTO);
+            trainee.setUsername(ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
+            trainee.setPassword(ProfileUtil.generatePassword());
             Trainee savedTrainee = this.traineeRepository.save(trainee);
             return this.traineeMapper.toDTO(savedTrainee);
         }catch (ConstraintViolationException e) {

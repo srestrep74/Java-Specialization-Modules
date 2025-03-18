@@ -3,8 +3,6 @@
     {
       "firstName": "John",
       "lastName": "Doe",
-      "username": "john.doe",
-      "password": "password123",
       "active": true,
       "address": "123 Main St",
       "dateOfBirth": "1990-01-01"
@@ -12,8 +10,6 @@
     {
       "firstName": "Jane",
       "lastName": "Smith",
-      "username": "jane.smith",
-      "password": "password123",
       "active": true,
       "address": "456 Elm St",
       "dateOfBirth": "1995-05-05"
@@ -21,8 +17,6 @@
     {
       "firstName": "Alice",
       "lastName": "Johnson",
-      "username": "alice.johnson",
-      "password": "password123",
       "active": true,
       "address": "789 Oak St",
       "dateOfBirth": "1985-03-15"
@@ -30,8 +24,6 @@
     {
       "firstName": "Bob",
       "lastName": "Brown",
-      "username": "bob.brown",
-      "password": "password123",
       "active": true,
       "address": "321 Pine St",
       "dateOfBirth": "1988-07-20"
@@ -39,8 +31,6 @@
     {
       "firstName": "Charlie",
       "lastName": "Davis",
-      "username": "charlie.davis",
-      "password": "password123",
       "active": true,
       "address": "654 Maple St",
       "dateOfBirth": "1992-11-30"
@@ -50,40 +40,30 @@
     {
       "firstName": "Mike",
       "lastName": "Taylor",
-      "username": "mike.taylor",
-      "password": "password123",
       "active": true,
       "trainingTypeId": 1
     },
     {
       "firstName": "Sarah",
       "lastName": "Wilson",
-      "username": "sarah.wilson",
-      "password": "password123",
       "active": true,
       "trainingTypeId": 2
     },
     {
       "firstName": "David",
       "lastName": "Moore",
-      "username": "david.moore",
-      "password": "password123",
       "active": true,
       "trainingTypeId": 3
     },
     {
       "firstName": "Laura",
       "lastName": "Anderson",
-      "username": "laura.anderson",
-      "password": "password123",
       "active": true,
       "trainingTypeId": 4
     },
     {
       "firstName": "Kevin",
       "lastName": "Thomas",
-      "username": "kevin.thomas",
-      "password": "password123",
       "active": true,
       "trainingTypeId": 5
     }

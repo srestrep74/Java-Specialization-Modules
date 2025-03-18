@@ -11,6 +11,7 @@ import com.sro.SpringCoreTask1.mappers.TrainerMapper;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainerService;
+import com.sro.SpringCoreTask1.util.ProfileUtil;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -33,14 +34,16 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     public TrainerResponseDTO save(TrainerRequestDTO trainerRequestDTO) {
-        if (trainerRequestDTO.username() == null || trainerRequestDTO.username().isEmpty()) {
-            throw new IllegalArgumentException("Trainer username cannot be null or empty");
+        if (trainerRequestDTO == null) {
+            throw new IllegalArgumentException("Trainer cannot be null");
         }
 
         try {
             TrainingType trainingType = trainingTypeRepository.findById(trainerRequestDTO.trainingTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainerRequestDTO.trainingTypeId()));
             Trainer trainer = trainerMapper.toEntity(trainerRequestDTO, trainingType);
+            trainer.setUsername(ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName()));
+            trainer.setPassword(ProfileUtil.generatePassword());
             Trainer savedTrainer = trainerRepository.save(trainer);
             return trainerMapper.toDTO(savedTrainer);
         } catch (ConstraintViolationException e) {
