@@ -59,7 +59,9 @@ public class TrainerMenu implements Menu {
             case UPDATE_PROFILE -> updateProfile();
             case CHANGE_PASSWORD -> changePassword();
             case VIEW_TRAININGS -> viewTrainings();
-            case TOGGLE_PROFILE_STATUS -> toggleProfileStatus();
+            case TOGGLE_PROFILE_STATUS -> {
+                return toggleProfileStatus();
+            }
             case BACK_TO_MAIN_MENU -> {
                 return false;
             }
@@ -111,7 +113,7 @@ public class TrainerMenu implements Menu {
         System.out.println("Password changed successfully!");
     }
 
-    private void toggleProfileStatus() {
+    private boolean toggleProfileStatus() {
         System.out.println("\n----- Toggle Profile Status -----");
         boolean currentStatus = facade.getTrainerById(getTrainerId()).active();
         String newStatusText = currentStatus ? "inactive" : "active";
@@ -120,11 +122,13 @@ public class TrainerMenu implements Menu {
         String response = getInput("Do you want to make it " + newStatusText + "? (Y/N): ", "").toUpperCase();
 
         if (response.equals("Y")) {
-            facade.setTrainerStatus(getTrainerId(), !currentStatus);
+            facade.setTrainerStatus(getTrainerId());
             System.out.println("Profile status updated successfully! Your profile is now " + newStatusText + ".");
+            return !currentStatus;
         } else {
             System.out.println("Profile status remains unchanged.");
         }
+        return currentStatus;
     }
 
     private String getInput(String prompt, String defaultValue) {

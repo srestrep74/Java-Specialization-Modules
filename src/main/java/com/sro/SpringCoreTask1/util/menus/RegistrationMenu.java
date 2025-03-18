@@ -64,13 +64,11 @@ public class RegistrationMenu implements Menu {
 
         String firstName = getInput("Enter first name: ", "");
         String lastName = getInput("Enter last name: ", "");
-        String username = getInput("Enter username: ", "");
-        String password = getInput("Enter password: ", "");
         String address = getInput("Enter address: ", "");
         LocalDate dateOfBirth = getDateInput("Enter date of birth (YYYY-MM-DD): ");
 
         try {
-            TraineeRequestDTO trainee = new TraineeRequestDTO(firstName, lastName, username, password, true, address, dateOfBirth, null);
+            TraineeRequestDTO trainee = new TraineeRequestDTO(firstName, lastName, "", "", true, address, dateOfBirth, null);
             TraineeResponseDTO savedTrainee = facade.createTraineeProfile(trainee);
             System.out.println("Registration successful! Trainee ID: " + savedTrainee.id());
             System.out.println("You can now login with your credentials.");
@@ -84,12 +82,10 @@ public class RegistrationMenu implements Menu {
 
         String firstName = getInput("Enter first name: ", "");
         String lastName = getInput("Enter last name: ", "");
-        String username = getInput("Enter username: ", "");
-        String password = getInput("Enter password: ", "");
         Long trainingTypeId = selectTrainingType();
 
         try {
-            TrainerRequestDTO trainer = new TrainerRequestDTO(firstName, lastName, username, password, true, trainingTypeId);
+            TrainerRequestDTO trainer = new TrainerRequestDTO(firstName, lastName, "", "", true, trainingTypeId);
             TrainerResponseDTO savedTrainer = facade.createTrainerProfile(trainer);
             System.out.println("Registration successful! Trainer ID: " + savedTrainer.id());
             System.out.println("You can now login with your credentials.");

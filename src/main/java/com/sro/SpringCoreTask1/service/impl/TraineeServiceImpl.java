@@ -39,6 +39,10 @@ public class TraineeServiceImpl implements TraineeService {
             throw new IllegalArgumentException("Trainee cannot be null");
         }
 
+        if(traineeRequestDTO.firstName() == null || traineeRequestDTO.firstName().isEmpty() || traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() || traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
+            throw new IllegalArgumentException("Trainee first name, last name and address cannot be null or empty");
+        }
+
         try {
             Trainee trainee = this.traineeMapper.toEntity(traineeRequestDTO);
             trainee.setUsername(ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
@@ -162,6 +166,10 @@ public class TraineeServiceImpl implements TraineeService {
 
             Trainer trainer = this.trainerRepository.findById(trainerId)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
+            
+            if(!trainer.isActive()) {
+                throw new ResourceNotFoundException("Trainer with id: " + trainerId + " is not active");
+            }
 
             if (trainer.getTrainees().contains(trainee)) {
                 throw new ResourceAlreadyExistsException("Trainer already assigned to Trainee");
@@ -187,6 +195,10 @@ public class TraineeServiceImpl implements TraineeService {
             Trainer trainer = this.trainerRepository.findById(trainerId)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
 
+            if(!trainer.isActive()) {
+                throw new ResourceNotFoundException("Trainer with id: " + trainerId + " is not active");
+            }
+
             if (!trainer.getTrainees().contains(trainee)) {
                 throw new ResourceNotFoundException("Trainer not assigned to Trainee");
             }
@@ -199,7 +211,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void setTraineeStatus(Long traineeId, boolean isActive) {
+    public void setTraineeStatus(Long traineeId) {
         if(traineeId == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
         }
@@ -208,7 +220,7 @@ public class TraineeServiceImpl implements TraineeService {
             Trainee trainee = this.traineeRepository.findById(traineeId)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + traineeId));
 
-            trainee.setActive(isActive);
+            trainee.setActive(!trainee.isActive());
             this.traineeRepository.save(trainee);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainee status", e);

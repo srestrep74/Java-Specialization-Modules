@@ -65,7 +65,9 @@ public class TraineeMenu implements Menu {
             case VIEW_MY_TRAINERS -> viewMyTrainers();
             case VIEW_TRAININGS -> viewTrainings();
             case ADD_TRAINING -> addTraining();
-            case TOGGLE_PROFILE_STATUS -> toggleProfileStatus();
+            case TOGGLE_PROFILE_STATUS -> {
+                return toggleProfileStatus();
+            }
             case DELETE_PROFILE -> deleteProfile();
             case UPDATE_TRAINERS_LIST -> updateTrainersList();
             case BACK_TO_MAIN_MENU -> {
@@ -162,7 +164,7 @@ public class TraineeMenu implements Menu {
         });
     }
 
-    private void toggleProfileStatus() {
+    private boolean toggleProfileStatus() {
         System.out.println("\n----- Toggle Profile Status -----");
         boolean currentStatus = facade.getTraineeById(getTraineeId()).active();
         String newStatusText = currentStatus ? "inactive" : "active";
@@ -171,11 +173,13 @@ public class TraineeMenu implements Menu {
         String response = getInput("Do you want to make it " + newStatusText + "? (Y/N): ", "").toUpperCase();
 
         if (response.equals("Y")) {
-            facade.setTraineeStatus(getTraineeId(), !currentStatus);
+            facade.setTraineeStatus(getTraineeId());
             System.out.println("Profile status updated successfully! Your profile is now " + newStatusText + ".");
+            return !currentStatus;
         } else {
             System.out.println("Profile status remains unchanged.");
         }
+        return currentStatus;
     }
 
     private void deleteProfile() {

@@ -161,6 +161,7 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         }
     }
 
+    @Override
     public Set<Trainer> getAssignedTrainers(Long traineeId) {
         try {
             Trainee trainee = entityManager.find(Trainee.class, traineeId);

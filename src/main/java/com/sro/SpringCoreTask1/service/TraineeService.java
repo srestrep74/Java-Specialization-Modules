@@ -10,6 +10,6 @@ public interface TraineeService extends BaseService<TraineeRequestDTO, TraineeRe
     void deleteByUsername(String username);
     void addTrainerToTrainee(Long traineeId, Long trainerId);
     void removeTrainerFromTrainee(Long traineeId, Long trainerId);
-    void setTraineeStatus(Long traineeId, boolean isActive);
+    void setTraineeStatus(Long traineeId);
     boolean updateTraineePassword(Long traineeId, String newPassword);
 }

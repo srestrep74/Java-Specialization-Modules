@@ -2,6 +2,8 @@ package com.sro.SpringCoreTask1.service.impl;
 
 import org.springframework.stereotype.Service;
 
+import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.AuthService;
@@ -21,27 +23,40 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public boolean authenticateTrainee(String username, String password) {;
-        return this.traineeRepository.findByUsername(username)
-                    .filter(trainee -> password.equals(trainee.getPassword()))
-                    .map(trainee -> {
-                        this.authenticatedTraineeId = trainee.getId();
-                        this.authenticatedTrainerId = null;
-                        return true;
-                    })
-                    .orElse(false);
+    public boolean authenticateTrainee(String username, String password) {
+        Trainee trainee = this.traineeRepository.findByUsername(username).orElseThrow(
+            () -> new IllegalArgumentException("Trainee not found with username: " + username)
+        );
+
+        if(!trainee.isActive()) {
+            throw new IllegalArgumentException("Trainee is not active");
+        }
+        if(trainee.getPassword().equals(password)) {
+           this.authenticatedTraineeId = trainee.getId();
+           this.authenticatedTrainerId = null;
+           return true; 
+        }
+
+        return false;
     }
 
     @Override
     public boolean authenticateTrainer(String username, String password) {
-        return this.trainerRepository.findByUsername(username)
-                    .filter(trainer -> password.equals(trainer.getPassword()))
-                    .map(trainer -> {
-                        this.authenticatedTraineeId = null;
-                        this.authenticatedTrainerId = trainer.getId();
-                        return true;
-                    })
-                    .orElse(false);
+        Trainer trainer = this.trainerRepository.findByUsername(username).orElseThrow(
+            () -> new IllegalArgumentException("Trainer not found with username: " + username)
+        );
+
+        if(!trainer.isActive()) {
+            throw new IllegalArgumentException("Trainer is not active");
+        }
+
+        if(trainer.getPassword().equals(password)) {
+            this.authenticatedTrainerId = trainer.getId();
+            this.authenticatedTraineeId = null;
+            return true;
+        }
+
+        return false;
     }
 
     @Override

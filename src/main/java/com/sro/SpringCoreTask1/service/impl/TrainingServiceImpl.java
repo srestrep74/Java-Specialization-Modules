@@ -52,7 +52,16 @@ public class TrainingServiceImpl implements TrainingService {
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainingRequestDTO.traineeId()));
             Trainer trainer = trainerRepository.findById(trainingRequestDTO.trainerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
+            
+            if(!trainer.isActive()) {
+                throw new ResourceNotFoundException("Trainer with id: " + trainer.getId() + " is not active");
+            }
 
+            if(!trainee.isActive()) {
+                throw new ResourceNotFoundException("Trainee with id: " + trainee.getId() + " is not active");
+            }
+
+            
             if(!trainee.getTrainers().contains(trainer)) {
                 throw new IllegalArgumentException("Trainer not assigned to Trainee");
             }

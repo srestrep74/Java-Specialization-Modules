@@ -148,7 +148,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void setTrainerStatus(Long trainerId, boolean isActive) {
+    public void setTrainerStatus(Long trainerId) {
         if (trainerId == null) {
             throw new IllegalArgumentException("Trainer id cannot be null");
         }
@@ -157,7 +157,7 @@ public class TrainerServiceImpl implements TrainerService {
             Trainer trainer = trainerRepository.findById(trainerId)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
 
-            trainer.setActive(isActive);
+            trainer.setActive(!trainer.isActive());
             this.trainerRepository.save(trainer);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainer status", e);
