@@ -52,10 +52,18 @@ public class TrainingServiceImpl implements TrainingService {
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainingRequestDTO.traineeId()));
             Trainer trainer = trainerRepository.findById(trainingRequestDTO.trainerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
+
+            if(!trainee.getTrainers().contains(trainer)) {
+                throw new IllegalArgumentException("Trainer not assigned to Trainee");
+            }
+
+            boolean isDuplicateTraining = trainingRepository.existsByTraineeIdAndTrainerAndTrainingDate(trainee, trainer, trainingRequestDTO.trainingDate());
+            if (isDuplicateTraining) {
+                throw new ResourceAlreadyExistsException("A training with the same trainer and date already exists.");
+            }
+
             TrainingType trainingType = trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainingRequestDTO.trainingTypeId()));
-
-            trainer.addTrainee(trainee);
 
             Training training = trainingMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
             Training savedTraining = trainingRepository.save(training);

@@ -5,35 +5,40 @@
       "lastName": "Doe",
       "active": true,
       "address": "123 Main St",
-      "dateOfBirth": "1990-01-01"
+      "dateOfBirth": "1990-01-01",
+      "trainerIds": [1]
     },
     {
       "firstName": "Jane",
       "lastName": "Smith",
       "active": true,
       "address": "456 Elm St",
-      "dateOfBirth": "1995-05-05"
+      "dateOfBirth": "1995-05-05",
+      "trainerIds": [2]
     },
     {
       "firstName": "Alice",
       "lastName": "Johnson",
       "active": true,
       "address": "789 Oak St",
-      "dateOfBirth": "1985-03-15"
+      "dateOfBirth": "1985-03-15",
+      "trainerIds": [3]
     },
     {
       "firstName": "Bob",
       "lastName": "Brown",
       "active": true,
       "address": "321 Pine St",
-      "dateOfBirth": "1988-07-20"
+      "dateOfBirth": "1988-07-20",
+      "trainerIds": [4]
     },
     {
       "firstName": "Charlie",
       "lastName": "Davis",
       "active": true,
       "address": "654 Maple St",
-      "dateOfBirth": "1992-11-30"
+      "dateOfBirth": "1992-11-30",
+      "trainerIds": [5]
     }
   ],
   "trainers": [
@@ -90,40 +95,40 @@
       "trainingName": "Morning Yoga",
       "trainingDate": "2023-10-01",
       "duration": 60,
-      "traineeId": 1,
-      "trainerId": 6,
+      "traineeId": 6,
+      "trainerId": 1,
       "trainingTypeId": 1
     },
     {
       "trainingName": "Evening Weightlifting",
       "trainingDate": "2023-10-02",
       "duration": 90,
-      "traineeId": 2,
-      "trainerId": 7,
+      "traineeId": 7,
+      "trainerId": 2,
       "trainingTypeId": 2
     },
     {
       "trainingName": "Cardio Blast",
       "trainingDate": "2023-10-03",
       "duration": 45,
-      "traineeId": 3,
-      "trainerId": 8,
+      "traineeId": 8,
+      "trainerId": 3,
       "trainingTypeId": 3
     },
     {
       "trainingName": "Pilates Core",
       "trainingDate": "2023-10-04",
       "duration": 60,
-      "traineeId": 4,
-      "trainerId": 9,
+      "traineeId": 9,
+      "trainerId": 4,
       "trainingTypeId": 4
     },
     {
       "trainingName": "CrossFit Challenge",
       "trainingDate": "2023-10-05",
       "duration": 75,
-      "traineeId": 5,
-      "trainerId": 10,
+      "traineeId": 10,
+      "trainerId": 5,
       "trainingTypeId": 5
     }
   ]

@@ -34,8 +34,8 @@ public class DataInitializationService {
             InitialData initialData = JsonFileReader.readJsonFile(initDataFile, InitialData.class);
 
             initialData.getTrainingTypes().forEach(this.trainingTypeService::save);
-            initialData.getTrainees().forEach(this.traineeService::save);
             initialData.getTrainers().forEach(this.trainerService::save);
+            initialData.getTrainees().forEach(this.traineeService::save);
             initialData.getTrainings().forEach(this.trainingService::save);
         } catch (Exception e) {
             throw new StorageInitializationException("Failed to initialize storage with data: ", e);

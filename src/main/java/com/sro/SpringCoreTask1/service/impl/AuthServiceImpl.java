@@ -21,7 +21,7 @@ public class AuthServiceImpl implements AuthService{
     }
 
     @Override
-    public boolean authenticateTrainee(String username, String password) {
+    public boolean authenticateTrainee(String username, String password) {;
         return this.traineeRepository.findByUsername(username)
                     .filter(trainee -> password.equals(trainee.getPassword()))
                     .map(trainee -> {

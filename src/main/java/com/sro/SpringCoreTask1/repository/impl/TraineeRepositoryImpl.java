@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 
 import jakarta.persistence.EntityManager;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public class TraineeRepositoryImpl implements TraineeRepository {
@@ -158,6 +160,15 @@ public class TraineeRepositoryImpl implements TraineeRepository {
             throw e;
         }
     }
+
+    public Set<Trainer> getAssignedTrainers(Long traineeId) {
+        try {
+            Trainee trainee = entityManager.find(Trainee.class, traineeId);
+            return trainee.getTrainers();
+        } catch (NoResultException e) {
+            throw e;
+        }
+    }   
 
     private void rollbackTransaction(EntityTransaction transaction) {
         if (transaction != null && transaction.isActive()) {

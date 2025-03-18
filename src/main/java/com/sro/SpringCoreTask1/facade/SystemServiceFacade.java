@@ -2,6 +2,7 @@ package com.sro.SpringCoreTask1.facade;
 
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
@@ -146,7 +147,18 @@ public class SystemServiceFacade {
         return trainingTypeService.findAll();
     }
 
-    // Update Trainees trainings list
-    // --------------------------------------------
+    public void updateTraineeTrainersList(Long traineeId, Long trainerId, String action) {
+        if (action == null || (!action.equalsIgnoreCase("add") && !action.equalsIgnoreCase("remove"))) {
+            throw new IllegalArgumentException("Action must be 'add' or 'remove'");
+        }
+        if (action.equalsIgnoreCase("add")) {
+            traineeService.addTrainerToTrainee(traineeId, trainerId);
+        } else {
+            traineeService.removeTrainerFromTrainee(traineeId, trainerId);
+        }
+    }
 
+    public Set<TrainerResponseDTO> getTraineeTrainers(Long traineeId) {
+        return trainerService.getTraineeTrainers(traineeId);
+    }
 }

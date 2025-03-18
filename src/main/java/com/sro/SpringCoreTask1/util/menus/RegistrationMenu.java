@@ -70,7 +70,7 @@ public class RegistrationMenu implements Menu {
         LocalDate dateOfBirth = getDateInput("Enter date of birth (YYYY-MM-DD): ");
 
         try {
-            TraineeRequestDTO trainee = new TraineeRequestDTO(firstName, lastName, username, password, true, address, dateOfBirth);
+            TraineeRequestDTO trainee = new TraineeRequestDTO(firstName, lastName, username, password, true, address, dateOfBirth, null);
             TraineeResponseDTO savedTrainee = facade.createTraineeProfile(trainee);
             System.out.println("Registration successful! Trainee ID: " + savedTrainee.id());
             System.out.println("You can now login with your credentials.");

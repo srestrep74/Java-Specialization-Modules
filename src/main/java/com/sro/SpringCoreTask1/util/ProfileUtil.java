@@ -8,7 +8,7 @@ public class ProfileUtil {
     }
 
     public static String generatePassword() {
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
 
         StringBuilder password = new StringBuilder();

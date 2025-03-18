@@ -19,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public class TrainerRepositoryImpl implements TrainerRepository {
@@ -104,7 +105,6 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
             Predicate usernamePredicate = cb.equal(trainer.get("username"), username);
             cq.where(usernamePredicate);
-
             return Optional.ofNullable(entityManager.createQuery(cq).getSingleResult());
         } catch (NoResultException e) {
             return Optional.empty();
@@ -153,6 +153,15 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             return false;
         } catch (PersistenceException e) {
             rollbackTransaction(transaction);
+            throw e;
+        }
+    }
+
+    @Override
+    public Set<Trainer> getTraineeTrainers(Long traineeId) {
+        try {
+            return entityManager.find(Trainee.class, traineeId).getTrainers();
+        } catch (NoResultException e) {
             throw e;
         }
     }

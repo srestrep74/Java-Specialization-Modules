@@ -2,6 +2,8 @@ package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
+import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
 
@@ -16,6 +18,7 @@ import jakarta.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -160,6 +163,26 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             TypedQuery<Training> query = entityManager.createQuery(cq);
 
             return query.getResultList();
+        } catch (PersistenceException e) {
+            throw e;
+        }
+    }
+
+    @Override
+    public boolean existsByTraineeIdAndTrainerAndTrainingDate(Trainee trainee, Trainer trainer, LocalDate trainingDate) {
+        try {
+            String jpql = "SELECT COUNT(t) FROM Training t " +
+                            "WHERE t.trainee = :trainee " +
+                            "AND t.trainer = :trainer " +
+                            "AND t.trainingDate = :trainingDate";
+            
+            Long count = entityManager.createQuery(jpql, Long.class)
+                    .setParameter("trainee", trainee)
+                    .setParameter("trainer", trainer)
+                    .setParameter("trainingDate", trainingDate)
+                    .getSingleResult();
+
+            return count > 0;
         } catch (PersistenceException e) {
             throw e;
         }

@@ -43,6 +43,13 @@ public class TraineeServiceImpl implements TraineeService {
             Trainee trainee = this.traineeMapper.toEntity(traineeRequestDTO);
             trainee.setUsername(ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
             trainee.setPassword(ProfileUtil.generatePassword());
+            if(traineeRequestDTO.trainerIds() != null && !traineeRequestDTO.trainerIds().isEmpty()) {
+                for (Long trainerId : traineeRequestDTO.trainerIds()) {
+                    Trainer trainer = trainerRepository.findById(trainerId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
+                    trainer.addTrainee(trainee);
+                }
+            }
             Trainee savedTrainee = this.traineeRepository.save(trainee);
             return this.traineeMapper.toDTO(savedTrainee);
         }catch (ConstraintViolationException e) {

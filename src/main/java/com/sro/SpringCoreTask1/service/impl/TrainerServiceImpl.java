@@ -18,6 +18,8 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TrainerServiceImpl implements TrainerService {
@@ -172,6 +174,21 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.updatePassword(trainerId, newPassword);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer password", e);
+        }
+    }
+
+    @Override
+    public Set<TrainerResponseDTO> getTraineeTrainers(Long traineeId) {
+        if (traineeId == null) {
+            throw new IllegalArgumentException("Trainee id cannot be null");
+        }
+
+        try {
+            return trainerRepository.getTraineeTrainers(traineeId).stream()
+                    .map(trainerMapper::toDTO)
+                    .collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error finding Trainee Trainers", e);
         }
     }
 }

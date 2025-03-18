@@ -2,6 +2,7 @@ package com.sro.SpringCoreTask1.service;
 
 
 import java.util.List;
+import java.util.Set;
 
 import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
@@ -12,4 +13,5 @@ public interface TrainerService extends BaseService<TrainerRequestDTO, TrainerRe
     List<TrainerResponseDTO> getTrainersNotAssignedToTrainee(String traineeUsername);
     void setTrainerStatus(Long trainerId, boolean isActive);
     boolean updateTrainerPassword(Long trainerId, String newPassword);
+    Set<TrainerResponseDTO> getTraineeTrainers(Long traineeId);
 }

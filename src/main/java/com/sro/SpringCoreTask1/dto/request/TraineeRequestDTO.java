@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.dto.request;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public record TraineeRequestDTO(
     String firstName,
@@ -9,5 +10,6 @@ public record TraineeRequestDTO(
     String password,
     boolean active,
     String address,
-    LocalDate dateOfBirth
+    LocalDate dateOfBirth,
+    List<Long> trainerIds
 ){}
