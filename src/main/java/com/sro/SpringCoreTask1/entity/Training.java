@@ -2,6 +2,7 @@ package com.sro.SpringCoreTask1.entity;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -31,7 +32,7 @@ public class Training {
     @Column(name = "duration", nullable = false)
     private int duration;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "trainee_id")
     private Trainee trainee;
 

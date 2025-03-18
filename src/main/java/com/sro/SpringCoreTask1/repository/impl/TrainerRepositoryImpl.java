@@ -133,6 +133,30 @@ public class TrainerRepositoryImpl implements TrainerRepository {
         }
     }
 
+    @Override
+    public boolean updatePassword(Long id, String newPassword) {
+        EntityTransaction transaction = null;
+        try {
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            Trainer trainer = entityManager.find(Trainer.class, id);
+            if (trainer == null) {
+                rollbackTransaction(transaction);
+                return false;
+            }
+            trainer.setPassword(newPassword);
+            transaction.commit();
+            return true;
+        } catch (NoResultException e) {
+            System.out.println(e.getMessage());
+            rollbackTransaction(transaction);
+            return false;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
+        }
+    }
+
     private void rollbackTransaction(EntityTransaction transaction) {
         if (transaction != null && transaction.isActive()) {
             transaction.rollback();

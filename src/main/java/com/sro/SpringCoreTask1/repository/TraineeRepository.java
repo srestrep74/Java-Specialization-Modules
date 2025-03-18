@@ -8,4 +8,5 @@ import com.sro.SpringCoreTask1.repository.base.BaseRepository;
 public interface TraineeRepository extends BaseRepository<Trainee, Long> {
     Optional<Trainee> findByUsername(String username);
     boolean deleteByUsername(String username);
+    boolean updatePassword(Long traineeId, String newPassword);
 }

@@ -11,4 +11,5 @@ public interface TrainerService extends BaseService<TrainerRequestDTO, TrainerRe
     TrainerResponseDTO findByUsername(String username);
     List<TrainerResponseDTO> getTrainersNotAssignedToTrainee(String traineeUsername);
     void setTrainerStatus(Long trainerId, boolean isActive);
+    boolean updateTrainerPassword(Long trainerId, String newPassword);
 }

@@ -38,7 +38,7 @@ public class Trainee extends User {
     @OneToMany(mappedBy = "trainee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Training> trainings = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "trainees")
+    @ManyToMany(mappedBy = "trainees", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Trainer> trainers = new HashSet<>();
 
     @Override
@@ -48,6 +48,7 @@ public class Trainee extends User {
                 ", firstName='" + this.getFirstName() + '\'' +
                 ", lastName='" + this.getLastName() + '\'' +
                 ", username='" + this.getUsername() + '\'' +
+                ", password='" + this.getPassword() + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
                 ", address='" + address + '\'' +
                 '}';

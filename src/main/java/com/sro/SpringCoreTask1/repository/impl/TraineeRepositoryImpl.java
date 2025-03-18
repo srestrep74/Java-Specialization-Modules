@@ -107,13 +107,50 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         try {
             transaction = entityManager.getTransaction();
             transaction.begin();
-            Trainee trainee = entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)
-                                          .setParameter("username", username)
-                                          .getSingleResult();
+            Trainee trainee = findByUsername(username).orElse(null);
+            if (trainee == null) {
+                rollbackTransaction(transaction);
+                return false;
+            }
+
+            trainee.getTrainers().size();
+            trainee.getTrainings().size();
+    
+            trainee.getTrainers().clear();
+            trainee.getTrainings().clear();
+    
             entityManager.remove(trainee);
             transaction.commit();
             return true;
         } catch (NoResultException e) {
+            System.out.println(e.getMessage());
+            rollbackTransaction(transaction);
+            return false;
+        } catch (PersistenceException e) {
+            rollbackTransaction(transaction);
+            throw e;
+        } catch (Exception e) {
+            rollbackTransaction(transaction);
+            throw e;
+        }
+    }
+
+    @Override
+    public boolean updatePassword(Long id, String newPassword) {
+        EntityTransaction transaction = null;
+        try {
+            transaction = entityManager.getTransaction();
+            transaction.begin();
+            Trainee trainee = this.entityManager.find(Trainee.class, id);
+            if (trainee == null) {
+                rollbackTransaction(transaction);
+                return false;
+            }
+            trainee.setPassword(newPassword);
+            transaction.commit();
+            return true;
+        } catch (NoResultException e) {
+            System.out.println(e.getMessage());
             rollbackTransaction(transaction);
             return false;
         } catch (PersistenceException e) {

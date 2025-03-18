@@ -10,4 +10,5 @@ import com.sro.SpringCoreTask1.repository.base.BaseRepository;
 public interface TrainerRepository extends BaseRepository<Trainer, Long> {
     Optional<Trainer> findByUsername(String username);
     List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername);
+    boolean updatePassword(Long trainerId, String newPassword);
 }

@@ -81,7 +81,11 @@ public class TraineeServiceImpl implements TraineeService {
         }
 
         try {
+            Trainee existingTrainee = this.traineeRepository.findByUsername(traineeRequestDTO.username())
+                .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + traineeRequestDTO.username()));
             Trainee trainee = this.traineeMapper.toEntity(traineeRequestDTO);
+            trainee.setId(existingTrainee.getId());
+            trainee.setPassword(existingTrainee.getPassword());
             return traineeRepository.update(trainee)
                 .map(traineeMapper::toDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainee.getId()));
@@ -197,6 +201,14 @@ public class TraineeServiceImpl implements TraineeService {
             this.traineeRepository.save(trainee);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainee status", e);
+        }
+    }
+
+    public boolean updateTraineePassword(Long traineeId, String newPassword) {
+        try {
+            return traineeRepository.updatePassword(traineeId, newPassword);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error updating Trainee password", e);
         }
     }
 }

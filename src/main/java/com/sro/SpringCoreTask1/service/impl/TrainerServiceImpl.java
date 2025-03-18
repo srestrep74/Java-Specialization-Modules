@@ -85,7 +85,10 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             TrainingType trainingType = trainingTypeRepository.findById(trainerRequestDTO.trainingTypeId())
                     .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainerRequestDTO.trainingTypeId()));
+            Trainer existingTrainer = trainerRepository.findByUsername(trainerRequestDTO.username()).orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + trainerRequestDTO.username()));
             Trainer trainer = trainerMapper.toEntity(trainerRequestDTO, trainingType);
+            trainer.setId(existingTrainer.getId());
+            trainer.setPassword(existingTrainer.getPassword());
             return trainerRepository.update(trainer)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainer.getId()));
@@ -153,6 +156,19 @@ public class TrainerServiceImpl implements TrainerService {
             this.trainerRepository.save(trainer);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainer status", e);
+        }
+    }
+
+    @Override
+    public boolean updateTrainerPassword(Long trainerId, String newPassword) {
+        if (trainerId == null || newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("Trainer id and new password cannot be null or empty");
+        }
+
+        try {
+            return trainerRepository.updatePassword(trainerId, newPassword);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error updating Trainer password", e);
         }
     }
 }
