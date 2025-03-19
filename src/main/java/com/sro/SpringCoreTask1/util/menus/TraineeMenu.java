@@ -30,9 +30,9 @@ public class TraineeMenu implements Menu {
     private final Scanner scanner;
     private final SystemServiceFacade facade;
 
-    public TraineeMenu(SystemServiceFacade facade) {
+    public TraineeMenu(SystemServiceFacade facade, Scanner scanner) {
         this.facade = facade;
-        this.scanner = new Scanner(System.in);
+        this.scanner = scanner;
     }
 
     @Override

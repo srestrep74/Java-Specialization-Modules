@@ -2,6 +2,7 @@ package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 
 import jakarta.persistence.EntityManager;
@@ -11,6 +12,7 @@ import jakarta.persistence.PersistenceException;
 
 import org.springframework.stereotype.Repository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -115,17 +117,20 @@ public class TraineeRepositoryImpl implements TraineeRepository {
                 return false;
             }
 
-            trainee.getTrainers().size();
-            trainee.getTrainings().size();
-    
-            trainee.getTrainers().clear();
-            trainee.getTrainings().clear();
-    
+            entityManager.refresh(trainee);
+
+            for(Trainer trainer : new HashSet<>(trainee.getTrainers())) {
+                trainee.removeTrainer(trainer);
+            }
+
+            for(Training training : new HashSet<>(trainee.getTrainings())) {
+                entityManager.remove(training);
+            }
+
             entityManager.remove(trainee);
             transaction.commit();
             return true;
         } catch (NoResultException e) {
-            System.out.println(e.getMessage());
             rollbackTransaction(transaction);
             return false;
         } catch (PersistenceException e) {
@@ -134,6 +139,8 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         } catch (Exception e) {
             rollbackTransaction(transaction);
             throw e;
+        }finally {
+            entityManager.close();
         }
     }
 

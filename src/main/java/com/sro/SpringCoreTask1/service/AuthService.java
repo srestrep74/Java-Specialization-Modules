@@ -8,4 +8,6 @@ public interface AuthService {
     boolean isTraineeAuthenticated();
     boolean isTrainerAuthenticated();
     void logout();
+    void changeTraineePassword(String username, String newPassword);
+    void changeTrainerPassword(String username, String newPassword);
 }

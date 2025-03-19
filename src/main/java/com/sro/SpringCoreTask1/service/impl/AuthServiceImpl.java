@@ -1,16 +1,18 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import org.springframework.stereotype.Service;
-
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
+import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.AuthService;
 
+import org.springframework.stereotype.Service;
+
 @Service
-public class AuthServiceImpl implements AuthService{
-    
+public class AuthServiceImpl implements AuthService {
+
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
 
@@ -24,39 +26,52 @@ public class AuthServiceImpl implements AuthService{
 
     @Override
     public boolean authenticateTrainee(String username, String password) {
-        Trainee trainee = this.traineeRepository.findByUsername(username).orElseThrow(
-            () -> new IllegalArgumentException("Trainee not found with username: " + username)
-        );
+        try {
+            Trainee trainee = this.traineeRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
 
-        if(!trainee.isActive()) {
-            throw new IllegalArgumentException("Trainee is not active");
-        }
-        if(trainee.getPassword().equals(password)) {
-           this.authenticatedTraineeId = trainee.getId();
-           this.authenticatedTrainerId = null;
-           return true; 
-        }
+            if (!trainee.isActive()) {
+                throw new ResourceNotFoundException("Trainee is not active");
+            }
 
-        return false;
+            if (trainee.getPassword().equals(password)) {
+                this.authenticatedTraineeId = trainee.getId();
+                this.authenticatedTrainerId = null;
+                return true;
+            }
+
+            return false;
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
+            throw new DatabaseOperationException("Error authenticating trainee", e);
+        }
     }
 
     @Override
     public boolean authenticateTrainer(String username, String password) {
-        Trainer trainer = this.trainerRepository.findByUsername(username).orElseThrow(
-            () -> new IllegalArgumentException("Trainer not found with username: " + username)
-        );
+        try {
+            Trainer trainer = this.trainerRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
 
-        if(!trainer.isActive()) {
-            throw new IllegalArgumentException("Trainer is not active");
+            if (!trainer.isActive()) {
+                throw new ResourceNotFoundException("Trainer is not active");
+            }
+
+            if (trainer.getPassword().equals(password)) {
+                this.authenticatedTrainerId = trainer.getId();
+                this.authenticatedTraineeId = null;
+                return true;
+            }
+
+            return false;
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
+            throw new DatabaseOperationException("Error authenticating trainer", e);
         }
-
-        if(trainer.getPassword().equals(password)) {
-            this.authenticatedTrainerId = trainer.getId();
-            this.authenticatedTraineeId = null;
-            return true;
-        }
-
-        return false;
     }
 
     @Override
@@ -85,12 +100,35 @@ public class AuthServiceImpl implements AuthService{
         this.authenticatedTrainerId = null;
     }
 
+    @Override
     public void changeTraineePassword(String username, String newPassword) {
-        this.traineeRepository.findByUsername(username).ifPresent(trainee -> trainee.setPassword(newPassword));
+        try {
+            Trainee trainee = this.traineeRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
+
+            trainee.setPassword(newPassword);
+            this.traineeRepository.save(trainee);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
+            throw new DatabaseOperationException("Error changing trainee password", e);
+        }
     }
 
+    @Override
     public void changeTrainerPassword(String username, String newPassword) {
-        this.trainerRepository.findByUsername(username).ifPresent(trainer -> trainer.setPassword(newPassword));
-    }
+        try {
+            Trainer trainer = this.trainerRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
 
+            trainer.setPassword(newPassword);
+            this.trainerRepository.save(trainer);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
+            throw new DatabaseOperationException("Error changing trainer password", e);
+        }
+    }
 }

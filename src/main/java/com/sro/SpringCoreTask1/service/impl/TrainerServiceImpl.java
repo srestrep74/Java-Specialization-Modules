@@ -50,7 +50,10 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerMapper.toDTO(savedTrainer);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainer with username " + trainerRequestDTO.username() + " already exists");
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error saving Trainer", e);
         }
     }
@@ -65,7 +68,10 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findById(id)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + id));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by id", e);
         }
     }
@@ -76,7 +82,8 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findAll().stream()
                     .map(trainerMapper::toDTO)
                     .toList();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Trainers", e);
         }
     }
@@ -97,7 +104,10 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.update(trainer)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainer.getId()));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer", e);
         }
     }
@@ -112,7 +122,10 @@ public class TrainerServiceImpl implements TrainerService {
             if (!trainerRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Trainer not found with id: " + id);
             }
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainer by id", e);
         }
     }
@@ -127,7 +140,10 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findByUsername(username)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by username", e);
         }
     }
@@ -142,7 +158,10 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findTrainersNotAssignedToTrainee(traineeUsername).stream()
                     .map(trainerMapper::toDTO)
                     .toList();
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainers not assigned to Trainee", e);
         }
     }
@@ -159,7 +178,10 @@ public class TrainerServiceImpl implements TrainerService {
 
             trainer.setActive(!trainer.isActive());
             this.trainerRepository.save(trainer);
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainer status", e);
         }
     }
@@ -172,7 +194,10 @@ public class TrainerServiceImpl implements TrainerService {
 
         try {
             return trainerRepository.updatePassword(trainerId, newPassword);
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer password", e);
         }
     }
@@ -187,7 +212,10 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.getTraineeTrainers(traineeId).stream()
                     .map(trainerMapper::toDTO)
                     .collect(Collectors.toSet());
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee Trainers", e);
         }
     }

@@ -54,7 +54,10 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             return trainingTypeRepository.findById(id)
                     .map(trainingTypeMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + id));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training Type by id", e);
         }
     }
@@ -81,7 +84,10 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             return trainingTypeRepository.update(trainingType)
                     .map(trainingTypeMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + trainingType.getId()));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training Type", e);
         }
     }
@@ -96,7 +102,10 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             if (!trainingTypeRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Training Type not found with id: " + id);
             }
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Training Type by id", e);
         }
     }

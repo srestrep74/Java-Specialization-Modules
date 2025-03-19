@@ -80,7 +80,12 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingMapper.toDTO(savedTraining);
         }catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Training with name " + trainingRequestDTO.trainingName() + " already exists");
-        }catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (ResourceAlreadyExistsException e) {
+            throw e;
+        }
+        catch (Exception e) {
             throw new DatabaseOperationException("Error saving Training", e);
         }
     }
@@ -95,7 +100,10 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findById(id)
                     .map(trainingMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + id));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training by id", e);
         }
     }
@@ -106,7 +114,8 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findAll().stream()
                     .map(trainingMapper::toDTO)
                     .toList();
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Trainings", e);
         }
     }
@@ -129,7 +138,10 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.update(training)
                     .map(trainingMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + training.getId()));
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training", e);
         }
     }
@@ -144,7 +156,10 @@ public class TrainingServiceImpl implements TrainingService {
             if (!trainingRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Training not found with id: " + id);
             }
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Training by id", e);
         }
     }
@@ -159,7 +174,10 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findTrainingsByTraineeWithFilters(filterDTO).stream()
                     .map(trainingMapper::toDTO)
                     .toList();
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainee with filters", e);
         }
     }
@@ -174,7 +192,10 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findTrainingsByTrainerWithFilters(filterDTO).stream()
                     .map(trainingMapper::toDTO)
                     .toList();
-        } catch (Exception e) {
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } 
+        catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainer with filters", e);
         }
     }
