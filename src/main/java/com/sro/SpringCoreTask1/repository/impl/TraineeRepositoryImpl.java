@@ -120,8 +120,6 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         } catch (PersistenceException e) {
             rollbackTransaction(transaction);
             throw e;
-        } finally {
-            entityManager.close();
         }
     }
 

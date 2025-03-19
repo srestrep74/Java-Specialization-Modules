@@ -75,7 +75,9 @@ public class TraineeMenu implements Menu {
             case TOGGLE_PROFILE_STATUS -> {
                 return toggleProfileStatus();
             }
-            case DELETE_PROFILE -> deleteProfile();
+            case DELETE_PROFILE -> {
+                return deleteProfile();
+            }
             case UPDATE_TRAINERS_LIST -> updateTrainersList();
             case BACK_TO_MAIN_MENU -> {
                 return false;
@@ -190,7 +192,7 @@ public class TraineeMenu implements Menu {
         return currentStatus;
     }
 
-    private void deleteProfile() {
+    private boolean deleteProfile() {
         System.out.println("\n----- Delete Profile -----");
         System.out.println("WARNING: This action cannot be undone!");
         String confirmation = getInput("Are you sure you want to delete your profile? (type 'DELETE' to confirm): ", "");
@@ -200,8 +202,10 @@ public class TraineeMenu implements Menu {
             traineeFacade.deleteTraineeByUsername(trainee.username());
             System.out.println("Profile deleted successfully.");
             authFacade.perfomLogout();
+            return false;
         } else {
             System.out.println("Profile deletion cancelled.");
+            return true;
         }
     }
 
