@@ -4,16 +4,8 @@ import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceException;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 
 import org.springframework.stereotype.Repository;
 
@@ -103,8 +95,8 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
             Root<Trainer> trainer = cq.from(Trainer.class);
 
-            Predicate usernamePredicate = cb.equal(trainer.get("username"), username);
-            cq.where(usernamePredicate);
+            cq.where(cb.equal(trainer.get("username"), username));
+
             return Optional.ofNullable(entityManager.createQuery(cq).getSingleResult());
         } catch (NoResultException e) {
             return Optional.empty();
@@ -112,7 +104,7 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     }
 
     @Override
-    public List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername) {
+    public List<Trainer> findUnassignedTrainersByTraineeUsername(String traineeUsername) {
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
@@ -134,7 +126,7 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     }
 
     @Override
-    public boolean updatePassword(Long id, String newPassword) {
+    public boolean changeTrainerPassword(Long id, String newPassword) {
         EntityTransaction transaction = null;
         try {
             transaction = entityManager.getTransaction();
@@ -147,10 +139,6 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             trainer.setPassword(newPassword);
             transaction.commit();
             return true;
-        } catch (NoResultException e) {
-            System.out.println(e.getMessage());
-            rollbackTransaction(transaction);
-            return false;
         } catch (PersistenceException e) {
             rollbackTransaction(transaction);
             throw e;
@@ -158,7 +146,7 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     }
 
     @Override
-    public Set<Trainer> getTraineeTrainers(Long traineeId) {
+    public Set<Trainer> findTrainersByTraineeId(Long traineeId) {
         try {
             return entityManager.find(Trainee.class, traineeId).getTrainers();
         } catch (NoResultException e) {

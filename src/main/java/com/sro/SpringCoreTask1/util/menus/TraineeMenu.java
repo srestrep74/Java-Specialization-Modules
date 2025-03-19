@@ -30,9 +30,9 @@ public class TraineeMenu implements Menu {
     private final Scanner scanner;
     private final SystemServiceFacade facade;
 
-    public TraineeMenu(SystemServiceFacade facade, Scanner scanner) {
+    public TraineeMenu(SystemServiceFacade facade) {
         this.facade = facade;
-        this.scanner = scanner;
+        this.scanner = new Scanner(System.in);
     }
 
     @Override
@@ -121,16 +121,17 @@ public class TraineeMenu implements Menu {
         facade.changeTraineePassword(trainee.id(), newPassword);
         System.out.println("Password changed successfully!");
     }
+
     private void viewAvailableTrainers() {
         System.out.println("\n----- Available Trainers -----");
         TraineeResponseDTO trainee = facade.getTraineeById(getTraineeId());
-        List<TrainerResponseDTO> availableTrainers = facade.getTrainersNotAssignedToTrainee(trainee.username());
-    
+        List<TrainerResponseDTO> availableTrainers = facade.findUnassignedTrainersByTraineeUsername(trainee.username());
+
         if (availableTrainers.isEmpty()) {
             System.out.println("No available trainers found.");
             return;
         }
-    
+
         System.out.printf("%-5s | %-20s | %-15s | %-10s%n", "ID", "Name", "Training Type", "Status");
         System.out.println("-----------------------------------------------------");
         availableTrainers.forEach(trainer -> {
@@ -144,17 +145,17 @@ public class TraineeMenu implements Menu {
     }
 
     private void viewMyTrainers() {
-        System.out.println("\n----- Available Trainers -----");
-        Set<TrainerResponseDTO> availableTrainers = facade.getTraineeTrainers(getTraineeId());
-    
-        if (availableTrainers.isEmpty()) {
-            System.out.println("No available trainers found.");
+        System.out.println("\n----- My Trainers -----");
+        Set<TrainerResponseDTO> myTrainers = facade.findTrainersByTraineeId(getTraineeId());
+
+        if (myTrainers.isEmpty()) {
+            System.out.println("No trainers assigned to you.");
             return;
         }
-    
+
         System.out.printf("%-5s | %-20s | %-15s | %-10s%n", "ID", "Name", "Training Type", "Status");
         System.out.println("-----------------------------------------------------");
-        availableTrainers.forEach(trainer -> {
+        myTrainers.forEach(trainer -> {
             String details = String.format("%-5s | %-20s | %-15s | %-10s",
                     trainer.id(),
                     trainer.firstName() + " " + trainer.lastName(),
@@ -244,7 +245,7 @@ public class TraineeMenu implements Menu {
 
     private TraineeTrainingFilterDTO getTrainingFilters() {
         System.out.println("\n===== Enter Training Filters =====");
-        Long traineeId = getTraineeId(); 
+        Long traineeId = getTraineeId();
 
         System.out.print("Enter start date (YYYY-MM-DD, leave empty for no filter): ");
         LocalDate fromDate = getDateInput("", null);
@@ -282,7 +283,7 @@ public class TraineeMenu implements Menu {
         System.out.print("Enter training duration (in minutes): ");
         int duration = Integer.parseInt(scanner.nextLine().trim());
 
-        Long traineeId = getTraineeId(); 
+        Long traineeId = getTraineeId();
 
         TrainingRequestDTO trainingRequestDTO = new TrainingRequestDTO(trainingName, trainingDate, duration, traineeId, trainerId, trainingTypeId);
         TrainingResponseDTO savedTraining = facade.addTraining(trainingRequestDTO);
@@ -296,7 +297,7 @@ public class TraineeMenu implements Menu {
 
         System.out.print("Do you want to add or remove a trainer? (add/remove): ");
         String action = scanner.nextLine().trim().toLowerCase();
-    
+
         if (!action.equals("add") && !action.equals("remove")) {
             System.out.println("Invalid action. Please enter 'add' or 'remove'.");
             return;
@@ -307,8 +308,8 @@ public class TraineeMenu implements Menu {
             viewAvailableTrainers();
         } else {
             System.out.println("\n----- Your Assigned Trainers -----");
-            Set<TrainerResponseDTO> assignedTrainers = facade.getTraineeTrainers(traineeId);
-    
+            Set<TrainerResponseDTO> assignedTrainers = facade.findTrainersByTraineeId(traineeId);
+
             if (assignedTrainers.isEmpty()) {
                 System.out.println("No trainers assigned to you.");
                 return;
@@ -326,7 +327,7 @@ public class TraineeMenu implements Menu {
         }
         System.out.print("Enter trainer ID: ");
         Long trainerId = Long.parseLong(scanner.nextLine().trim());
-    
+
         facade.updateTraineeTrainersList(traineeId, trainerId, action);
         System.out.println("Trainer list updated successfully!");
     }
@@ -348,7 +349,7 @@ public class TraineeMenu implements Menu {
 
         private final int option;
         private final String description;
-        
+
         public static Optional<MenuOption> fromOption(int option) {
             for (MenuOption menuOption : values()) {
                 if (menuOption.option == option) {

@@ -11,5 +11,5 @@ public interface TraineeRepository extends BaseRepository<Trainee, Long> {
     Optional<Trainee> findByUsername(String username);
     boolean deleteByUsername(String username);
     boolean updatePassword(Long traineeId, String newPassword);
-    Set<Trainer> getAssignedTrainers(Long traineeId);
+    Set<Trainer> findTrainersByTraineeId(Long traineeId);
 }

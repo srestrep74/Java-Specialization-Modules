@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Component
 public class TrainerMenu implements Menu {
 
-     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final Scanner scanner;
     private final SystemServiceFacade facade;
@@ -122,7 +122,7 @@ public class TrainerMenu implements Menu {
         String response = getInput("Do you want to make it " + newStatusText + "? (Y/N): ", "").toUpperCase();
 
         if (response.equals("Y")) {
-            facade.setTrainerStatus(getTrainerId());
+            facade.toggleTrainerStatus(getTrainerId());
             System.out.println("Profile status updated successfully! Your profile is now " + newStatusText + ".");
             return !currentStatus;
         } else {
@@ -180,7 +180,7 @@ public class TrainerMenu implements Menu {
 
     private TrainerTrainingFilterDTO getTrainingFilters() {
         System.out.println("\n===== Enter Training Filters =====");
-        Long trainerId = getTrainerId(); 
+        Long trainerId = getTrainerId();
 
         System.out.print("Enter start date (YYYY-MM-DD, leave empty for no filter): ");
         LocalDate fromDate = getDateInput("", null);

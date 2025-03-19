@@ -1,6 +1,5 @@
 package com.sro.SpringCoreTask1.service;
 
-
 import java.util.List;
 import java.util.Set;
 
@@ -10,8 +9,8 @@ import com.sro.SpringCoreTask1.service.base.BaseService;
 
 public interface TrainerService extends BaseService<TrainerRequestDTO, TrainerResponseDTO, Long> {
     TrainerResponseDTO findByUsername(String username);
-    List<TrainerResponseDTO> getTrainersNotAssignedToTrainee(String traineeUsername);
-    void setTrainerStatus(Long trainerId);
+    List<TrainerResponseDTO> findUnassignedTrainersByTraineeUsername(String traineeUsername);
+    void toggleTrainerStatus(Long trainerId);
     boolean updateTrainerPassword(Long trainerId, String newPassword);
-    Set<TrainerResponseDTO> getTraineeTrainers(Long traineeId);
+    Set<TrainerResponseDTO> findTrainersByTraineeId(Long traineeId);
 }

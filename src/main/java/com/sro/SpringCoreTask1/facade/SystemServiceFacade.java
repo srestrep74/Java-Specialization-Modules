@@ -32,7 +32,12 @@ public class SystemServiceFacade {
     private final TrainingTypeService trainingTypeService;
     private final AuthService authService;
 
-    public SystemServiceFacade(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService, TrainingTypeService trainingTypeService, AuthService authService) {
+    public SystemServiceFacade(
+            TraineeService traineeService,
+            TrainerService trainerService,
+            TrainingService trainingService,
+            TrainingTypeService trainingTypeService,
+            AuthService authService) {
         this.traineeService = traineeService;
         this.trainerService = trainerService;
         this.trainingService = trainingService;
@@ -47,7 +52,7 @@ public class SystemServiceFacade {
         try {
             return trainerService.save(trainerRequestDTO);
         } catch (ResourceAlreadyExistsException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error creating Trainer profile", e);
         }
@@ -60,7 +65,7 @@ public class SystemServiceFacade {
         try {
             return traineeService.save(traineeRequestDTO);
         } catch (ResourceAlreadyExistsException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error creating Trainee profile", e);
         }
@@ -157,7 +162,7 @@ public class SystemServiceFacade {
         try {
             return traineeService.findByUsername(username);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by username", e);
         }
@@ -170,7 +175,7 @@ public class SystemServiceFacade {
         try {
             return trainerService.findByUsername(username);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by username", e);
         }
@@ -183,7 +188,7 @@ public class SystemServiceFacade {
         try {
             return trainerService.findById(id);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by ID", e);
         }
@@ -196,7 +201,7 @@ public class SystemServiceFacade {
         try {
             return traineeService.findById(id);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by ID", e);
         }
@@ -231,7 +236,7 @@ public class SystemServiceFacade {
         try {
             return trainerService.update(trainerRequestDTO);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer profile", e);
         }
@@ -244,7 +249,7 @@ public class SystemServiceFacade {
         try {
             return traineeService.update(traineeRequestDTO);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee profile", e);
         }
@@ -261,12 +266,12 @@ public class SystemServiceFacade {
         }
     }
 
-    public void setTrainerStatus(Long trainerId) {
+    public void toggleTrainerStatus(Long trainerId) {
         if (trainerId == null) {
             throw new IllegalArgumentException("Trainer ID cannot be null");
         }
         try {
-            trainerService.setTrainerStatus(trainerId);
+            trainerService.toggleTrainerStatus(trainerId);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainer status", e);
         }
@@ -279,7 +284,7 @@ public class SystemServiceFacade {
         try {
             traineeService.deleteByUsername(username);
         } catch (ResourceNotFoundException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainee profile by username", e);
         }
@@ -314,18 +319,18 @@ public class SystemServiceFacade {
         try {
             return trainingService.save(trainingRequestDTO);
         } catch (ResourceAlreadyExistsException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error adding Training", e);
         }
     }
 
-    public List<TrainerResponseDTO> getTrainersNotAssignedToTrainee(String traineeUsername) {
+    public List<TrainerResponseDTO> findUnassignedTrainersByTraineeUsername(String traineeUsername) {
         if (traineeUsername == null || traineeUsername.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
         }
         try {
-            return trainerService.getTrainersNotAssignedToTrainee(traineeUsername);
+            return trainerService.findUnassignedTrainersByTraineeUsername(traineeUsername);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error getting Trainers not assigned to Trainee", e);
         }
@@ -353,18 +358,18 @@ public class SystemServiceFacade {
                 traineeService.removeTrainerFromTrainee(traineeId, trainerId);
             }
         } catch (ResourceNotFoundException | ResourceAlreadyExistsException e) {
-            throw e; 
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee's Trainers list", e);
         }
     }
 
-    public Set<TrainerResponseDTO> getTraineeTrainers(Long traineeId) {
+    public Set<TrainerResponseDTO> findTrainersByTraineeId(Long traineeId) {
         if (traineeId == null) {
             throw new IllegalArgumentException("Trainee ID cannot be null");
         }
         try {
-            return trainerService.getTraineeTrainers(traineeId);
+            return trainerService.findTrainersByTraineeId(traineeId);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error getting Trainee's Trainers", e);
         }
