@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
-import com.sro.SpringCoreTask1.facade.SystemServiceFacade;
+import com.sro.SpringCoreTask1.facade.AuthServiceFacade;
 import com.sro.SpringCoreTask1.util.menus.base.Menu;
 
 import lombok.RequiredArgsConstructor;
@@ -13,14 +13,14 @@ import lombok.RequiredArgsConstructor;
 @Component
 public class MainMenu implements Menu {
 
-    private final SystemServiceFacade facade;
+    private final AuthServiceFacade authFacade;
     private final TraineeMenu traineeMenu;
     private final TrainerMenu trainerMenu;
     private final LoginMenu loginMenu;
     private final RegistrationMenu registrationMenu;
 
-    public MainMenu(SystemServiceFacade facade, TraineeMenu traineeMenu, TrainerMenu trainerMenu, LoginMenu loginMenu, RegistrationMenu registrationMenu) {
-        this.facade = facade;
+    public MainMenu(TraineeMenu traineeMenu, TrainerMenu trainerMenu, LoginMenu loginMenu, RegistrationMenu registrationMenu, AuthServiceFacade authFacade) {
+        this.authFacade = authFacade;
         this.traineeMenu = traineeMenu;
         this.trainerMenu = trainerMenu;
         this.loginMenu = loginMenu;
@@ -57,9 +57,9 @@ public class MainMenu implements Menu {
 
     private void handleLogin() {
         loginMenu.run();
-        if (facade.isTraineeAuthenticated()) {
+        if (authFacade.isTraineeAuthenticated()) {
             traineeMenu.run();
-        } else if (facade.isTrainerAuthenticated()) {
+        } else if (authFacade.isTrainerAuthenticated()) {
             trainerMenu.run();
         } else {
             System.out.println("Login failed. Please try again.");
