@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.sro.SpringCoreTask1.facade.AuthServiceFacade;
 import com.sro.SpringCoreTask1.util.menus.base.Menu;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 
@@ -66,6 +67,7 @@ public class MainMenu implements Menu {
         }
     }
 
+    @Getter
     @RequiredArgsConstructor
     private enum MenuOption {
         REGISTRATION(1, "Registration"),
