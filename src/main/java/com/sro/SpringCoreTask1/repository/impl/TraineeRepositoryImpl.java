@@ -2,7 +2,6 @@ package com.sro.SpringCoreTask1.repository.impl;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
-import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 
 import jakarta.persistence.EntityManager;
@@ -110,13 +109,9 @@ public class TraineeRepositoryImpl implements TraineeRepository {
                 rollbackTransaction(transaction);
                 return false;
             }
-            entityManager.refresh(trainee);
 
             for (Trainer trainer : new HashSet<>(trainee.getTrainers())) {
                 trainee.removeTrainer(trainer);
-            }
-            for (Training training : new HashSet<>(trainee.getTrainings())) {
-                entityManager.remove(training);
             }
 
             entityManager.remove(trainee);

@@ -2,6 +2,8 @@ package com.sro.SpringCoreTask1.entity;
 
 import java.time.LocalDate;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -34,14 +36,17 @@ public class Training {
 
     @ManyToOne
     @JoinColumn(name = "trainee_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Trainee trainee;
 
     @ManyToOne
     @JoinColumn(name = "trainer_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Trainer trainer;
 
     @ManyToOne
     @JoinColumn(name = "training_type_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private TrainingType trainingType;
 
     @Override

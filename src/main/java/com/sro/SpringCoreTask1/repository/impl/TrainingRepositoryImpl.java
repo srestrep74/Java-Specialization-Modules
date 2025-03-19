@@ -39,6 +39,9 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             transaction = entityManager.getTransaction();
             transaction.begin();
             entityManager.persist(training);
+            training.getTrainee().getTrainings().add(training);
+            training.getTrainer().getTrainings().add(training);
+            training.getTrainingType().getTrainings().add(training);
             transaction.commit();
             return training;
         } catch (PersistenceException e) {
