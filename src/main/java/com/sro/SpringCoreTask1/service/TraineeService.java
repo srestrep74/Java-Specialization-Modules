@@ -1,49 +1,19 @@
 package com.sro.SpringCoreTask1.service;
 
-import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.util.Set;
 
-import com.sro.SpringCoreTask1.dao.TraineeDAO;
-import com.sro.SpringCoreTask1.dto.TraineeDTO;
-import com.sro.SpringCoreTask1.mappers.TraineeMapper;
-import com.sro.SpringCoreTask1.models.Trainee;
-import com.sro.SpringCoreTask1.util.ProfileUtil;
+import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
+import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
+import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.service.base.BaseService;
 
-@Service
-public class TraineeService {
-    
-    @Autowired
-    private TraineeDAO traineeDAO;
-
-    public TraineeDTO save(TraineeDTO traineeDTO) {
-        List<String> existingUsernames = traineeDAO.findAll().stream().map(Trainee::getUserName).toList();
-
-        Trainee trainee = TraineeMapper.toEntity(traineeDTO);
-
-        String username = ProfileUtil.generateUsername(trainee.getFirstName(), trainee.getLastName(), existingUsernames);
-        String password = ProfileUtil.generatePassword();
-
-        trainee.setUserName(username);
-        trainee.setPassword(password);
-        return TraineeMapper.toDTO(traineeDAO.save(trainee));
-    }
-
-    public TraineeDTO findById(Long id) {
-        return this.traineeDAO.findById(id).map(TraineeMapper::toDTO).orElse(null);
-    }
-
-    public List<TraineeDTO> findAll() {
-        return this.traineeDAO.findAll().stream().map(TraineeMapper::toDTO).toList();
-    }
-
-    public void delete(Long id) {
-        this.traineeDAO.delete(id);
-    }
-
-    public TraineeDTO update(TraineeDTO traineeDTO) {
-        Trainee trainee = TraineeMapper.toEntity(traineeDTO);
-        return TraineeMapper.toDTO(this.traineeDAO.update(trainee));
-    }
+public interface TraineeService extends BaseService<TraineeRequestDTO, TraineeResponseDTO, Long>{
+    TraineeResponseDTO findByUsername(String username);
+    void deleteByUsername(String username);
+    void addTrainerToTrainee(Long traineeId, Long trainerId);
+    void removeTrainerFromTrainee(Long traineeId, Long trainerId);
+    void setTraineeStatus(Long traineeId);
+    boolean updateTraineePassword(Long traineeId, String newPassword);
+    Set<Trainer> findTrainersByTraineeId(Long traineeId);
 }

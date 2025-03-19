@@ -1,176 +1,135 @@
 {
-    "trainees": [
-      {
-        "firstName": "John",
-        "lastName": "Doe",
-        "userName": "john.doe",
-        "password": "a1b2c3d4e5",
-        "isActive": true,
-        "userId": 1,
-        "address": "123 Main St, Springfield",
-        "dateOfBirth": "1990-05-15"
-      },
-      {
-        "firstName": "Jane",
-        "lastName": "Smith",
-        "userName": "jane.smith",
-        "password": "f6g7h8i9j0",
-        "isActive": true,
-        "userId": 2,
-        "address": "456 Elm St, Shelbyville",
-        "dateOfBirth": "1985-08-22"
-      },
-      {
-        "firstName": "Alice",
-        "lastName": "Johnson",
-        "userName": "alice.johnson",
-        "password": "k1l2m3n4o5",
-        "isActive": false,
-        "userId": 3,
-        "address": "789 Oak St, Capital City",
-        "dateOfBirth": "1995-12-10"
-      }
-    ],
-    "trainers": [
-      {
-        "firstName": "Bob",
-        "lastName": "Brown",
-        "userName": "bob.brown",
-        "password": "p6q7r8s9t0",
-        "isActive": true,
-        "userId": 4,
-        "specialization": "Strength Training",
-        "trainingType": {
-          "trainingTypeName": "Strength"
-        }
-      },
-      {
-        "firstName": "Charlie",
-        "lastName": "Davis",
-        "userName": "charlie.davis",
-        "password": "u1v2w3x4y5",
-        "isActive": true,
-        "userId": 5,
-        "specialization": "Cardio",
-        "trainingType": {
-          "trainingTypeName": "Cardio"
-        }
-      },
-      {
-        "firstName": "Eve",
-        "lastName": "Wilson",
-        "userName": "eve.wilson",
-        "password": "z6a7b8c9d0",
-        "isActive": false,
-        "userId": 6,
-        "specialization": "Yoga",
-        "trainingType": {
-          "trainingTypeName": "Flexibility"
-        }
-      }
-    ],
-    "trainings": [
-      {
-        "trainingId": {
-          "traineeId": 1,
-          "trainerId": 4
-        },
-        "trainingName": "Basic Strength Training",
-        "trainingDate": "2023-10-01",
-        "duration": "PT1H30M",
-        "trainee": {
-          "firstName": "John",
-          "lastName": "Doe",
-          "userName": "john.doe",
-          "password": "a1b2c3d4e5",
-          "isActive": true,
-          "userId": 1,
-          "address": "123 Main St, Springfield",
-          "dateOfBirth": "1990-05-15"
-        },
-        "trainer": {
-          "firstName": "Bob",
-          "lastName": "Brown",
-          "userName": "bob.brown",
-          "password": "p6q7r8s9t0",
-          "isActive": true,
-          "userId": 4,
-          "specialization": "Strength Training",
-          "trainingType": {
-            "trainingTypeName": "Strength"
-          }
-        },
-        "trainingType": {
-          "trainingTypeName": "Strength"
-        }
-      },
-      {
-        "trainingId": {
-          "traineeId": 2,
-          "trainerId": 5
-        },
-        "trainingName": "Cardio Blast",
-        "trainingDate": "2023-10-02",
-        "duration": "PT1H",
-        "trainee": {
-          "firstName": "Jane",
-          "lastName": "Smith",
-          "userName": "jane.smith",
-          "password": "f6g7h8i9j0",
-          "isActive": true,
-          "userId": 2,
-          "address": "456 Elm St, Shelbyville",
-          "dateOfBirth": "1985-08-22"
-        },
-        "trainer": {
-          "firstName": "Charlie",
-          "lastName": "Davis",
-          "userName": "charlie.davis",
-          "password": "u1v2w3x4y5",
-          "isActive": true,
-          "userId": 5,
-          "specialization": "Cardio",
-          "trainingType": {
-            "trainingTypeName": "Cardio"
-          }
-        },
-        "trainingType": {
-          "trainingTypeName": "Cardio"
-        }
-      },
-      {
-        "trainingId": {
-          "traineeId": 3,
-          "trainerId": 6
-        },
-        "trainingName": "Morning Yoga",
-        "trainingDate": "2023-10-03",
-        "duration": "PT45M",
-        "trainee": {
-          "firstName": "Alice",
-          "lastName": "Johnson",
-          "userName": "alice.johnson",
-          "password": "k1l2m3n4o5",
-          "isActive": false,
-          "userId": 3,
-          "address": "789 Oak St, Capital City",
-          "dateOfBirth": "1995-12-10"
-        },
-        "trainer": {
-          "firstName": "Eve",
-          "lastName": "Wilson",
-          "userName": "eve.wilson",
-          "password": "z6a7b8c9d0",
-          "isActive": false,
-          "userId": 6,
-          "specialization": "Yoga",
-          "trainingType": {
-            "trainingTypeName": "Flexibility"
-          }
-        },
-        "trainingType": {
-          "trainingTypeName": "Flexibility"
-        }
-      }
-    ]
-  }
+  "trainees": [
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "active": true,
+      "address": "123 Main St",
+      "dateOfBirth": "1990-01-01",
+      "trainerIds": [1]
+    },
+    {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "active": true,
+      "address": "456 Elm St",
+      "dateOfBirth": "1995-05-05",
+      "trainerIds": [2]
+    },
+    {
+      "firstName": "Alice",
+      "lastName": "Johnson",
+      "active": true,
+      "address": "789 Oak St",
+      "dateOfBirth": "1985-03-15",
+      "trainerIds": [3]
+    },
+    {
+      "firstName": "Bob",
+      "lastName": "Brown",
+      "active": true,
+      "address": "321 Pine St",
+      "dateOfBirth": "1988-07-20",
+      "trainerIds": [4]
+    },
+    {
+      "firstName": "Charlie",
+      "lastName": "Davis",
+      "active": true,
+      "address": "654 Maple St",
+      "dateOfBirth": "1992-11-30",
+      "trainerIds": [5]
+    }
+  ],
+  "trainers": [
+    {
+      "firstName": "Mike",
+      "lastName": "Taylor",
+      "active": true,
+      "trainingTypeId": 1
+    },
+    {
+      "firstName": "Sarah",
+      "lastName": "Wilson",
+      "active": true,
+      "trainingTypeId": 2
+    },
+    {
+      "firstName": "David",
+      "lastName": "Moore",
+      "active": true,
+      "trainingTypeId": 3
+    },
+    {
+      "firstName": "Laura",
+      "lastName": "Anderson",
+      "active": true,
+      "trainingTypeId": 4
+    },
+    {
+      "firstName": "Kevin",
+      "lastName": "Thomas",
+      "active": true,
+      "trainingTypeId": 5
+    }
+  ],
+  "trainingTypes": [
+    {
+      "trainingTypeName": "Yoga"
+    },
+    {
+      "trainingTypeName": "Weightlifting"
+    },
+    {
+      "trainingTypeName": "Cardio"
+    },
+    {
+      "trainingTypeName": "Pilates"
+    },
+    {
+      "trainingTypeName": "CrossFit"
+    }
+  ],
+  "trainings": [
+    {
+      "trainingName": "Morning Yoga",
+      "trainingDate": "2023-10-01",
+      "duration": 60,
+      "traineeId": 6,
+      "trainerId": 1,
+      "trainingTypeId": 1
+    },
+    {
+      "trainingName": "Evening Weightlifting",
+      "trainingDate": "2023-10-02",
+      "duration": 90,
+      "traineeId": 7,
+      "trainerId": 2,
+      "trainingTypeId": 2
+    },
+    {
+      "trainingName": "Cardio Blast",
+      "trainingDate": "2023-10-03",
+      "duration": 45,
+      "traineeId": 8,
+      "trainerId": 3,
+      "trainingTypeId": 3
+    },
+    {
+      "trainingName": "Pilates Core",
+      "trainingDate": "2023-10-04",
+      "duration": 60,
+      "traineeId": 9,
+      "trainerId": 4,
+      "trainingTypeId": 4
+    },
+    {
+      "trainingName": "CrossFit Challenge",
+      "trainingDate": "2023-10-05",
+      "duration": 75,
+      "traineeId": 10,
+      "trainerId": 5,
+      "trainingTypeId": 5
+    }
+  ]
+}

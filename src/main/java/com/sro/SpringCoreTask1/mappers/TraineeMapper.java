@@ -1,32 +1,21 @@
 package com.sro.SpringCoreTask1.mappers;
 
-import com.sro.SpringCoreTask1.dto.TraineeDTO;
-import com.sro.SpringCoreTask1.models.Trainee;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-public class TraineeMapper {
+import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
+import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
+import com.sro.SpringCoreTask1.entity.Trainee;
 
-    public static TraineeDTO toDTO(Trainee trainee) {
-        return new TraineeDTO(
-            trainee.getUserId(),
-            trainee.getFirstName(),
-            trainee.getLastName(),
-            trainee.getUserName(),
-            trainee.getPassword(),
-            trainee.isActive(),
-            trainee.getAddress(),
-            trainee.getDateOfBirth()
-        );
-    }
+@Mapper(componentModel = "spring")
+public interface TraineeMapper {
+    TraineeMapper INSTANCE = Mappers.getMapper(TraineeMapper.class);
 
-    public static Trainee toEntity(TraineeDTO dto) {
-        Trainee trainee = new Trainee();
-        trainee.setUserId(dto.getUserId());
-        trainee.setFirstName(dto.getFirstName());
-        trainee.setLastName(dto.getLastName());
-        trainee.setUserName(dto.getUserName());
-        trainee.setActive(dto.isActive());
-        trainee.setAddress(dto.getAddress());
-        trainee.setDateOfBirth(dto.getDateOfBirth());
-        return trainee;
-    }
+    @Mapping(target = "trainings", ignore = true)
+    @Mapping(target = "trainers", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    Trainee toEntity(TraineeRequestDTO traineeRequestDTO);
+    
+    TraineeResponseDTO toDTO(Trainee trainee);
 }

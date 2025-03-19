@@ -1,40 +1,29 @@
 package com.sro.SpringCoreTask1.mappers;
 
-import com.sro.SpringCoreTask1.dto.TrainingDTO;
-import com.sro.SpringCoreTask1.models.Training;
-import com.sro.SpringCoreTask1.models.id.TrainingId;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-public class TrainingMapper {
+import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
+import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
+import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.entity.Training;
+import com.sro.SpringCoreTask1.entity.TrainingType;
 
-    public static TrainingDTO toDTO(Training training) {
-        if (training == null) {
-            return null;
-        }
+@Mapper(
+    componentModel = "spring",
+    uses = {TraineeMapper.class, TrainerMapper.class, TrainingTypeMapper.class}
+)
+public interface TrainingMapper {
+    TrainingMapper INSTANCE = Mappers.getMapper(TrainingMapper.class);
 
-        return new TrainingDTO(
-            training.getTrainingId(),
-            training.getTrainingName(),
-            training.getTrainingDate(),
-            training.getDuration(),
-            TraineeMapper.toDTO(training.getTrainee()),  
-            TrainerMapper.toDTO(training.getTrainer()),  
-            training.getTrainingType()
-        );
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "trainee", target = "trainee")
+    @Mapping(source = "trainer", target = "trainer")
+    @Mapping(source = "trainingType", target = "trainingType")
+    Training toEntity(TrainingRequestDTO trainingRequestDTO, Trainee trainee, Trainer trainer, TrainingType trainingType);
 
-    public static Training toEntity(TrainingDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+    TrainingResponseDTO toDTO(Training training);
 
-        return new Training(
-            new TrainingId(dto.getTrainee().getUserId(), dto.getTrainer().getUserId()), 
-            dto.getTrainingName(),
-            dto.getTrainingDate(),
-            dto.getDuration(),
-            TraineeMapper.toEntity(dto.getTrainee()),  
-            TrainerMapper.toEntity(dto.getTrainer()), 
-            dto.getTrainingType()
-        );
-    }
 }
