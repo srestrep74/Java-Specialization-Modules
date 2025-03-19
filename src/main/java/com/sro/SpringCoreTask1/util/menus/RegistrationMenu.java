@@ -14,7 +14,10 @@ import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
-import com.sro.SpringCoreTask1.facade.SystemServiceFacade;
+import com.sro.SpringCoreTask1.facade.TraineeServiceFacade;
+import com.sro.SpringCoreTask1.facade.TrainerServiceFacade;
+import com.sro.SpringCoreTask1.facade.TrainingServiceFacade;
+import com.sro.SpringCoreTask1.util.menus.base.Menu;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +28,15 @@ public class RegistrationMenu implements Menu {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final Scanner scanner;
-    private final SystemServiceFacade facade;
+    private final TraineeServiceFacade traineeFacade;
+    private final TrainerServiceFacade trainerFacade;
+    private final TrainingServiceFacade trainingFacade;
 
-    public RegistrationMenu(SystemServiceFacade facade) {
+    public RegistrationMenu(TraineeServiceFacade traineeFacade, TrainerServiceFacade trainerFacade, TrainingServiceFacade trainingFacade) {
         this.scanner = new Scanner(System.in);
-        this.facade = facade;
+        this.traineeFacade = traineeFacade;
+        this.trainerFacade = trainerFacade;
+        this.trainingFacade = trainingFacade;
     }
 
     @Override
@@ -69,7 +76,7 @@ public class RegistrationMenu implements Menu {
 
         try {
             TraineeRequestDTO trainee = new TraineeRequestDTO(firstName, lastName, "", "", true, address, dateOfBirth, null);
-            TraineeResponseDTO savedTrainee = facade.createTraineeProfile(trainee);
+            TraineeResponseDTO savedTrainee = traineeFacade.createTrainee(trainee);
             System.out.println("Registration successful! Trainee ID: " + savedTrainee.id());
             System.out.println("You can now login with your credentials.");
         } catch (Exception e) {
@@ -86,7 +93,7 @@ public class RegistrationMenu implements Menu {
 
         try {
             TrainerRequestDTO trainer = new TrainerRequestDTO(firstName, lastName, "", "", true, trainingTypeId);
-            TrainerResponseDTO savedTrainer = facade.createTrainerProfile(trainer);
+            TrainerResponseDTO savedTrainer = trainerFacade.createTrainer(trainer);
             System.out.println("Registration successful! Trainer ID: " + savedTrainer.id());
             System.out.println("You can now login with your credentials.");
         } catch (Exception e) {
@@ -96,7 +103,7 @@ public class RegistrationMenu implements Menu {
 
     private Long selectTrainingType() {
         System.out.println("\n----- Select Training Type -----");
-        List<TrainingTypeResponseDTO> trainingTypes = facade.getTrainingTypes();
+        List<TrainingTypeResponseDTO> trainingTypes = trainingFacade.findAllTrainingTypes();
         trainingTypes.forEach(trainingType -> System.out.println(trainingType.id() + ": " + trainingType.trainingTypeName()));
 
         while (true) {

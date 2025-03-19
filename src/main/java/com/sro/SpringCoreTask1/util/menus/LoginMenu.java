@@ -6,7 +6,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import com.sro.SpringCoreTask1.facade.SystemServiceFacade;
+import com.sro.SpringCoreTask1.facade.AuthServiceFacade;
+import com.sro.SpringCoreTask1.util.menus.base.Menu;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,10 @@ import lombok.RequiredArgsConstructor;
 public class LoginMenu implements Menu {
 
     private final Scanner scanner;
-    private final SystemServiceFacade facade;
+    private final AuthServiceFacade authFacade;
 
-    public LoginMenu(SystemServiceFacade facade) {
-        this.facade = facade;
+    public LoginMenu(AuthServiceFacade authFacade) {
+        this.authFacade = authFacade;
         this.scanner = new Scanner(System.in);
     }
 
@@ -54,7 +55,7 @@ public class LoginMenu implements Menu {
         String username = getInput("Enter username: ");
         String password = getInput("Enter password: ");
 
-        if (facade.authenticateTrainee(username, password)) {
+        if (authFacade.authenticateTrainee(username, password)) {
             System.out.println("Login successful as Trainee!");
         } else {
             System.out.println("Login failed. Invalid credentials.");
@@ -66,7 +67,7 @@ public class LoginMenu implements Menu {
         String username = getInput("Enter username: ");
         String password = getInput("Enter password: ");
 
-        if (facade.authenticateTrainer(username, password)) {
+        if (authFacade.authenticateTrainer(username, password)) {
             System.out.println("Login successful as Trainer!");
         } else {
             System.out.println("Login failed. Invalid credentials.");

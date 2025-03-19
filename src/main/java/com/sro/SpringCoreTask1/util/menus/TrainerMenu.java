@@ -14,7 +14,10 @@ import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
-import com.sro.SpringCoreTask1.facade.SystemServiceFacade;
+import com.sro.SpringCoreTask1.facade.AuthServiceFacade;
+import com.sro.SpringCoreTask1.facade.TrainerServiceFacade;
+import com.sro.SpringCoreTask1.facade.TrainingServiceFacade;
+import com.sro.SpringCoreTask1.util.menus.base.Menu;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +28,14 @@ public class TrainerMenu implements Menu {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private final Scanner scanner;
-    private final SystemServiceFacade facade;
+    private final TrainerServiceFacade trainerFacade;
+    private final AuthServiceFacade authFacade;
+    private final TrainingServiceFacade trainingFacade;
 
-    public TrainerMenu(SystemServiceFacade facade) {
-        this.facade = facade;
+    public TrainerMenu(TrainerServiceFacade trainerFacade, AuthServiceFacade authFacade, TrainingServiceFacade trainingFacade) {
+        this.trainerFacade = trainerFacade;
+        this.authFacade = authFacade;
+        this.trainingFacade = trainingFacade;
         this.scanner = new Scanner(System.in);
     }
 
@@ -43,7 +50,7 @@ public class TrainerMenu implements Menu {
 
     @Override
     public boolean processOption(int choice) {
-        if (!facade.isTrainerAuthenticated()) {
+        if (!authFacade.isTrainerAuthenticated()) {
             System.out.println("You must be logged in as a trainer to access this menu.");
             return true;
         }
@@ -70,11 +77,11 @@ public class TrainerMenu implements Menu {
     }
 
     private Long getTrainerId() {
-        return facade.getCurrentTrainerId();
+        return authFacade.getAuthenticatedTrainerId();
     }
 
     private void viewProfile() {
-        TrainerResponseDTO trainer = facade.getTrainerById(getTrainerId());
+        TrainerResponseDTO trainer = trainerFacade.findTrainerById(getTrainerId());
         System.out.println("\n===== Trainer Profile =====");
         System.out.println("ID: " + trainer.id());
         System.out.println("First Name: " + trainer.firstName());
@@ -85,7 +92,7 @@ public class TrainerMenu implements Menu {
     }
 
     private void updateProfile() {
-        TrainerResponseDTO trainer = facade.getTrainerById(getTrainerId());
+        TrainerResponseDTO trainer = trainerFacade.findTrainerById(getTrainerId());
 
         System.out.println("\n===== Update Trainer Profile =====");
         System.out.println("Enter new details (press Enter to keep current values):");
@@ -95,7 +102,7 @@ public class TrainerMenu implements Menu {
         Long trainingTypeId = selectTrainingType();
 
         TrainerRequestDTO requestDTO = new TrainerRequestDTO(firstName, lastName, trainer.username(), null, trainer.active(), trainingTypeId);
-        TrainerResponseDTO updatedTrainer = facade.updateTrainerProfile(requestDTO);
+        TrainerResponseDTO updatedTrainer = trainerFacade.updateTrainer(requestDTO);
 
         System.out.println("Profile updated successfully!");
         System.out.println("Updated Trainer ID: " + updatedTrainer.id());
@@ -108,21 +115,21 @@ public class TrainerMenu implements Menu {
             System.out.println("Password cannot be empty.");
             return;
         }
-        TrainerResponseDTO trainer = facade.getTrainerById(getTrainerId());
-        facade.changeTrainerPassword(trainer.id(), newPassword);
+        TrainerResponseDTO trainer = trainerFacade.findTrainerById(getTrainerId());
+        trainerFacade.updateTrainerPassword(trainer.id(), newPassword);
         System.out.println("Password changed successfully!");
     }
 
     private boolean toggleProfileStatus() {
         System.out.println("\n----- Toggle Profile Status -----");
-        boolean currentStatus = facade.getTrainerById(getTrainerId()).active();
+        boolean currentStatus = trainerFacade.findTrainerById(getTrainerId()).active();
         String newStatusText = currentStatus ? "inactive" : "active";
 
         System.out.println("\nYour profile is currently " + (currentStatus ? "active" : "inactive") + ".");
         String response = getInput("Do you want to make it " + newStatusText + "? (Y/N): ", "").toUpperCase();
 
         if (response.equals("Y")) {
-            facade.toggleTrainerStatus(getTrainerId());
+            trainerFacade.toggleTrainerStatus(getTrainerId());
             System.out.println("Profile status updated successfully! Your profile is now " + newStatusText + ".");
             return !currentStatus;
         } else {
@@ -139,7 +146,7 @@ public class TrainerMenu implements Menu {
 
     private Long selectTrainingType() {
         System.out.println("\n----- Select Training Type -----");
-        List<TrainingTypeResponseDTO> trainingTypes = facade.getTrainingTypes();
+        List<TrainingTypeResponseDTO> trainingTypes = trainingFacade.findAllTrainingTypes();
         trainingTypes.forEach(trainingType -> System.out.println(trainingType.id() + ": " + trainingType.trainingTypeName()));
 
         while (true) {
@@ -155,8 +162,8 @@ public class TrainerMenu implements Menu {
     private void viewTrainings() {
         System.out.println("\n===== Your Trainings =====");
         TrainerTrainingFilterDTO filterDTO = getTrainingFilters();
-        TrainerResponseDTO trainer = facade.getTrainerById(getTrainerId());
-        List<TrainingResponseDTO> trainings = facade.getTrainerTrainingsList(trainer.username(), filterDTO);
+        TrainerResponseDTO trainer = trainerFacade.findTrainerById(getTrainerId());
+        List<TrainingResponseDTO> trainings = trainerFacade.findTrainerTrainings(trainer.username(), filterDTO);
 
         if (trainings.isEmpty()) {
             System.out.println("No trainings found with the specified filters.");

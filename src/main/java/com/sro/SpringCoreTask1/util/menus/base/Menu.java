@@ -1,4 +1,4 @@
-package com.sro.SpringCoreTask1.util.menus;
+package com.sro.SpringCoreTask1.util.menus.base;
 
 import java.util.Scanner;
 
