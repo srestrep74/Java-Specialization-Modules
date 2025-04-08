@@ -91,9 +91,10 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Override
     public Optional<Trainee> findByUsername(String username) {
         try {
-            return Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)
+            Optional<Trainee> traine = Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class)
                                                    .setParameter("username", username)
                                                    .getSingleResult());
+            return  traine;
         } catch (NoResultException e) {
             return Optional.empty();
         }

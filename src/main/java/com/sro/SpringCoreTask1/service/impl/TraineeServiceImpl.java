@@ -2,6 +2,9 @@ package com.sro.SpringCoreTask1.service.impl;
 
 import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.auth.TraineeRegistrationRequest;
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
@@ -62,6 +65,36 @@ public class TraineeServiceImpl implements TraineeService {
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Trainee", e);
         }
+    }
+
+    @Override
+    public TraineeRegistrationResponse saveFromAuth(TraineeRegistrationRequest traineeRequestDTO) {
+        if (traineeRequestDTO == null) {
+            throw new IllegalArgumentException("Trainee cannot be null");
+        }
+
+        if (traineeRequestDTO.firstName() == null || traineeRequestDTO.firstName().isEmpty() ||
+            traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() ||
+            traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
+            throw new IllegalArgumentException("Trainee first name, last name, and address cannot be null or empty");
+        }
+
+        String generatedUsername = ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName());
+        String generatedPassword = ProfileUtil.generatePassword();
+
+        try {
+            Trainee trainee = traineeMapper.toEntity(traineeRequestDTO);
+            trainee.setUsername(generatedUsername);
+            trainee.setPassword(generatedPassword);
+            Trainee savedTrainee = traineeRepository.save(trainee);
+
+            return traineeMapper.toRegistrationResponseDTO(savedTrainee);
+        } catch(ConstraintViolationException e) {
+            throw new ResourceAlreadyExistsException("Trainee with username " + generatedUsername + " already exists");
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error saving Trainee", e);
+        }
+
     }
 
     @Override
@@ -132,15 +165,15 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeResponseDTO findByUsername(String username) {
+    public TraineeProfileResponseDTO findByUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
         }
 
         try {
-            return traineeRepository.findByUsername(username)
-                    .map(traineeMapper::toDTO)
+            Trainee trainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
+            return traineeMapper.toProfileResponse(trainee);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
