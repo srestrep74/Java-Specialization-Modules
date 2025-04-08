@@ -9,6 +9,7 @@ import com.sro.SpringCoreTask1.repository.TrainingRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -26,26 +27,28 @@ import java.util.Optional;
 @Repository
 public class TrainingRepositoryImpl implements TrainingRepository {
 
-    private final EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
+    /* 
     public TrainingRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
-    }
+    }*/
 
     @Override
     public Training save(Training training) {
-        EntityTransaction transaction = null;
+        //EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
+            //transaction = entityManager.getTransaction();
+            //transaction.begin();
             entityManager.persist(training);
             training.getTrainee().getTrainings().add(training);
             training.getTrainer().getTrainings().add(training);
             training.getTrainingType().getTrainings().add(training);
-            transaction.commit();
+            //transaction.commit();
             return training;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
+            //rollbackTransaction(transaction);
             throw e;
         }
     }

@@ -7,9 +7,11 @@ import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,22 +21,24 @@ import java.util.Set;
 @Repository
 public class TraineeRepositoryImpl implements TraineeRepository {
 
-    private final EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
+    /* 
     public TraineeRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
-    }
+    }*/
 
     @Override
     public Trainee save(Trainee trainee) {
-        EntityTransaction transaction = entityManager.getTransaction();
+        //EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
+            //transaction.begin();
             entityManager.persist(trainee);
-            transaction.commit();
+            //transaction.commit();
             return trainee;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
+            //rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -113,24 +117,30 @@ public class TraineeRepositoryImpl implements TraineeRepository {
 
     @Override
     public boolean deleteByUsername(String username) {
-        EntityTransaction transaction = entityManager.getTransaction();
+        //EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
-            Trainee trainee = findByUsername2(username).orElse(null);
+            //transaction.begin();
+            Trainee trainee = entityManager
+                            .createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class)
+                            .setParameter("username", username)
+                            .getSingleResult();
             if (trainee == null) {
-                rollbackTransaction(transaction);
+                //rollbackTransaction(transaction);
                 return false;
             }
+
+            System.out.println("trainee: " + trainee);
+            System.out.println("trainee.getTrainers(): " + trainee.getTrainers());
 
             for (Trainer trainer : new HashSet<>(trainee.getTrainers())) {
                 trainee.removeTrainer(trainer);
             }
 
-            entityManager.remove(trainee);
-            transaction.commit();
+            entityManager.remove(entityManager.contains(trainee) ? trainee : entityManager.merge(trainee));
+            //transaction.commit();
             return true;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
+            //rollbackTransaction(transaction);
             throw e;
         }
     }

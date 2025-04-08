@@ -21,6 +21,7 @@ import com.sro.SpringCoreTask1.service.TrainingService;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -42,6 +43,7 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
+    @Transactional
     public TrainingResponseDTO save(TrainingRequestDTO trainingRequestDTO) {
         if (trainingRequestDTO == null) {
             throw new IllegalArgumentException("TrainingRequestDTO cannot be null");

@@ -16,23 +16,25 @@ import java.util.Set;
 @Repository
 public class TrainerRepositoryImpl implements TrainerRepository {
 
-    private final EntityManager entityManager;
+    @PersistenceContext 
+    private EntityManager entityManager;
 
+    /* 
     public TrainerRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
-    }
+    }*/
 
     @Override
     public Trainer save(Trainer trainer) {
-        EntityTransaction transaction = null;
+        //EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
+            //transaction = entityManager.getTransaction();
+            //transaction.begin();
             entityManager.persist(trainer);
-            transaction.commit();
+            //transaction.commit();
             return trainer;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
+            //rollbackTransaction(transaction);
             throw e;
         }
     }

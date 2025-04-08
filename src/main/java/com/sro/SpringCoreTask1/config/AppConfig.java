@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @ComponentScan(basePackages = "com.sro.SpringCoreTask1")
 @Import({PersistenceConfig.class})
 @PropertySource({"classpath:application.properties"})
-@EnableTransactionManagement
 @EnableAspectJAutoProxy
+@EnableTransactionManagement
 public class AppConfig {
 }

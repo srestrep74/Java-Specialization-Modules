@@ -5,6 +5,7 @@ import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 
 import org.springframework.stereotype.Repository;
@@ -15,23 +16,25 @@ import java.util.Optional;
 @Repository
 public class TrainingTypeRepositoryImpl implements TrainingTypeRepository {
 
-    private final EntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
+    /* 
     public TrainingTypeRepositoryImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
-    }
+    }*/
 
     @Override
     public TrainingType save(TrainingType trainingType) {
-        EntityTransaction transaction = null;
+        //EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
+            //transaction = entityManager.getTransaction();
+            //transaction.begin();
             entityManager.persist(trainingType);
-            transaction.commit();
+            //transaction.commit();
             return trainingType;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
+            //rollbackTransaction(transaction);
             throw e;
         }
     }

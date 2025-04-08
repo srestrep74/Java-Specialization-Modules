@@ -13,6 +13,7 @@ import com.sro.SpringCoreTask1.service.TrainingTypeService;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
+    @Transactional
     public TrainingTypeResponseDTO save(TrainingTypeRequestDTO trainingTypeRequestDTO) {
         if (trainingTypeRequestDTO == null) {
             throw new IllegalArgumentException("TrainingTypeRequestDTO cannot be null");

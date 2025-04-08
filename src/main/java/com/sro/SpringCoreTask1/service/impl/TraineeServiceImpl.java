@@ -23,6 +23,7 @@ import com.sro.SpringCoreTask1.util.ProfileUtil;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public TraineeResponseDTO save(TraineeRequestDTO traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
@@ -193,6 +195,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public void deleteByUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
@@ -202,6 +205,7 @@ public class TraineeServiceImpl implements TraineeService {
             if (!traineeRepository.deleteByUsername(username)) {
                 throw new ResourceNotFoundException("Trainee not found with username: " + username);
             }
+            System.out.println("Trainee deleted with username: " + username);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {

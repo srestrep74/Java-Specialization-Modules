@@ -16,6 +16,7 @@ import com.sro.SpringCoreTask1.util.ProfileUtil;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    @Transactional
     public TrainerResponseDTO save(TrainerRequestDTO trainerRequestDTO) {
         if (trainerRequestDTO == null) {
             throw new IllegalArgumentException("Trainer cannot be null");
