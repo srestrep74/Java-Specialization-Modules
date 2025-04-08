@@ -3,6 +3,7 @@ package com.sro.SpringCoreTask1.service.impl;
 import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.TraineeRegistrationRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.TraineeUpdateRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
 import com.sro.SpringCoreTask1.entity.Trainee;
@@ -11,6 +12,9 @@ import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.mappers.TraineeMapper;
+import com.sro.SpringCoreTask1.mappers.trainee.TraineeCreateMapper;
+import com.sro.SpringCoreTask1.mappers.trainee.TraineeResponseMapper;
+import com.sro.SpringCoreTask1.mappers.trainee.TraineeUpdateMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.TraineeService;
@@ -29,11 +33,17 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeMapper traineeMapper;
+    private final TraineeCreateMapper traineeCreateMapper;
+    private final TraineeUpdateMapper traineeUpdateMapper;
+    private final TraineeResponseMapper traineeResponseMapper;
 
-    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TraineeMapper traineeMapper) {
+    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TraineeMapper traineeMapper, TraineeCreateMapper traineeCreateMapper, TraineeUpdateMapper traineeUpdateMapper, TraineeResponseMapper traineeResponseMapper) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.traineeMapper = traineeMapper;
+        this.traineeCreateMapper = traineeCreateMapper;
+        this.traineeUpdateMapper = traineeUpdateMapper;
+        this.traineeResponseMapper = traineeResponseMapper;
     }
 
     @Override
@@ -83,12 +93,12 @@ public class TraineeServiceImpl implements TraineeService {
         String generatedPassword = ProfileUtil.generatePassword();
 
         try {
-            Trainee trainee = traineeMapper.toEntity(traineeRequestDTO);
+            Trainee trainee = traineeCreateMapper.toEntity(traineeRequestDTO);
             trainee.setUsername(generatedUsername);
             trainee.setPassword(generatedPassword);
             Trainee savedTrainee = traineeRepository.save(trainee);
 
-            return traineeMapper.toRegistrationResponseDTO(savedTrainee);
+            return traineeResponseMapper.toRegistrationResponseDTO(savedTrainee);
         } catch(ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainee with username " + generatedUsername + " already exists");
         } catch (Exception e) {
@@ -126,20 +136,21 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public TraineeResponseDTO update(TraineeRequestDTO traineeRequestDTO) {
+    public TraineeProfileResponseDTO update(String username, TraineeUpdateRequestDTO traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
         }
 
         try {
-            Trainee existingTrainee = traineeRepository.findByUsername(traineeRequestDTO.username())
+            Trainee existingTrainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + traineeRequestDTO.username()));
-            Trainee trainee = traineeMapper.toEntity(traineeRequestDTO);
+            Trainee trainee = traineeUpdateMapper.toEntity(traineeRequestDTO, existingTrainee);
             trainee.setId(existingTrainee.getId());
             trainee.setPassword(existingTrainee.getPassword());
-            return traineeRepository.update(trainee)
-                    .map(traineeMapper::toDTO)
+            trainee.setTrainers(existingTrainee.getTrainers());
+            Trainee updatedTrainee =  traineeRepository.update(trainee)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainee.getId()));
+            return traineeResponseMapper.toProfileResponse(updatedTrainee);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -173,7 +184,7 @@ public class TraineeServiceImpl implements TraineeService {
         try {
             Trainee trainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
-            return traineeMapper.toProfileResponse(trainee);
+            return traineeResponseMapper.toProfileResponse(trainee);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {

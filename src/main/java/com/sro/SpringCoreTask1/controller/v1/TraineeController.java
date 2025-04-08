@@ -2,14 +2,17 @@ package com.sro.SpringCoreTask1.controller.v1;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.TraineeRegistrationRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.TraineeUpdateRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
 import com.sro.SpringCoreTask1.service.TraineeService;
@@ -38,5 +41,17 @@ public class TraineeController {
     public ResponseEntity<TraineeProfileResponseDTO> getProfile(@PathVariable String username) {
         TraineeProfileResponseDTO profile = traineeService.findByUsername(username);
         return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/{username}")
+    public ResponseEntity<TraineeProfileResponseDTO> updateProfile(@PathVariable String username, @RequestBody TraineeUpdateRequestDTO traineeUpdateRequestDTO) {
+        TraineeProfileResponseDTO profile = traineeService.update(username, traineeUpdateRequestDTO);
+        return ResponseEntity.ok(profile);
+    }
+
+    @DeleteMapping("/{username}")
+    public ResponseEntity<Void> deleteProfile(@PathVariable String username) {
+        traineeService.deleteByUsername(username);
+        return ResponseEntity.noContent().build();
     }
 }

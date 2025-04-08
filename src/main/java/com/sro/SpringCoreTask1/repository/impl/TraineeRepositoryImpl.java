@@ -91,10 +91,21 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Override
     public Optional<Trainee> findByUsername(String username) {
         try {
-            Optional<Trainee> traine = Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class)
+            Optional<Trainee> trainee = Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class)
                                                    .setParameter("username", username)
                                                    .getSingleResult());
-            return  traine;
+            return trainee;
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    
+    public Optional<Trainee> findByUsername2(String username) {
+        try {
+            return Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)
+                                                   .setParameter("username", username)
+                                                   .getSingleResult());
         } catch (NoResultException e) {
             return Optional.empty();
         }
@@ -105,7 +116,7 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         EntityTransaction transaction = entityManager.getTransaction();
         try {
             transaction.begin();
-            Trainee trainee = findByUsername(username).orElse(null);
+            Trainee trainee = findByUsername2(username).orElse(null);
             if (trainee == null) {
                 rollbackTransaction(transaction);
                 return false;
