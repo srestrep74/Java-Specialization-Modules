@@ -2,6 +2,7 @@ package com.sro.SpringCoreTask1.service.impl;
 
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.CreateTrainingRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingFilter;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingFilter;
@@ -14,6 +15,7 @@ import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.mappers.TrainingMapper;
+import com.sro.SpringCoreTask1.mappers.training.TrainingCreateMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingTraineeMapper;
 import com.sro.SpringCoreTask1.mappers.training.TraininigTrainerMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
@@ -40,6 +42,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingMapper trainingMapper;
     private final TrainingTraineeMapper trainingTraineeMapper;
     private final TraininigTrainerMapper traininigTrainerMapper;
+    private final TrainingCreateMapper trainingCreateMapper;
 
     public TrainingServiceImpl(
             TrainingRepository trainingRepository,
@@ -48,7 +51,8 @@ public class TrainingServiceImpl implements TrainingService {
             TrainingTypeRepository trainingTypeRepository,
             TrainingMapper trainingMapper,
             TrainingTraineeMapper trainingTraineeMapper,
-            TraininigTrainerMapper traininigTrainerMapper) {
+            TraininigTrainerMapper traininigTrainerMapper,
+            TrainingCreateMapper trainingCreateMapper) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
@@ -56,6 +60,7 @@ public class TrainingServiceImpl implements TrainingService {
         this.trainingMapper = trainingMapper;
         this.trainingTraineeMapper = trainingTraineeMapper;
         this.traininigTrainerMapper = traininigTrainerMapper;
+        this.trainingCreateMapper = trainingCreateMapper;
     }
 
     @Override
@@ -100,6 +105,29 @@ public class TrainingServiceImpl implements TrainingService {
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Training", e);
         }
+    }
+
+    @Override
+    @Transactional
+    public void addTraining(CreateTrainingRequest createTrainingRequest) {
+        if (createTrainingRequest == null) {
+            throw new IllegalArgumentException("CreateTrainingRequest cannot be null");
+        }
+
+        try {
+            Trainee trainee = traineeRepository.findByUsername(createTrainingRequest.traineeUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + createTrainingRequest.traineeUsername()));
+            Trainer trainer = trainerRepository.findByUsername(createTrainingRequest.trainerUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + createTrainingRequest.trainerUsername()));
+
+
+            Training training = trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee, trainer.getTrainingType());
+            trainingRepository.save(training);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error adding Training", e);
+        }
+        
+        
     }
 
     @Override
