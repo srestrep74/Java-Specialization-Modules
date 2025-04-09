@@ -2,10 +2,10 @@ package com.sro.SpringCoreTask1.service.impl;
 
 import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
-import com.sro.SpringCoreTask1.dtos.v1.request.auth.TraineeRegistrationRequest;
-import com.sro.SpringCoreTask1.dtos.v1.request.trainee.TraineeUpdateRequestDTO;
-import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
-import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
@@ -79,7 +79,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public TraineeRegistrationResponse saveFromAuth(TraineeRegistrationRequest traineeRequestDTO) {
+    public RegisterTraineeResponse saveFromAuth(RegisterTraineeRequest traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
         }
@@ -99,7 +99,7 @@ public class TraineeServiceImpl implements TraineeService {
             trainee.setPassword(generatedPassword);
             Trainee savedTrainee = traineeRepository.save(trainee);
 
-            return traineeResponseMapper.toRegistrationResponseDTO(savedTrainee);
+            return traineeCreateMapper.toRegisterResponse(savedTrainee);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainee with username " + generatedUsername + " already exists");
         } catch (Exception e) {
@@ -137,7 +137,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public TraineeProfileResponseDTO update(String username, TraineeUpdateRequestDTO traineeRequestDTO) {
+    public TraineeProfileResponse update(String username, UpdateTraineeProfileRequest traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
         }
@@ -175,7 +175,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional(readOnly = true)
-    public TraineeProfileResponseDTO findByUsername(String username) {
+    public TraineeProfileResponse findByUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
         }

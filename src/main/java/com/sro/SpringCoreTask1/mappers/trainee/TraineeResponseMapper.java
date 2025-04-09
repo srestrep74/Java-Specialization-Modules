@@ -1,21 +1,31 @@
 package com.sro.SpringCoreTask1.mappers.trainee;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
-import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
-import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 
-@Mapper(componentModel = "spring", uses = { TrainerSummaryMapper.class})
+@Mapper(componentModel = "spring")
 public interface TraineeResponseMapper {
     
-    TraineeResponseDTO toDTO(Trainee trainee);
+    @Mapping(source = "firstName", target = "firstName")
+    @Mapping(source = "lastName", target = "lastName")
+    @Mapping(source = "dateOfBirth", target = "dateOfBirth")
+    @Mapping(source = "address", target = "address")
+    @Mapping(source = "active", target = "active")
+    @Mapping(source = "trainers", target = "trainers")
+    TraineeProfileResponse toProfileResponse(Trainee trainee);
 
-    TraineeRegistrationResponse toRegistrationResponseDTO(Trainee trainee);
+    List<TraineeProfileResponse.TrainerInfo> toTrainerInfoList(List<Trainer> trainers);
 
-    @Mapping(target = "trainers", source = "trainers")
-    TraineeProfileResponseDTO toProfileResponse(Trainee trainee);
+    @Mapping(source = "username", target = "username")
+    @Mapping(source = "firstName", target = "firstName")
+    @Mapping(source = "lastName", target = "lastName")
+    @Mapping(source = "trainingType.id", target = "specialization")
+    TraineeProfileResponse.TrainerInfo toTrainerInfo(Trainer trainer);
 
 }

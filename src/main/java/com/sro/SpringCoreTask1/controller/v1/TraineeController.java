@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sro.SpringCoreTask1.dtos.v1.request.auth.TraineeRegistrationRequest;
-import com.sro.SpringCoreTask1.dtos.v1.request.trainee.TraineeUpdateRequestDTO;
-import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
-import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.service.TraineeService;
 
 import jakarta.validation.Valid;
@@ -30,22 +30,22 @@ public class TraineeController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<TraineeRegistrationResponse> registerTrainee(
-        @Valid @RequestBody TraineeRegistrationRequest traineeRequest
+    public ResponseEntity<RegisterTraineeResponse> registerTrainee(
+        @Valid @RequestBody RegisterTraineeRequest traineeRequest
     ) {
-        TraineeRegistrationResponse traineeResponse = traineeService.saveFromAuth(traineeRequest);
+        RegisterTraineeResponse traineeResponse = traineeService.saveFromAuth(traineeRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(traineeResponse);
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<TraineeProfileResponseDTO> getProfile(@PathVariable String username) {
-        TraineeProfileResponseDTO profile = traineeService.findByUsername(username);
+    public ResponseEntity<TraineeProfileResponse> getProfile(@PathVariable String username) {
+        TraineeProfileResponse profile = traineeService.findByUsername(username);
         return ResponseEntity.ok(profile);
     }
 
     @PutMapping("/{username}")
-    public ResponseEntity<TraineeProfileResponseDTO> updateProfile(@PathVariable String username, @RequestBody TraineeUpdateRequestDTO traineeUpdateRequestDTO) {
-        TraineeProfileResponseDTO profile = traineeService.update(username, traineeUpdateRequestDTO);
+    public ResponseEntity<TraineeProfileResponse> updateProfile(@PathVariable String username, @RequestBody UpdateTraineeProfileRequest traineeUpdateRequestDTO) {
+        TraineeProfileResponse profile = traineeService.update(username, traineeUpdateRequestDTO);
         return ResponseEntity.ok(profile);
     }
 
