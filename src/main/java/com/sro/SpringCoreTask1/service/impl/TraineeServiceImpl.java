@@ -265,19 +265,19 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public void setTraineeStatus(Long traineeId) {
-        if (traineeId == null) {
-            throw new IllegalArgumentException("Trainee id cannot be null");
+    public void updateActivationStatus(String username, boolean active) {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Trainee username cannot be null or empty");
         }
 
         try {
-            Trainee trainee = traineeRepository.findById(traineeId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + traineeId));
+            Trainee trainee = traineeRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
 
-            trainee.setActive(!trainee.isActive());
+            trainee.setActive(active);
             traineeRepository.save(trainee);
         } catch (Exception e) {
-            throw new DatabaseOperationException("Error setting Trainee status", e);
+            throw new DatabaseOperationException("Error updating Trainee activation status", e);
         }
     }
 

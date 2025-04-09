@@ -206,19 +206,19 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    public void toggleTrainerStatus(Long trainerId) {
-        if (trainerId == null) {
-            throw new IllegalArgumentException("Trainer id cannot be null");
+    public void updateActivationStatus(String username, boolean active) {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Trainer username cannot be null or empty");
         }
 
         try {
-            Trainer trainer = trainerRepository.findById(trainerId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
+            Trainer trainer = trainerRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
 
-            trainer.setActive(!trainer.isActive());
+            trainer.setActive(active);
             trainerRepository.save(trainer);
         } catch (Exception e) {
-            throw new DatabaseOperationException("Error setting Trainer status", e);
+            throw new DatabaseOperationException("Error updating Trainer activation status", e);
         }
     }
 

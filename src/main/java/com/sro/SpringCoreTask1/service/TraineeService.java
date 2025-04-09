@@ -22,7 +22,7 @@ public interface TraineeService {
     void deleteByUsername(String username);
     void addTrainerToTrainee(Long traineeId, Long trainerId);
     void removeTrainerFromTrainee(Long traineeId, Long trainerId);
-    void setTraineeStatus(Long traineeId);
+    void updateActivationStatus(String username, boolean active);
     boolean updateTraineePassword(Long traineeId, String newPassword);
     Set<Trainer> findTrainersByTraineeId(Long traineeId);
 }

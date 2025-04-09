@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerActivation;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingFilter;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingResponse;
@@ -72,5 +73,13 @@ public class TrainerController {
         
         List<TrainerTrainingResponse> trainings = trainingService.findTrainingsByTrainerWithFilters(filterDTO);
         return ResponseEntity.ok(trainings);
+    }
+
+    @PatchMapping("/{username}/activation")
+    public ResponseEntity<Void> updateActivationStatus(
+            @PathVariable String username,
+            @RequestBody UpdateTrainerActivation updateTrainerActivation) {
+        trainerService.updateActivationStatus(username, updateTrainerActivation.active());
+        return ResponseEntity.noContent().build();
     }
 }

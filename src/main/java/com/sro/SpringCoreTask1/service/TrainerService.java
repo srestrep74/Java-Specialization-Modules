@@ -20,7 +20,7 @@ public interface TrainerService {
     TrainerProfileResponse update(String username, UpdateTrainerProfileRequest dto);
     TrainerProfileResponse findByUsername(String username);
     List<UnassignedTrainerResponse> findUnassignedTrainersByTraineeUsername(String traineeUsername);
-    void toggleTrainerStatus(Long trainerId);
+    void updateActivationStatus(String username, boolean active);
     boolean updateTrainerPassword(Long trainerId, String newPassword);
     Set<TrainerResponseDTO> findTrainersByTraineeId(Long traineeId);
 }
