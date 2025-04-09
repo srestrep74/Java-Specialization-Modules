@@ -6,6 +6,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.TrainerProfileResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 
@@ -25,4 +26,10 @@ public interface TrainerResponseMapper {
     @Mapping(source = "firstName", target = "firstName")
     @Mapping(source = "lastName", target = "lastName")
     TrainerProfileResponse.TraineeInfo toTraineeInfo(Trainee trainee);
+
+    @Mapping(source = "username", target = "username")
+    @Mapping(source = "firstName", target = "firstName")
+    @Mapping(source = "lastName", target = "lastName")
+    @Mapping(source = "trainingType.id", target = "specialization")
+    UnassignedTrainerResponse toUnassignedTrainerResponse(Trainer trainer);
 }

@@ -6,6 +6,7 @@ import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.RegisterTrainerResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.TrainerProfileResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerResponse;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
@@ -189,14 +190,14 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainerResponseDTO> findUnassignedTrainersByTraineeUsername(String traineeUsername) {
+    public List<UnassignedTrainerResponse> findUnassignedTrainersByTraineeUsername(String traineeUsername) {
         if (traineeUsername == null || traineeUsername.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
         }
 
         try {
             return trainerRepository.findUnassignedTrainersByTraineeUsername(traineeUsername).stream()
-                    .map(trainerMapper::toDTO)
+                    .map(trainerResponseMapper::toUnassignedTrainerResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainers not assigned to Trainee", e);

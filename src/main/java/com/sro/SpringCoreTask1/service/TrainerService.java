@@ -9,6 +9,7 @@ import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.RegisterTrainerResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.TrainerProfileResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerResponse;
 
 public interface TrainerService {
     TrainerResponseDTO save(TrainerRequestDTO dto);
@@ -18,7 +19,7 @@ public interface TrainerService {
     void deleteById(Long id);
     TrainerProfileResponse update(String username, UpdateTrainerProfileRequest dto);
     TrainerProfileResponse findByUsername(String username);
-    List<TrainerResponseDTO> findUnassignedTrainersByTraineeUsername(String traineeUsername);
+    List<UnassignedTrainerResponse> findUnassignedTrainersByTraineeUsername(String traineeUsername);
     void toggleTrainerStatus(Long trainerId);
     boolean updateTrainerPassword(Long trainerId, String newPassword);
     Set<TrainerResponseDTO> findTrainersByTraineeId(Long traineeId);
