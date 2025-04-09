@@ -47,6 +47,7 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrainingTypeResponseDTO findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training Type id cannot be null");
@@ -56,15 +57,13 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             return trainingTypeRepository.findById(id)
                     .map(trainingTypeMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training Type by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainingTypeResponseDTO> findAll() {
         try {
             return trainingTypeRepository.findAll().stream()
@@ -76,6 +75,7 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
+    @Transactional
     public TrainingTypeResponseDTO update(TrainingTypeRequestDTO trainingTypeRequestDTO) {
         if (trainingTypeRequestDTO == null) {
             throw new IllegalArgumentException("TrainingTypeRequestDTO cannot be null");
@@ -86,15 +86,13 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             return trainingTypeRepository.update(trainingType)
                     .map(trainingTypeMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + trainingType.getId()));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training Type", e);
         }
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training Type id cannot be null");
@@ -104,10 +102,7 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             if (!trainingTypeRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Training Type not found with id: " + id);
             }
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Training Type by id", e);
         }
     }

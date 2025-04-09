@@ -4,8 +4,14 @@ import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 
-import jakarta.persistence.*;
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
@@ -19,22 +25,12 @@ public class TrainerRepositoryImpl implements TrainerRepository {
     @PersistenceContext 
     private EntityManager entityManager;
 
-    /* 
-    public TrainerRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }*/
-
     @Override
     public Trainer save(Trainer trainer) {
-        //EntityTransaction transaction = null;
         try {
-            //transaction = entityManager.getTransaction();
-            //transaction.begin();
             entityManager.persist(trainer);
-            //transaction.commit();
             return trainer;
         } catch (PersistenceException e) {
-            //rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -52,40 +48,28 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
     @Override
     public boolean deleteById(Long id) {
-        EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
             Trainer trainer = entityManager.find(Trainer.class, id);
             if (trainer == null) {
-                rollbackTransaction(transaction);
                 return false;
             }
             entityManager.remove(trainer);
-            transaction.commit();
             return true;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
 
     @Override
     public Optional<Trainer> update(Trainer trainer) {
-        EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
             Trainer existingTrainer = entityManager.find(Trainer.class, trainer.getId());
             if (existingTrainer == null) {
-                rollbackTransaction(transaction);
                 return Optional.empty();
             }
             Trainer updatedTrainer = entityManager.merge(trainer);
-            transaction.commit();
             return Optional.of(updatedTrainer);
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -112,7 +96,7 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             CriteriaQuery<Trainer> cq = cb.createQuery(Trainer.class);
             Root<Trainer> trainer = cq.from(Trainer.class);
 
-            Subquery<Long> subquery = cq.subquery(Long.class);
+            var subquery = cq.subquery(Long.class);
             Root<Trainer> subTrainer = subquery.from(Trainer.class);
             Join<Trainer, Trainee> assignedTrainees = subTrainer.join("trainees");
 
@@ -129,20 +113,14 @@ public class TrainerRepositoryImpl implements TrainerRepository {
 
     @Override
     public boolean changeTrainerPassword(Long id, String newPassword) {
-        EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
             Trainer trainer = entityManager.find(Trainer.class, id);
             if (trainer == null) {
-                rollbackTransaction(transaction);
                 return false;
             }
             trainer.setPassword(newPassword);
-            transaction.commit();
             return true;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -153,12 +131,6 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             return entityManager.find(Trainee.class, traineeId).getTrainers();
         } catch (NoResultException e) {
             throw e;
-        }
-    }
-
-    private void rollbackTransaction(EntityTransaction transaction) {
-        if (transaction != null && transaction.isActive()) {
-            transaction.rollback();
         }
     }
 }

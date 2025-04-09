@@ -52,14 +52,13 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerMapper.toDTO(savedTrainer);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainer with username " + trainerRequestDTO.username() + " already exists");
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Trainer", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrainerResponseDTO findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Trainer id cannot be null");
@@ -69,14 +68,13 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findById(id)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainerResponseDTO> findAll() {
         try {
             return trainerRepository.findAll().stream()
@@ -88,6 +86,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
+    @Transactional
     public TrainerResponseDTO update(TrainerRequestDTO trainerRequestDTO) {
         if (trainerRequestDTO == null) {
             throw new IllegalArgumentException("Trainer cannot be null");
@@ -104,14 +103,13 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.update(trainer)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainer.getId()));
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer", e);
         }
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Trainer id cannot be null");
@@ -121,14 +119,13 @@ public class TrainerServiceImpl implements TrainerService {
             if (!trainerRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Trainer not found with id: " + id);
             }
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainer by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrainerResponseDTO findByUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Trainer username cannot be null or empty");
@@ -138,14 +135,13 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findByUsername(username)
                     .map(trainerMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by username", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainerResponseDTO> findUnassignedTrainersByTraineeUsername(String traineeUsername) {
         if (traineeUsername == null || traineeUsername.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
@@ -155,14 +151,13 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findUnassignedTrainersByTraineeUsername(traineeUsername).stream()
                     .map(trainerMapper::toDTO)
                     .toList();
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainers not assigned to Trainee", e);
         }
     }
 
     @Override
+    @Transactional
     public void toggleTrainerStatus(Long trainerId) {
         if (trainerId == null) {
             throw new IllegalArgumentException("Trainer id cannot be null");
@@ -173,15 +168,14 @@ public class TrainerServiceImpl implements TrainerService {
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainerId));
 
             trainer.setActive(!trainer.isActive());
-            this.trainerRepository.save(trainer);
-        } catch (ResourceNotFoundException e) {
-            throw e;
+            trainerRepository.save(trainer);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainer status", e);
         }
     }
 
     @Override
+    @Transactional
     public boolean updateTrainerPassword(Long trainerId, String newPassword) {
         if (trainerId == null || newPassword == null || newPassword.isEmpty()) {
             throw new IllegalArgumentException("Trainer id and new password cannot be null or empty");
@@ -189,14 +183,13 @@ public class TrainerServiceImpl implements TrainerService {
 
         try {
             return trainerRepository.changeTrainerPassword(trainerId, newPassword);
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer password", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<TrainerResponseDTO> findTrainersByTraineeId(Long traineeId) {
         if (traineeId == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
@@ -206,8 +199,6 @@ public class TrainerServiceImpl implements TrainerService {
             return trainerRepository.findTrainersByTraineeId(traineeId).stream()
                     .map(trainerMapper::toDTO)
                     .collect(Collectors.toSet());
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee Trainers", e);
         }

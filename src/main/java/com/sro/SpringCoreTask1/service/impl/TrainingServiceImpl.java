@@ -34,7 +34,12 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingTypeRepository trainingTypeRepository;
     private final TrainingMapper trainingMapper;
 
-    public TrainingServiceImpl(TrainingRepository trainingRepository, TrainerRepository trainerRepository, TraineeRepository traineeRepository, TrainingTypeRepository trainingTypeRepository, TrainingMapper trainingMapper) {
+    public TrainingServiceImpl(
+            TrainingRepository trainingRepository,
+            TrainerRepository trainerRepository,
+            TraineeRepository traineeRepository,
+            TrainingTypeRepository trainingTypeRepository,
+            TrainingMapper trainingMapper) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
@@ -54,17 +59,16 @@ public class TrainingServiceImpl implements TrainingService {
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainingRequestDTO.traineeId()));
             Trainer trainer = trainerRepository.findById(trainingRequestDTO.trainerId())
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
-            
-            if(!trainer.isActive()) {
+
+            if (!trainer.isActive()) {
                 throw new ResourceNotFoundException("Trainer with id: " + trainer.getId() + " is not active");
             }
 
-            if(!trainee.isActive()) {
+            if (!trainee.isActive()) {
                 throw new ResourceNotFoundException("Trainee with id: " + trainee.getId() + " is not active");
             }
 
-            
-            if(!trainee.getTrainers().contains(trainer)) {
+            if (!trainee.getTrainers().contains(trainer)) {
                 throw new IllegalArgumentException("Trainer not assigned to Trainee");
             }
 
@@ -80,19 +84,15 @@ public class TrainingServiceImpl implements TrainingService {
             Training savedTraining = trainingRepository.save(training);
 
             return trainingMapper.toDTO(savedTraining);
-        }catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Training with name " + trainingRequestDTO.trainingName() + " already exists");
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (ResourceAlreadyExistsException e) {
-            throw e;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Training", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrainingResponseDTO findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training id cannot be null");
@@ -102,27 +102,25 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findById(id)
                     .map(trainingMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainingResponseDTO> findAll() {
         try {
             return trainingRepository.findAll().stream()
                     .map(trainingMapper::toDTO)
                     .toList();
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Trainings", e);
         }
     }
 
     @Override
+    @Transactional
     public TrainingResponseDTO update(TrainingRequestDTO trainingRequestDTO) {
         if (trainingRequestDTO == null) {
             throw new IllegalArgumentException("TrainingRequestDTO cannot be null");
@@ -140,15 +138,13 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.update(training)
                     .map(trainingMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + training.getId()));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training", e);
         }
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training id cannot be null");
@@ -158,15 +154,13 @@ public class TrainingServiceImpl implements TrainingService {
             if (!trainingRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Training not found with id: " + id);
             }
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Training by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainingResponseDTO> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO) {
         if (filterDTO == null) {
             throw new IllegalArgumentException("TraineeTrainingFilterDTO cannot be null");
@@ -176,15 +170,13 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findTrainingsByTraineeWithFilters(filterDTO).stream()
                     .map(trainingMapper::toDTO)
                     .toList();
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainee with filters", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrainingResponseDTO> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO) {
         if (filterDTO == null) {
             throw new IllegalArgumentException("TrainerTrainingFilterDTO cannot be null");
@@ -194,10 +186,7 @@ public class TrainingServiceImpl implements TrainingService {
             return trainingRepository.findTrainingsByTrainerWithFilters(filterDTO).stream()
                     .map(trainingMapper::toDTO)
                     .toList();
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainer with filters", e);
         }
     }

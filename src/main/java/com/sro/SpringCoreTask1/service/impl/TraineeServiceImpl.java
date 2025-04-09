@@ -38,7 +38,13 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeUpdateMapper traineeUpdateMapper;
     private final TraineeResponseMapper traineeResponseMapper;
 
-    public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TraineeMapper traineeMapper, TraineeCreateMapper traineeCreateMapper, TraineeUpdateMapper traineeUpdateMapper, TraineeResponseMapper traineeResponseMapper) {
+    public TraineeServiceImpl(
+            TraineeRepository traineeRepository,
+            TrainerRepository trainerRepository,
+            TraineeMapper traineeMapper,
+            TraineeCreateMapper traineeCreateMapper,
+            TraineeUpdateMapper traineeUpdateMapper,
+            TraineeResponseMapper traineeResponseMapper) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.traineeMapper = traineeMapper;
@@ -50,15 +56,7 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     @Transactional
     public TraineeResponseDTO save(TraineeRequestDTO traineeRequestDTO) {
-        if (traineeRequestDTO == null) {
-            throw new IllegalArgumentException("Trainee cannot be null");
-        }
-
-        if (traineeRequestDTO.firstName() == null || traineeRequestDTO.firstName().isEmpty() ||
-            traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() ||
-            traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
-            throw new IllegalArgumentException("Trainee first name, last name, and address cannot be null or empty");
-        }
+        validateTraineeRequest(traineeRequestDTO);
 
         try {
             Trainee trainee = traineeMapper.toEntity(traineeRequestDTO);
@@ -80,6 +78,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public TraineeRegistrationResponse saveFromAuth(TraineeRegistrationRequest traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
@@ -90,7 +89,7 @@ public class TraineeServiceImpl implements TraineeService {
             traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
             throw new IllegalArgumentException("Trainee first name, last name, and address cannot be null or empty");
         }
-
+        
         String generatedUsername = ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName());
         String generatedPassword = ProfileUtil.generatePassword();
 
@@ -101,15 +100,15 @@ public class TraineeServiceImpl implements TraineeService {
             Trainee savedTrainee = traineeRepository.save(trainee);
 
             return traineeResponseMapper.toRegistrationResponseDTO(savedTrainee);
-        } catch(ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainee with username " + generatedUsername + " already exists");
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Trainee", e);
         }
-
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TraineeResponseDTO findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
@@ -119,14 +118,13 @@ public class TraineeServiceImpl implements TraineeService {
             return traineeRepository.findById(id)
                     .map(traineeMapper::toDTO)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TraineeResponseDTO> findAll() {
         try {
             return traineeRepository.findAll().stream()
@@ -138,6 +136,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional
     public TraineeProfileResponseDTO update(String username, TraineeUpdateRequestDTO traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
@@ -150,17 +149,16 @@ public class TraineeServiceImpl implements TraineeService {
             trainee.setId(existingTrainee.getId());
             trainee.setPassword(existingTrainee.getPassword());
             trainee.setTrainers(existingTrainee.getTrainers());
-            Trainee updatedTrainee =  traineeRepository.update(trainee)
+            Trainee updatedTrainee = traineeRepository.update(trainee)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainee.getId()));
             return traineeResponseMapper.toProfileResponse(updatedTrainee);
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee", e);
         }
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
@@ -170,14 +168,13 @@ public class TraineeServiceImpl implements TraineeService {
             if (!traineeRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Trainee not found with id: " + id);
             }
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainee by id", e);
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TraineeProfileResponseDTO findByUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
@@ -187,8 +184,6 @@ public class TraineeServiceImpl implements TraineeService {
             Trainee trainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
             return traineeResponseMapper.toProfileResponse(trainee);
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by username", e);
         }
@@ -205,15 +200,13 @@ public class TraineeServiceImpl implements TraineeService {
             if (!traineeRepository.deleteByUsername(username)) {
                 throw new ResourceNotFoundException("Trainee not found with username: " + username);
             }
-            System.out.println("Trainee deleted with username: " + username);
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainee by username", e);
         }
     }
 
     @Override
+    @Transactional
     public void addTrainerToTrainee(Long traineeId, Long trainerId) {
         if (traineeId == null || trainerId == null) {
             throw new IllegalArgumentException("Trainee id and Trainer id cannot be null");
@@ -236,16 +229,13 @@ public class TraineeServiceImpl implements TraineeService {
 
             trainee.addTrainer(trainer);
             traineeRepository.save(trainee);
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } catch (ResourceAlreadyExistsException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error adding Trainer to Trainee", e);
         }
     }
 
     @Override
+    @Transactional
     public void removeTrainerFromTrainee(Long traineeId, Long trainerId) {
         if (traineeId == null || trainerId == null) {
             throw new IllegalArgumentException("Trainee id and Trainer id cannot be null");
@@ -268,14 +258,13 @@ public class TraineeServiceImpl implements TraineeService {
 
             trainer.removeTrainee(trainee);
             trainerRepository.save(trainer);
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error removing Trainer from Trainee", e);
         }
     }
 
     @Override
+    @Transactional
     public void setTraineeStatus(Long traineeId) {
         if (traineeId == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
@@ -287,8 +276,6 @@ public class TraineeServiceImpl implements TraineeService {
 
             trainee.setActive(!trainee.isActive());
             traineeRepository.save(trainee);
-        } catch (ResourceNotFoundException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error setting Trainee status", e);
         }
@@ -304,6 +291,7 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<Trainer> findTrainersByTraineeId(Long traineeId) {
         if (traineeId == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
@@ -313,6 +301,18 @@ public class TraineeServiceImpl implements TraineeService {
             return traineeRepository.findTrainersByTraineeId(traineeId);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainers by Trainee ID", e);
+        }
+    }
+
+    private void validateTraineeRequest(TraineeRequestDTO traineeRequestDTO) {
+        if (traineeRequestDTO == null) {
+            throw new IllegalArgumentException("Trainee cannot be null");
+        }
+
+        if (traineeRequestDTO.firstName() == null || traineeRequestDTO.firstName().isEmpty() ||
+            traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() ||
+            traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
+            throw new IllegalArgumentException("Trainee first name, last name, and address cannot be null or empty");
         }
     }
 }

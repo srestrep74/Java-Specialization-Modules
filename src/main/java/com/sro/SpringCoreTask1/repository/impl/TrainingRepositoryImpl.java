@@ -8,7 +8,6 @@ import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
@@ -30,25 +29,15 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    /* 
-    public TrainingRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }*/
-
     @Override
     public Training save(Training training) {
-        //EntityTransaction transaction = null;
         try {
-            //transaction = entityManager.getTransaction();
-            //transaction.begin();
             entityManager.persist(training);
             training.getTrainee().getTrainings().add(training);
             training.getTrainer().getTrainings().add(training);
             training.getTrainingType().getTrainings().add(training);
-            //transaction.commit();
             return training;
         } catch (PersistenceException e) {
-            //rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -66,40 +55,28 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
     @Override
     public boolean deleteById(Long id) {
-        EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
             Training training = entityManager.find(Training.class, id);
             if (training == null) {
-                rollbackTransaction(transaction);
                 return false;
             }
             entityManager.remove(training);
-            transaction.commit();
             return true;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
 
     @Override
     public Optional<Training> update(Training training) {
-        EntityTransaction transaction = null;
         try {
-            transaction = entityManager.getTransaction();
-            transaction.begin();
             Training existingTraining = entityManager.find(Training.class, training.getId());
             if (existingTraining == null) {
-                rollbackTransaction(transaction);
                 return Optional.empty();
             }
             Training updatedTraining = entityManager.merge(training);
-            transaction.commit();
             return Optional.of(updatedTraining);
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -191,12 +168,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             return count > 0;
         } catch (PersistenceException e) {
             throw e;
-        }
-    }
-
-    private void rollbackTransaction(EntityTransaction transaction) {
-        if (transaction != null && transaction.isActive()) {
-            transaction.rollback();
         }
     }
 }
