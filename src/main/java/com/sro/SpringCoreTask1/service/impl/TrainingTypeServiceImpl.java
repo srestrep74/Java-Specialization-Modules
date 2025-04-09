@@ -2,11 +2,13 @@ package com.sro.SpringCoreTask1.service.impl;
 
 import com.sro.SpringCoreTask1.dto.request.TrainingTypeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.mappers.TrainingTypeMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeResponseMapper;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
 
@@ -21,11 +23,14 @@ import java.util.List;
 public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     private final TrainingTypeRepository trainingTypeRepository;
-    private final TrainingTypeMapper trainingTypeMapper;
 
-    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeMapper trainingTypeMapper) {
+    private final TrainingTypeMapper trainingTypeMapper;
+    private final TrainingTypeResponseMapper trainingTypeResponseMapper;
+    
+    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeMapper trainingTypeMapper, TrainingTypeResponseMapper trainingTypeResponseMapper) {
         this.trainingTypeRepository = trainingTypeRepository;
         this.trainingTypeMapper = trainingTypeMapper;
+        this.trainingTypeResponseMapper = trainingTypeResponseMapper;
     }
 
     @Override
@@ -64,10 +69,10 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainingTypeResponseDTO> findAll() {
+    public List<TrainingTypeResponse> findAll() {
         try {
             return trainingTypeRepository.findAll().stream()
-                    .map(trainingTypeMapper::toDTO)
+                    .map(trainingTypeResponseMapper::mapToResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Training Types", e);
