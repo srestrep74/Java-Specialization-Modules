@@ -1,7 +1,7 @@
 package com.sro.SpringCoreTask1.repository.impl;
 
-import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
-import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingFilter;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingFilter;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.Training;
@@ -82,7 +82,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO) {
+    public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO) {
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Training> cq = cb.createQuery(Training.class);
@@ -90,8 +90,10 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            Optional.ofNullable(filterDTO.traineeId())
-                    .ifPresent(id -> predicates.add(cb.equal(training.get("trainee").get("id"), id)));
+            Optional.ofNullable(filterDTO.username())
+                .filter(username -> !username.isEmpty())
+                .ifPresent(username -> predicates.add(
+                    cb.equal(training.get("trainee").get("username"), username)));
 
             Optional.ofNullable(filterDTO.fromDate())
                     .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
@@ -117,7 +119,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    public List<Training> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO) {
+    public List<Training> findTrainingsByTrainerWithFilters(TrainerTrainingFilter filterDTO) {
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Training> cq = cb.createQuery(Training.class);
@@ -125,8 +127,10 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            Optional.ofNullable(filterDTO.trainerId())
-                    .ifPresent(id -> predicates.add(cb.equal(training.get("trainer").get("id"), id)));
+            Optional.ofNullable(filterDTO.username())
+                .filter(username -> !username.isEmpty())
+                .ifPresent(username -> predicates.add(
+                    cb.equal(training.get("trainer").get("username"), username)));
 
             Optional.ofNullable(filterDTO.fromDate())
                     .ifPresent(from -> predicates.add(cb.greaterThanOrEqualTo(training.get("trainingDate"), from)));
@@ -137,10 +141,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             Optional.ofNullable(filterDTO.traineeName())
                     .filter(name -> !name.isEmpty())
                     .ifPresent(name -> predicates.add(cb.like(cb.lower(training.get("trainee").get("username")), "%" + name.toLowerCase() + "%")));
-
-            Optional.ofNullable(filterDTO.trainingType())
-                    .filter(type -> !type.isEmpty())
-                    .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
 
             cq.where(predicates.toArray(new Predicate[0]));
             TypedQuery<Training> query = entityManager.createQuery(cq);

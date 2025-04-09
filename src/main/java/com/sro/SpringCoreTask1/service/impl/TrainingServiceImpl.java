@@ -1,9 +1,11 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.TraineeTrainingFilterDTO;
-import com.sro.SpringCoreTask1.dto.TrainerTrainingFilterDTO;
 import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingFilter;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingFilter;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.Training;
@@ -12,6 +14,8 @@ import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.mappers.TrainingMapper;
+import com.sro.SpringCoreTask1.mappers.training.TrainingTraineeMapper;
+import com.sro.SpringCoreTask1.mappers.training.TraininigTrainerMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
@@ -32,19 +36,26 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainerRepository trainerRepository;
     private final TraineeRepository traineeRepository;
     private final TrainingTypeRepository trainingTypeRepository;
+
     private final TrainingMapper trainingMapper;
+    private final TrainingTraineeMapper trainingTraineeMapper;
+    private final TraininigTrainerMapper traininigTrainerMapper;
 
     public TrainingServiceImpl(
             TrainingRepository trainingRepository,
             TrainerRepository trainerRepository,
             TraineeRepository traineeRepository,
             TrainingTypeRepository trainingTypeRepository,
-            TrainingMapper trainingMapper) {
+            TrainingMapper trainingMapper,
+            TrainingTraineeMapper trainingTraineeMapper,
+            TraininigTrainerMapper traininigTrainerMapper) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
         this.trainingTypeRepository = trainingTypeRepository;
         this.trainingMapper = trainingMapper;
+        this.trainingTraineeMapper = trainingTraineeMapper;
+        this.traininigTrainerMapper = traininigTrainerMapper;
     }
 
     @Override
@@ -161,14 +172,14 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainingResponseDTO> findTrainingsByTraineeWithFilters(TraineeTrainingFilterDTO filterDTO) {
+    public List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO) {
         if (filterDTO == null) {
             throw new IllegalArgumentException("TraineeTrainingFilterDTO cannot be null");
         }
 
         try {
             return trainingRepository.findTrainingsByTraineeWithFilters(filterDTO).stream()
-                    .map(trainingMapper::toDTO)
+                    .map(trainingTraineeMapper::toTraineeTrainingResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainee with filters", e);
@@ -177,14 +188,14 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainingResponseDTO> findTrainingsByTrainerWithFilters(TrainerTrainingFilterDTO filterDTO) {
+    public List<TrainerTrainingResponse> findTrainingsByTrainerWithFilters(TrainerTrainingFilter filterDTO) {
         if (filterDTO == null) {
             throw new IllegalArgumentException("TrainerTrainingFilterDTO cannot be null");
         }
 
         try {
             return trainingRepository.findTrainingsByTrainerWithFilters(filterDTO).stream()
-                    .map(trainingMapper::toDTO)
+                    .map(traininigTrainerMapper::toTrainerTrainingResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainer with filters", e);
