@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeActivation;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeTrainerListRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingFilter;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
 import com.sro.SpringCoreTask1.exception.ApiError;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainingService;
@@ -319,5 +321,54 @@ public class TraineeController {
             @RequestBody UpdateTraineeActivation updateTraineeActivation) {
         traineeService.updateActivationStatus(username, updateTraineeActivation.active());
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+        summary = "Update trainee's trainers list",
+        description = "Updates the list of trainers assigned to a trainee. "
+            + "This replaces the entire list of assigned trainers.",
+        operationId = "updateTraineeTrainers"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Trainers list updated successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = TrainerSummaryResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Trainee or Trainer not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request payload or trainer is not active",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiError.class)
+            )
+        )
+    })
+    @PutMapping("/{username}/trainers")
+    public ResponseEntity<List<TrainerSummaryResponse>> updateTrainersList(
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
+            @PathVariable String username,
+            @Valid @RequestBody UpdateTraineeTrainerListRequest updateTrainersRequest) {
+        List<TrainerSummaryResponse> updatedTrainers = traineeService.updateTraineeTrainers(username, updateTrainersRequest);
+        return ResponseEntity.ok(updatedTrainers);
     }
 }

@@ -6,8 +6,10 @@ import java.util.Set;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeTrainerListRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
 import com.sro.SpringCoreTask1.entity.Trainer;
 
 public interface TraineeService {
@@ -23,4 +25,5 @@ public interface TraineeService {
     void updateActivationStatus(String username, boolean active);
     boolean updateTraineePassword(Long traineeId, String newPassword);
     Set<Trainer> findTrainersByTraineeId(Long traineeId);
+    List<TrainerSummaryResponse> updateTraineeTrainers(String username, UpdateTraineeTrainerListRequest updateTrainersRequest);
 }

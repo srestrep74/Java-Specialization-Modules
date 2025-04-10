@@ -3,8 +3,10 @@ package com.sro.SpringCoreTask1.service.impl;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeTrainerListRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
@@ -14,6 +16,7 @@ import com.sro.SpringCoreTask1.mappers.TraineeMapper;
 import com.sro.SpringCoreTask1.mappers.trainee.TraineeCreateMapper;
 import com.sro.SpringCoreTask1.mappers.trainee.TraineeResponseMapper;
 import com.sro.SpringCoreTask1.mappers.trainee.TraineeUpdateMapper;
+import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.TraineeService;
@@ -25,7 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TraineeServiceImpl implements TraineeService {
@@ -36,6 +41,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeCreateMapper traineeCreateMapper;
     private final TraineeUpdateMapper traineeUpdateMapper;
     private final TraineeResponseMapper traineeResponseMapper;
+    private final TrainerResponseMapper trainerResponseMapper;
 
     public TraineeServiceImpl(
             TraineeRepository traineeRepository,
@@ -43,13 +49,15 @@ public class TraineeServiceImpl implements TraineeService {
             TraineeMapper traineeMapper,
             TraineeCreateMapper traineeCreateMapper,
             TraineeUpdateMapper traineeUpdateMapper,
-            TraineeResponseMapper traineeResponseMapper) {
+            TraineeResponseMapper traineeResponseMapper,
+            TrainerResponseMapper trainerResponseMapper) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.traineeMapper = traineeMapper;
         this.traineeCreateMapper = traineeCreateMapper;
         this.traineeUpdateMapper = traineeUpdateMapper;
         this.traineeResponseMapper = traineeResponseMapper;
+        this.trainerResponseMapper = trainerResponseMapper;
     }
 
     @Override
@@ -235,6 +243,38 @@ public class TraineeServiceImpl implements TraineeService {
             trainerRepository.save(trainer);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error removing Trainer from Trainee", e);
+        }
+    }
+
+    @Transactional
+    public List<TrainerSummaryResponse> updateTraineeTrainers(String username, UpdateTraineeTrainerListRequest updateTrainersRequest) {
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Trainee username cannot be null or empty");
+        }
+        
+        try {
+            Trainee trainee = traineeRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
+
+            Set<Trainer> currentTrainers = trainee.getTrainers();
+            currentTrainers.stream()
+                .filter(trainer -> !updateTrainersRequest.trainers().contains(trainer.getUsername()))
+                .forEach(trainer -> removeTrainerFromTrainee(trainee.getId(), trainer.getId()));
+
+            Set<Trainer> newTrainers = updateTrainersRequest.trainers().stream().map(trainerRepository::findByUsername)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toSet());
+
+            newTrainers.stream()
+                .filter(trainer -> !currentTrainers.contains(trainer))
+                .forEach(trainer -> addTrainerToTrainee(trainee.getId(), trainer.getId()));
+            
+            return trainee.getTrainers().stream()
+                .map(trainerResponseMapper::toSummaryResponseDTO)
+                .toList();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error updating Trainee trainers", e);
         }
     }
 

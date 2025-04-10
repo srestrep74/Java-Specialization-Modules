@@ -13,7 +13,7 @@ import com.sro.SpringCoreTask1.dtos.v1.request.trainee.TraineeUpdateRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.TraineeRegistrationResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeUpdateResponseDTO;
-import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 
@@ -45,9 +45,9 @@ public interface TraineeMapper {
     TraineeRegistrationResponse toRegistrationResponseDTO(Trainee trainee);
 
     @Mapping(source =  "trainingType.id", target = "specialization")
-    TrainerSummaryResponseDTO toTrainerSummary(Trainer trainer);
+    TrainerSummaryResponse toTrainerSummary(Trainer trainer);
     
-    List<TrainerSummaryResponseDTO> toTrainerSummaryList(List<Trainer> trainer);
+    List<TrainerSummaryResponse> toTrainerSummaryList(List<Trainer> trainer);
 
     @Mapping(target = "trainers", source = "trainers")
     TraineeProfileResponseDTO toProfileResponse(Trainee trainee);

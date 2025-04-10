@@ -10,5 +10,5 @@ public record TraineeUpdateResponseDTO(
     LocalDate dateOfBirth,
     String address,
     boolean active,
-    List<TrainerSummaryResponseDTO> trainers
+    List<TrainerSummaryResponse> trainers
 ) {}

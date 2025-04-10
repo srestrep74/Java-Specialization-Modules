@@ -1,6 +1,6 @@
 package com.sro.SpringCoreTask1.dtos.v1.response.trainee;
 
-public record TrainerSummaryResponseDTO(
+public record TrainerSummaryResponse(
     String username,
     String firstName,
     String lastName,
