@@ -1,6 +1,5 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
@@ -55,31 +54,7 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional
-    public TraineeResponseDTO save(TraineeRequestDTO traineeRequestDTO) {
-        validateTraineeRequest(traineeRequestDTO);
-
-        try {
-            Trainee trainee = traineeMapper.toEntity(traineeRequestDTO);
-            trainee.setUsername(ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
-            trainee.setPassword(ProfileUtil.generatePassword());
-            Trainee savedTrainee = traineeRepository.save(trainee);
-
-            if (traineeRequestDTO.trainerIds() != null && !traineeRequestDTO.trainerIds().isEmpty()) {
-                for (Long trainerId : traineeRequestDTO.trainerIds()) {
-                    addTrainerToTrainee(savedTrainee.getId(), trainerId);
-                }
-            }
-            return traineeMapper.toDTO(savedTrainee);
-        } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Trainee with username " + traineeRequestDTO.username() + " already exists");
-        } catch (Exception e) {
-            throw new DatabaseOperationException("Error saving Trainee", e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public RegisterTraineeResponse saveFromAuth(RegisterTraineeRequest traineeRequestDTO) {
+    public RegisterTraineeResponse save(RegisterTraineeRequest traineeRequestDTO) {
         if (traineeRequestDTO == null) {
             throw new IllegalArgumentException("Trainee cannot be null");
         }
@@ -301,18 +276,6 @@ public class TraineeServiceImpl implements TraineeService {
             return traineeRepository.findTrainersByTraineeId(traineeId);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainers by Trainee ID", e);
-        }
-    }
-
-    private void validateTraineeRequest(TraineeRequestDTO traineeRequestDTO) {
-        if (traineeRequestDTO == null) {
-            throw new IllegalArgumentException("Trainee cannot be null");
-        }
-
-        if (traineeRequestDTO.firstName() == null || traineeRequestDTO.firstName().isEmpty() ||
-            traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() ||
-            traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
-            throw new IllegalArgumentException("Trainee first name, last name, and address cannot be null or empty");
         }
     }
 }

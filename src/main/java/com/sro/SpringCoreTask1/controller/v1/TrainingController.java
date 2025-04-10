@@ -21,7 +21,7 @@ public class TrainingController {
 
     @PostMapping
     public ResponseEntity<Void> addTraining(@RequestBody CreateTrainingRequest createTrainingRequest) {
-        trainingService.addTraining(createTrainingRequest);
+        trainingService.save(createTrainingRequest);
         return ResponseEntity.ok().build();
     }
     

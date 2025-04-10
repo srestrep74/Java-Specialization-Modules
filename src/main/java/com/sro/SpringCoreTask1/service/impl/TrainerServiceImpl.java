@@ -1,6 +1,5 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.request.TrainerRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
@@ -52,29 +51,7 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional
-    public TrainerResponseDTO save(TrainerRequestDTO trainerRequestDTO) {
-        if (trainerRequestDTO == null) {
-            throw new IllegalArgumentException("Trainer cannot be null");
-        }
-
-        try {
-            TrainingType trainingType = trainingTypeRepository.findById(trainerRequestDTO.trainingTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainerRequestDTO.trainingTypeId()));
-            Trainer trainer = trainerMapper.toEntity(trainerRequestDTO, trainingType);
-            trainer.setUsername(ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName()));
-            trainer.setPassword(ProfileUtil.generatePassword());
-            Trainer savedTrainer = trainerRepository.save(trainer);
-            return trainerMapper.toDTO(savedTrainer);
-        } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Trainer with username " + trainerRequestDTO.username() + " already exists");
-        } catch (Exception e) {
-            throw new DatabaseOperationException("Error saving Trainer", e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public RegisterTrainerResponse saveFromAuth(RegisterTrainerRequest trainerRequestDTO) {
+    public RegisterTrainerResponse save(RegisterTrainerRequest trainerRequestDTO) {
         if (trainerRequestDTO == null) {
             throw new IllegalArgumentException("Trainer cannot be null");
         }

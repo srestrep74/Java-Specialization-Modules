@@ -36,7 +36,7 @@ public class TrainerController {
     @PostMapping
     public ResponseEntity<RegisterTrainerResponse> registerTrainer(
             @Valid @RequestBody RegisterTrainerRequest trainerRequest) {
-        RegisterTrainerResponse trainerResponse = trainerService.saveFromAuth(trainerRequest);
+        RegisterTrainerResponse trainerResponse = trainerService.save(trainerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(trainerResponse);
     }
 

@@ -35,7 +35,7 @@ public class TraineeController {
     @PostMapping
     public ResponseEntity<RegisterTraineeResponse> registerTrainee(
             @Valid @RequestBody RegisterTraineeRequest traineeRequest) {
-        RegisterTraineeResponse traineeResponse = traineeService.saveFromAuth(traineeRequest);
+        RegisterTraineeResponse traineeResponse = traineeService.save(traineeRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(traineeResponse);
     }
 

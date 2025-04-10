@@ -3,7 +3,6 @@ package com.sro.SpringCoreTask1.service;
 import java.util.List;
 import java.util.Set;
 
-import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
@@ -12,8 +11,7 @@ import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.entity.Trainer;
 
 public interface TraineeService {
-    TraineeResponseDTO save(TraineeRequestDTO traineeRequestDTO);
-    RegisterTraineeResponse saveFromAuth(RegisterTraineeRequest traineeRegistrationRequestDTO);
+    RegisterTraineeResponse save(RegisterTraineeRequest traineeRegistrationRequestDTO);
     TraineeResponseDTO findById(Long id);
     List<TraineeResponseDTO> findAll();
     TraineeProfileResponse update(String username, UpdateTraineeProfileRequest traineeUpdateRequestDTO);

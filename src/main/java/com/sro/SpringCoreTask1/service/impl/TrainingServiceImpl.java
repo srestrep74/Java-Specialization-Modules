@@ -12,7 +12,6 @@ import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
-import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.mappers.TrainingMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingCreateMapper;
@@ -23,8 +22,6 @@ import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainingService;
-
-import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,51 +62,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public TrainingResponseDTO save(TrainingRequestDTO trainingRequestDTO) {
-        if (trainingRequestDTO == null) {
-            throw new IllegalArgumentException("TrainingRequestDTO cannot be null");
-        }
-
-        try {
-            Trainee trainee = traineeRepository.findById(trainingRequestDTO.traineeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainingRequestDTO.traineeId()));
-            Trainer trainer = trainerRepository.findById(trainingRequestDTO.trainerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
-
-            if (!trainer.isActive()) {
-                throw new ResourceNotFoundException("Trainer with id: " + trainer.getId() + " is not active");
-            }
-
-            if (!trainee.isActive()) {
-                throw new ResourceNotFoundException("Trainee with id: " + trainee.getId() + " is not active");
-            }
-
-            if (!trainee.getTrainers().contains(trainer)) {
-                throw new IllegalArgumentException("Trainer not assigned to Trainee");
-            }
-
-            boolean isDuplicateTraining = trainingRepository.existsByTraineeIdAndTrainerAndTrainingDate(trainee, trainer, trainingRequestDTO.trainingDate());
-            if (isDuplicateTraining) {
-                throw new ResourceAlreadyExistsException("A training with the same trainer and date already exists.");
-            }
-
-            TrainingType trainingType = trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainingRequestDTO.trainingTypeId()));
-
-            Training training = trainingMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
-            Training savedTraining = trainingRepository.save(training);
-
-            return trainingMapper.toDTO(savedTraining);
-        } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Training with name " + trainingRequestDTO.trainingName() + " already exists");
-        } catch (Exception e) {
-            throw new DatabaseOperationException("Error saving Training", e);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void addTraining(CreateTrainingRequest createTrainingRequest) {
+    public void save(CreateTrainingRequest createTrainingRequest) {
         if (createTrainingRequest == null) {
             throw new IllegalArgumentException("CreateTrainingRequest cannot be null");
         }

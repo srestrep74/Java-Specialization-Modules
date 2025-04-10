@@ -11,7 +11,7 @@ import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingResponse;
 import java.util.List;
 
 public interface TrainingService {
-    TrainingResponseDTO save(TrainingRequestDTO trainingRequestDTO);
+    void save(CreateTrainingRequest createTrainingRequest);
     TrainingResponseDTO findById(Long id);
     List<TrainingResponseDTO> findAll();
     void deleteById(Long id);
@@ -19,5 +19,4 @@ public interface TrainingService {
     
     List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO);
     List<TrainerTrainingResponse> findTrainingsByTrainerWithFilters(TrainerTrainingFilter filterDTO);
-    void addTraining(CreateTrainingRequest createTrainingRequest);
 }
