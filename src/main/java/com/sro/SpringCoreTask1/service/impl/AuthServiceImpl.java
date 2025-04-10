@@ -1,14 +1,17 @@
 package com.sro.SpringCoreTask1.service.impl;
 
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.entity.User;
+import com.sro.SpringCoreTask1.exception.AuthenticationFailedException;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
-import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.AuthService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -16,8 +19,8 @@ public class AuthServiceImpl implements AuthService {
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
 
-    private Long authenticatedTraineeId;
-    private Long authenticatedTrainerId;
+    private User authenticatedUser;
+    private boolean isTrainee;
 
     public AuthServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository) {
         this.traineeRepository = traineeRepository;
@@ -25,110 +28,102 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean authenticateTrainee(String username, String password) {
+    @Transactional(readOnly = true)
+    public LoginResponse authenticate(String username, String password) {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("Username and password cannot be null or empty");
+        }
+
         try {
-            Trainee trainee = this.traineeRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
-
-            if (!trainee.isActive()) {
-                throw new ResourceNotFoundException("Trainee is not active");
+            Trainee trainee = traineeRepository.findByUsername(username).orElse(null);
+            if (trainee != null) {
+                if (!trainee.isActive()) {
+                    throw new AuthenticationFailedException("User is not active");
+                }
+                
+                if (trainee.getPassword().equals(password)) {
+                    this.authenticatedUser = trainee;
+                    this.isTrainee = true;
+                    return new LoginResponse(username, true);
+                }
             }
 
-            if (trainee.getPassword().equals(password)) {
-                this.authenticatedTraineeId = trainee.getId();
-                this.authenticatedTrainerId = null;
-                return true;
+            Trainer trainer = trainerRepository.findByUsername(username).orElse(null);
+            if (trainer != null) {
+                if (!trainer.isActive()) {
+                    throw new AuthenticationFailedException("User is not active");
+                }
+                
+                if (trainer.getPassword().equals(password)) {
+                    this.authenticatedUser = trainer;
+                    this.isTrainee = false;
+                    return new LoginResponse(username, true);
+                }
             }
 
-            return false;
-        } catch (ResourceNotFoundException e) {
+            throw new AuthenticationFailedException("Invalid username or password");
+        } catch (AuthenticationFailedException e) {
             throw e;
-        } 
-        catch (Exception e) {
-            throw new DatabaseOperationException("Error authenticating trainee", e);
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error during authentication", e);
         }
     }
 
     @Override
-    public boolean authenticateTrainer(String username, String password) {
-        try {
-            Trainer trainer = this.trainerRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
-
-            if (!trainer.isActive()) {
-                throw new ResourceNotFoundException("Trainer is not active");
-            }
-
-            if (trainer.getPassword().equals(password)) {
-                this.authenticatedTrainerId = trainer.getId();
-                this.authenticatedTraineeId = null;
-                return true;
-            }
-
-            return false;
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
-            throw new DatabaseOperationException("Error authenticating trainer", e);
+    @Transactional
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        if (username == null || username.isEmpty() || 
+            oldPassword == null || oldPassword.isEmpty() ||
+            newPassword == null || newPassword.isEmpty()) {
+            throw new IllegalArgumentException("Username, old password and new password cannot be null or empty");
         }
-    }
 
-    @Override
-    public Long getCurrentTraineeId() {
-        return this.authenticatedTraineeId;
-    }
-
-    @Override
-    public Long getCurrentTrainerId() {
-        return this.authenticatedTrainerId;
-    }
-
-    @Override
-    public boolean isTraineeAuthenticated() {
-        return this.authenticatedTraineeId != null;
-    }
-
-    @Override
-    public boolean isTrainerAuthenticated() {
-        return this.authenticatedTrainerId != null;
+        try {
+            LoginResponse loginResponse = authenticate(username, oldPassword);
+            
+            if (!loginResponse.success()) {
+                throw new AuthenticationFailedException("Current password is incorrect");
+            }
+            
+            if (isCurrentUserTrainee()) {
+                Trainee trainee = (Trainee) authenticatedUser;
+                trainee.setPassword(newPassword);
+                traineeRepository.save(trainee);
+            } else {
+                Trainer trainer = (Trainer) authenticatedUser;
+                trainer.setPassword(newPassword);
+                trainerRepository.save(trainer);
+            }
+        } catch (AuthenticationFailedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error changing password", e);
+        }
     }
 
     @Override
     public void logout() {
-        this.authenticatedTraineeId = null;
-        this.authenticatedTrainerId = null;
+        this.authenticatedUser = null;
     }
 
     @Override
-    public void changeTraineePassword(String username, String newPassword) {
-        try {
-            Trainee trainee = this.traineeRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
-
-            trainee.setPassword(newPassword);
-            this.traineeRepository.save(trainee);
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
-            throw new DatabaseOperationException("Error changing trainee password", e);
-        }
+    public User getCurrentUser() {
+        return this.authenticatedUser;
     }
 
     @Override
-    public void changeTrainerPassword(String username, String newPassword) {
-        try {
-            Trainer trainer = this.trainerRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
-
-            trainer.setPassword(newPassword);
-            this.trainerRepository.save(trainer);
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
-            throw new DatabaseOperationException("Error changing trainer password", e);
-        }
+    public boolean isAuthenticated() {
+        return this.authenticatedUser != null;
     }
+
+    @Override
+    public boolean isCurrentUserTrainee() {
+        return isAuthenticated() && this.isTrainee;
+    }
+
+    @Override
+    public boolean isCurrentUserTrainer() {
+        return isAuthenticated() && !this.isTrainee;
+    }
+
 }
