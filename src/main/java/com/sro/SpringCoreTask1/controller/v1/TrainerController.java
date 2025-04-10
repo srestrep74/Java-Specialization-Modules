@@ -31,7 +31,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(value = "/api/v1/trainers", produces = "application/json")
-@Tag(name = "Trainer Management", description = "APIs for managing trainers")
+@Tag(name = "Trainer Management", description = "Operations pertaining to trainers in the system")
 public class TrainerController {
 
     private final TrainerService trainerService;
@@ -44,7 +44,9 @@ public class TrainerController {
 
     @Operation(
         summary = "Register a new trainer",
-        description = "Creates a new trainer profile with the provided information"
+        description = "Creates a new trainer profile with provided information. "
+            + "Specialization is required and must be a valid training type.",
+        operationId = "registerTrainer"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -89,12 +91,14 @@ public class TrainerController {
 
     @Operation(
         summary = "Get trainer profile",
-        description = "Retrieves the profile information for a trainer by username"
+        description = "Retrieves complete profile information for a trainer including "
+            + "personal details, specialization, and assigned trainees.",
+        operationId = "getTrainerProfile"
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Profile found",
+            description = "Trainer profile retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = TrainerProfileResponse.class)
@@ -119,7 +123,7 @@ public class TrainerController {
     })
     @GetMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> getProfile(
-            @Parameter(description = "Username of the trainer") 
+            @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
             @PathVariable String username) {
         TrainerProfileResponse profile = trainerService.findByUsername(username);
         return ResponseEntity.ok(profile);
@@ -127,7 +131,9 @@ public class TrainerController {
 
     @Operation(
         summary = "Update trainer profile",
-        description = "Updates an existing trainer's profile information"
+        description = "Updates the profile information for an existing trainer. "
+            + "Specialization cannot be changed through this endpoint.",
+        operationId = "updateTrainerProfile"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -165,16 +171,18 @@ public class TrainerController {
     })
     @PutMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> updateProfile(
-            @Parameter(description = "Username of the trainer") 
+            @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
             @PathVariable String username,
-            @Valid @RequestBody UpdateTrainerProfileRequest trainerUpdateRequestDTO) {
-        TrainerProfileResponse profile = trainerService.update(username, trainerUpdateRequestDTO);
+            @Valid @RequestBody UpdateTrainerProfileRequest updatedRequest) {
+        TrainerProfileResponse profile = trainerService.update(username, updatedRequest);
         return ResponseEntity.ok(profile);
     }
 
     @Operation(
         summary = "Get unassigned trainers",
-        description = "Returns a list of trainers not assigned to a specific trainee"
+        description = "Retrieves a list of active trainers not currently assigned "
+            + "to the specified trainee.",
+        operationId = "getUnassignedTrainers"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -212,7 +220,7 @@ public class TrainerController {
     })
     @GetMapping("/unassigned")
     public ResponseEntity<List<UnassignedTrainerResponse>> getUnassignedTrainers(
-            @Parameter(description = "Username of the trainee to find unassigned trainers for") 
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @RequestParam String traineeUsername) {
         List<UnassignedTrainerResponse> trainers = trainerService.findUnassignedTrainersByTraineeUsername(traineeUsername);
         return ResponseEntity.ok(trainers);
@@ -220,7 +228,9 @@ public class TrainerController {
 
     @Operation(
         summary = "Get trainer's training sessions",
-        description = "Retrieves all training sessions for a trainer with optional filtering"
+        description = "Retrieves a list of training sessions for the specified trainer "
+        + "with optional filtering by date range and trainee name.",
+        operationId = "getTrainerTrainings"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -241,7 +251,7 @@ public class TrainerController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid parameters",
+            description = "Invalid filters parameters",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiError.class)
@@ -258,13 +268,13 @@ public class TrainerController {
     })
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainerTrainingResponse>> getTrainerTrainings(
-            @Parameter(description = "Username of the trainer") 
+            @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
             @PathVariable String username,
-            @Parameter(description = "Filter trainings from this date (ISO format)") 
+            @Parameter(description = "Start date for filtering (yyyy-MM-dd)", example = "2023-01-01") 
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @Parameter(description = "Filter trainings until this date (ISO format)") 
+            @Parameter(description = "End date for filtering (yyyy-MM-dd)", example = "2023-12-31") 
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-            @Parameter(description = "Filter by trainee name") 
+            @Parameter(description = "Filter by trainee username", example = "trainee.doe") 
             @RequestParam(required = false) String traineeName) {
         
         TrainerTrainingFilter filterDTO = new TrainerTrainingFilter(
@@ -276,7 +286,9 @@ public class TrainerController {
 
     @Operation(
         summary = "Update trainer activation status",
-        description = "Activates or deactivates a trainer's account"
+        description = "Activates or deactivates a trainer account. "
+            + "Deactivated accounts cannot access the system.",
+        operationId = "updateTrainerActivation"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -311,7 +323,7 @@ public class TrainerController {
     })
     @PatchMapping("/{username}/activation")
     public ResponseEntity<Void> updateActivationStatus(
-            @Parameter(description = "Username of the trainer") 
+            @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
             @PathVariable String username,
             @Parameter(description = "Activation status payload") 
             @RequestBody UpdateTrainerActivation updateTrainerActivation) {

@@ -30,7 +30,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(value = "/api/v1/trainees", produces = "application/json")
-@Tag(name = "Trainee Management", description = "APIs for managing trainees")
+@Tag(name = "Trainee Management", description = "Operations pertaining to trainees in the system")
 public class TraineeController {
 
     private final TraineeService traineeService;
@@ -43,7 +43,9 @@ public class TraineeController {
 
     @Operation(
         summary = "Register a new trainee",
-        description = "Creates a new trainee profile with the provided information"
+        description = "Endpoint to create a new trainee profile with basic information. "
+            + "The system will automatically generate credentials.",
+        operationId = "registerTrainee"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -64,7 +66,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "409",
-            description = "Trainee already exists",
+            description = "Trainee username already exists",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiError.class)
@@ -88,12 +90,14 @@ public class TraineeController {
 
     @Operation(
         summary = "Get trainee profile",
-        description = "Retrieves the profile information for a trainee by username"
+        description = "Retrieves complete profile information for a trainee including "
+            + "personal details and assigned trainers.",
+        operationId = "getTraineeProfile"
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
-            description = "Profile found",
+            description = "Trainee profile retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = TraineeProfileResponse.class)
@@ -118,7 +122,7 @@ public class TraineeController {
     })
     @GetMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> getProfile(
-            @Parameter(description = "Username of the trainee") 
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username) {
         TraineeProfileResponse profile = traineeService.findByUsername(username);
         return ResponseEntity.ok(profile);
@@ -126,7 +130,9 @@ public class TraineeController {
 
     @Operation(
         summary = "Update trainee profile",
-        description = "Updates an existing trainee's profile information"
+        description = "Updates the profile information for an existing trainee. "
+            + "All required fields must be provided.",
+        operationId = "updateTraineeProfile"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -164,16 +170,18 @@ public class TraineeController {
     })
     @PutMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> updateProfile(
-            @Parameter(description = "Username of the trainee") 
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
-            @Valid @RequestBody UpdateTraineeProfileRequest traineeUpdateRequestDTO) {
-        TraineeProfileResponse profile = traineeService.update(username, traineeUpdateRequestDTO);
+            @Valid @RequestBody UpdateTraineeProfileRequest updatedRequest) {
+        TraineeProfileResponse profile = traineeService.update(username, updatedRequest);
         return ResponseEntity.ok(profile);
     }
 
     @Operation(
         summary = "Delete trainee profile",
-        description = "Removes a trainee profile from the system"
+        description = "Permanently removes a trainee profile from the system. "
+            + "This action cannot be undone.",
+        operationId = "deleteTraineeProfile"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -200,7 +208,7 @@ public class TraineeController {
     })
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> deleteProfile(
-            @Parameter(description = "Username of the trainee") 
+            @Parameter(description = "Unique username identifier of the trainee", required = true) 
             @PathVariable String username) {
         traineeService.deleteByUsername(username);
         return ResponseEntity.noContent().build();
@@ -208,7 +216,9 @@ public class TraineeController {
 
     @Operation(
         summary = "Get trainee's training sessions",
-        description = "Retrieves all training sessions for a trainee with optional filtering"
+        description = "Retrieves a list of training sessions for the specified trainee "
+            + "with optional filtering by date range, trainer name, and training type.",
+        operationId = "getTraineeTrainings"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -229,7 +239,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid parameters",
+            description = "Invalid filter parameters",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiError.class)
@@ -246,15 +256,15 @@ public class TraineeController {
     })
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TraineeTrainingResponse>> getTraineeTrainings(
-            @Parameter(description = "Username of the trainee") 
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
-            @Parameter(description = "Filter trainings from this date (ISO format)") 
+            @Parameter(description = "Start date for filtering (yyyy-MM-dd)", example = "2023-01-01") 
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @Parameter(description = "Filter trainings until this date (ISO format)") 
+            @Parameter(description = "End date for filtering (yyyy-MM-dd)", example = "2023-12-31") 
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
-            @Parameter(description = "Filter by trainer name") 
+            @Parameter(description = "Filter by trainer username", example = "john.doe") 
             @RequestParam(required = false) String trainerName,
-            @Parameter(description = "Filter by training type") 
+            @Parameter(description = "Filter by training type", example = "Yoga") 
             @RequestParam(required = false) String trainingType) {
         
         TraineeTrainingFilter filterDTO = new TraineeTrainingFilter(
@@ -266,7 +276,9 @@ public class TraineeController {
 
     @Operation(
         summary = "Update trainee activation status",
-        description = "Activates or deactivates a trainee's account"
+        description = "Activates or deactivates a trainee account. "
+            + "Deactivated accounts cannot access the system.",
+        operationId = "updateTraineeActivation"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -301,7 +313,7 @@ public class TraineeController {
     })
     @PatchMapping("/{username}/activation")
     public ResponseEntity<Void> updateActivationStatus(
-            @Parameter(description = "Username of the trainee") 
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
             @Parameter(description = "Activation status payload") 
             @RequestBody UpdateTraineeActivation updateTraineeActivation) {

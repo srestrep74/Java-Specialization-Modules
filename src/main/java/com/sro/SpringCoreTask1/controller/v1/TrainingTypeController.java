@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(value = "/api/v1/training-types", produces = "application/json")
-@Tag(name = "Training Type Management", description = "APIs for managing training types")
+@Tag(name = "Training Type Management", description = "Operations pertaining to training types in the system")
 public class TrainingTypeController {
     
     private final TrainingTypeService trainingTypeService;
@@ -32,7 +32,8 @@ public class TrainingTypeController {
     
     @Operation(
         summary = "Get all training types",
-        description = "Retrieves a list of all available training types in the system"
+        description = "Retrieves a list of all available training types in the system",
+        operationId = "getAllTrainingTypes"
     )
     @ApiResponses(value = {
         @ApiResponse(

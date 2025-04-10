@@ -21,7 +21,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(value = "/api/v1/trainings", produces = "application/json")
-@Tag(name = "Training Management", description = "APIs for managing training sessions")
+@Tag(name = "Training Management", description = "Operations pertaining to training sessions in the system")
 public class TrainingController {
     
     private final TrainingService trainingService;
@@ -32,7 +32,9 @@ public class TrainingController {
 
     @Operation(
         summary = "Create a new training session",
-        description = "Adds a new training session to the system with the specified trainee, trainer, and training details"
+        description = "Registers a new training session between a trainee and trainer. "
+            + "Requires valid trainee and trainer usernames, training name, date and duration.",
+        operationId = "createTraining"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -74,10 +76,11 @@ public class TrainingController {
         )
     })
     @PostMapping
-    public ResponseEntity<Void> addTraining(
+    public ResponseEntity<Void> createTraining(
             @Parameter(description = "Details of the training session to create") 
             @Valid @RequestBody CreateTrainingRequest createTrainingRequest) {
         trainingService.save(createTrainingRequest);
         return ResponseEntity.ok().build();
     }
+
 }
