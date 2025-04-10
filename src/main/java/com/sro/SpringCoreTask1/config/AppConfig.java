@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @ComponentScan(basePackages = "com.sro.SpringCoreTask1")
-@Import({PersistenceConfig.class})
+@Import({PersistenceConfig.class, OpenApiConfig.class})
 @PropertySource({"classpath:application.properties"})
 @EnableAspectJAutoProxy
 @EnableTransactionManagement
