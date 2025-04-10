@@ -1,6 +1,5 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeTrainerListRequest;
@@ -12,7 +11,6 @@ import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
-import com.sro.SpringCoreTask1.mappers.TraineeMapper;
 import com.sro.SpringCoreTask1.mappers.trainee.TraineeCreateMapper;
 import com.sro.SpringCoreTask1.mappers.trainee.TraineeResponseMapper;
 import com.sro.SpringCoreTask1.mappers.trainee.TraineeUpdateMapper;
@@ -37,7 +35,6 @@ public class TraineeServiceImpl implements TraineeService {
 
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-    private final TraineeMapper traineeMapper;
     private final TraineeCreateMapper traineeCreateMapper;
     private final TraineeUpdateMapper traineeUpdateMapper;
     private final TraineeResponseMapper traineeResponseMapper;
@@ -46,14 +43,12 @@ public class TraineeServiceImpl implements TraineeService {
     public TraineeServiceImpl(
             TraineeRepository traineeRepository,
             TrainerRepository trainerRepository,
-            TraineeMapper traineeMapper,
             TraineeCreateMapper traineeCreateMapper,
             TraineeUpdateMapper traineeUpdateMapper,
             TraineeResponseMapper traineeResponseMapper,
             TrainerResponseMapper trainerResponseMapper) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
-        this.traineeMapper = traineeMapper;
         this.traineeCreateMapper = traineeCreateMapper;
         this.traineeUpdateMapper = traineeUpdateMapper;
         this.traineeResponseMapper = traineeResponseMapper;
@@ -92,14 +87,14 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional(readOnly = true)
-    public TraineeResponseDTO findById(Long id) {
+    public TraineeProfileResponse findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
         }
 
         try {
             return traineeRepository.findById(id)
-                    .map(traineeMapper::toDTO)
+                    .map(traineeResponseMapper::toProfileResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + id));
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by id", e);
@@ -108,10 +103,10 @@ public class TraineeServiceImpl implements TraineeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TraineeResponseDTO> findAll() {
+    public List<TraineeProfileResponse> findAll() {
         try {
             return traineeRepository.findAll().stream()
-                    .map(traineeMapper::toDTO)
+                    .map(traineeResponseMapper::toProfileResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Trainees", e);

@@ -3,18 +3,12 @@ package com.sro.SpringCoreTask1.mappers.trainee;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 
 @Mapper(componentModel = "spring")
 public interface TraineeCreateMapper {
-    
-    @Mapping(target = "trainings", ignore = true)
-    @Mapping(target = "trainers", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    Trainee toEntity(TraineeRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "trainers", ignore = true)

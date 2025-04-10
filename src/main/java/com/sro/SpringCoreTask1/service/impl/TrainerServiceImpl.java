@@ -1,6 +1,5 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.response.TrainerResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.RegisterTrainerResponse;
@@ -11,7 +10,6 @@ import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
-import com.sro.SpringCoreTask1.mappers.TrainerMapper;
 import com.sro.SpringCoreTask1.mappers.trainer.TrainerCreateMapper;
 import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.mappers.trainer.TrainerUpdateMapper;
@@ -35,15 +33,13 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
 
-    private final TrainerMapper trainerMapper;
     private final TrainerCreateMapper trainerCreateMapper;
     private final TrainerUpdateMapper trainerUpdateMapper;
     private final TrainerResponseMapper trainerResponseMapper;
 
-    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, TrainerMapper trainerMapper, TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper, TrainerResponseMapper trainerResponseMapper) {
+    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper, TrainerResponseMapper trainerResponseMapper) {
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
-        this.trainerMapper = trainerMapper;
         this.trainerCreateMapper = trainerCreateMapper;
         this.trainerUpdateMapper = trainerUpdateMapper;
         this.trainerResponseMapper = trainerResponseMapper;
@@ -83,14 +79,14 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public TrainerResponseDTO findById(Long id) {
+    public TrainerProfileResponse findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Trainer id cannot be null");
         }
 
         try {
             return trainerRepository.findById(id)
-                    .map(trainerMapper::toDTO)
+                    .map(trainerResponseMapper::toTrainerProfileResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + id));
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by id", e);
@@ -99,10 +95,10 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainerResponseDTO> findAll() {
+    public List<TrainerProfileResponse> findAll() {
         try {
             return trainerRepository.findAll().stream()
-                    .map(trainerMapper::toDTO)
+                    .map(trainerResponseMapper::toTrainerProfileResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Trainers", e);
@@ -215,14 +211,14 @@ public class TrainerServiceImpl implements TrainerService {
 
     @Override
     @Transactional(readOnly = true)
-    public Set<TrainerResponseDTO> findTrainersByTraineeId(Long traineeId) {
+    public Set<TrainerProfileResponse> findTrainersByTraineeId(Long traineeId) {
         if (traineeId == null) {
             throw new IllegalArgumentException("Trainee id cannot be null");
         }
 
         try {
             return trainerRepository.findTrainersByTraineeId(traineeId).stream()
-                    .map(trainerMapper::toDTO)
+                    .map(trainerResponseMapper::toTrainerProfileResponse)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee Trainers", e);

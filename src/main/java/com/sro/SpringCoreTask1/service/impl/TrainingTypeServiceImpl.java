@@ -1,13 +1,12 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.request.TrainingTypeRequestDTO;
-import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
-import com.sro.SpringCoreTask1.mappers.TrainingTypeMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeCreateMapper;
 import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeResponseMapper;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
@@ -24,26 +23,26 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     private final TrainingTypeRepository trainingTypeRepository;
 
-    private final TrainingTypeMapper trainingTypeMapper;
+    private final TrainingTypeCreateMapper trainingTypeCreateMapper;
     private final TrainingTypeResponseMapper trainingTypeResponseMapper;
     
-    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeMapper trainingTypeMapper, TrainingTypeResponseMapper trainingTypeResponseMapper) {
+    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeCreateMapper trainingTypeCreateMapper, TrainingTypeResponseMapper trainingTypeResponseMapper) {
         this.trainingTypeRepository = trainingTypeRepository;
-        this.trainingTypeMapper = trainingTypeMapper;
+        this.trainingTypeCreateMapper = trainingTypeCreateMapper;
         this.trainingTypeResponseMapper = trainingTypeResponseMapper;
     }
 
     @Override
     @Transactional
-    public TrainingTypeResponseDTO save(TrainingTypeRequestDTO trainingTypeRequestDTO) {
+    public TrainingTypeResponse save(TrainingTypeRequestDTO trainingTypeRequestDTO) {
         if (trainingTypeRequestDTO == null) {
             throw new IllegalArgumentException("TrainingTypeRequestDTO cannot be null");
         }
 
         try {
-            TrainingType trainingType = trainingTypeMapper.toEntity(trainingTypeRequestDTO);
+            TrainingType trainingType = trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO);
             TrainingType savedTrainingType = trainingTypeRepository.save(trainingType);
-            return trainingTypeMapper.toDTO(savedTrainingType);
+            return trainingTypeResponseMapper.mapToResponse(savedTrainingType);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Training Type with name " + trainingTypeRequestDTO.trainingTypeName() + " already exists");
         } catch (Exception e) {
@@ -53,14 +52,14 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     @Override
     @Transactional(readOnly = true)
-    public TrainingTypeResponseDTO findById(Long id) {
+    public TrainingTypeResponse findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training Type id cannot be null");
         }
 
         try {
             return trainingTypeRepository.findById(id)
-                    .map(trainingTypeMapper::toDTO)
+                    .map(trainingTypeResponseMapper::mapToResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + id));
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training Type by id", e);
@@ -81,15 +80,15 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     @Override
     @Transactional
-    public TrainingTypeResponseDTO update(TrainingTypeRequestDTO trainingTypeRequestDTO) {
+    public TrainingTypeResponse update(TrainingTypeRequestDTO trainingTypeRequestDTO) {
         if (trainingTypeRequestDTO == null) {
             throw new IllegalArgumentException("TrainingTypeRequestDTO cannot be null");
         }
 
         try {
-            TrainingType trainingType = trainingTypeMapper.toEntity(trainingTypeRequestDTO);
+            TrainingType trainingType = trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO);
             return trainingTypeRepository.update(trainingType)
-                    .map(trainingTypeMapper::toDTO)
+                    .map(trainingTypeResponseMapper::mapToResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + trainingType.getId()));
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training Type", e);

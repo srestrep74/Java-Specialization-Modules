@@ -3,8 +3,8 @@ package com.sro.SpringCoreTask1.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.sro.SpringCoreTask1.dto.request.TrainingTypeRequestDTO;
 import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
 import com.sro.SpringCoreTask1.service.impl.TrainingTypeServiceImpl;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;

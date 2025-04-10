@@ -9,9 +9,9 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.TrainingType;
-import com.sro.SpringCoreTask1.mappers.TrainingTypeMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeCreateMapper;
 
-@Mapper(componentModel = "spring", uses = {TrainingTypeMapper.class})
+@Mapper(componentModel = "spring", uses = {TrainingTypeCreateMapper.class})
 public interface TrainerUpdateMapper {
     
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

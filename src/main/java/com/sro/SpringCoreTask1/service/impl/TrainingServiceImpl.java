@@ -1,26 +1,25 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.request.TrainingRequestDTO;
-import com.sro.SpringCoreTask1.dto.response.TrainingResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.CreateTrainingRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingFilter;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingFilter;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingResponse;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.UpdateTrainingRequest;
+import com.sro.SpringCoreTask1.dtos.v1.response.training.TrainingSummaryResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.Training;
-import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
-import com.sro.SpringCoreTask1.mappers.TrainingMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingCreateMapper;
+import com.sro.SpringCoreTask1.mappers.training.TrainingResponseMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingTraineeMapper;
+import com.sro.SpringCoreTask1.mappers.training.TrainingUpdateMapper;
 import com.sro.SpringCoreTask1.mappers.training.TraininigTrainerMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
-import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainingService;
 
 import org.springframework.stereotype.Service;
@@ -34,30 +33,30 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingRepository trainingRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeRepository traineeRepository;
-    private final TrainingTypeRepository trainingTypeRepository;
 
-    private final TrainingMapper trainingMapper;
     private final TrainingTraineeMapper trainingTraineeMapper;
     private final TraininigTrainerMapper traininigTrainerMapper;
     private final TrainingCreateMapper trainingCreateMapper;
+    private final TrainingResponseMapper trainingResponseMapper;
+    private final TrainingUpdateMapper trainingUpdateMapper;
 
     public TrainingServiceImpl(
             TrainingRepository trainingRepository,
             TrainerRepository trainerRepository,
             TraineeRepository traineeRepository,
-            TrainingTypeRepository trainingTypeRepository,
-            TrainingMapper trainingMapper,
             TrainingTraineeMapper trainingTraineeMapper,
             TraininigTrainerMapper traininigTrainerMapper,
-            TrainingCreateMapper trainingCreateMapper) {
+            TrainingCreateMapper trainingCreateMapper,
+            TrainingResponseMapper trainingResponseMapper,
+            TrainingUpdateMapper trainingUpdateMapper) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
-        this.trainingTypeRepository = trainingTypeRepository;
-        this.trainingMapper = trainingMapper;
         this.trainingTraineeMapper = trainingTraineeMapper;
         this.traininigTrainerMapper = traininigTrainerMapper;
         this.trainingCreateMapper = trainingCreateMapper;
+        this.trainingResponseMapper = trainingResponseMapper;
+        this.trainingUpdateMapper = trainingUpdateMapper;
     }
 
     @Override
@@ -85,14 +84,14 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional(readOnly = true)
-    public TrainingResponseDTO findById(Long id) {
+    public TrainingSummaryResponse findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training id cannot be null");
         }
 
         try {
             return trainingRepository.findById(id)
-                    .map(trainingMapper::toDTO)
+                    .map(trainingResponseMapper::toTrainingSummaryResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + id));
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training by id", e);
@@ -101,10 +100,10 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TrainingResponseDTO> findAll() {
+    public List<TrainingSummaryResponse> findAll() {
         try {
             return trainingRepository.findAll().stream()
-                    .map(trainingMapper::toDTO)
+                    .map(trainingResponseMapper::toTrainingSummaryResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Trainings", e);
@@ -113,22 +112,20 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public TrainingResponseDTO update(TrainingRequestDTO trainingRequestDTO) {
-        if (trainingRequestDTO == null) {
-            throw new IllegalArgumentException("TrainingRequestDTO cannot be null");
+    public TrainingSummaryResponse update(UpdateTrainingRequest updateTrainingRequest) {
+        if (updateTrainingRequest == null) {
+            throw new IllegalArgumentException("UpdateTrainingRequest cannot be null");
         }
 
         try {
-            Trainee trainee = traineeRepository.findById(trainingRequestDTO.traineeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainingRequestDTO.traineeId()));
-            Trainer trainer = trainerRepository.findById(trainingRequestDTO.trainerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
-            TrainingType trainingType = trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainingRequestDTO.trainingTypeId()));
+            Trainee trainee = traineeRepository.findByUsername(updateTrainingRequest.traineeUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + updateTrainingRequest.traineeUsername()));
+            Trainer trainer = trainerRepository.findByUsername(updateTrainingRequest.trainerUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + updateTrainingRequest.trainerUsername()));
 
-            Training training = trainingMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
+            Training training = trainingUpdateMapper.toEntity(updateTrainingRequest, trainer, trainee, trainer.getTrainingType());
             return trainingRepository.update(training)
-                    .map(trainingMapper::toDTO)
+                    .map(trainingResponseMapper::toTrainingSummaryResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + training.getId()));
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training", e);
