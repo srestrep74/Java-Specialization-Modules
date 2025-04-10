@@ -70,6 +70,8 @@ public class TrainerServiceImpl implements TrainerService {
             Trainer savedTrainer = trainerRepository.save(trainer);
 
             return trainerCreateMapper.toRegisterResponse(savedTrainer);
+        } catch(ResourceNotFoundException e) {
+            throw e;
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainer with username " + generatedUsername + " already exists");
         } catch (Exception e) {
@@ -125,6 +127,8 @@ public class TrainerServiceImpl implements TrainerService {
 
             trainer.setPassword(existingTrainer.getPassword());
             return trainerResponseMapper.toTrainerProfileResponse(trainerRepository.save(trainer));
+        } catch(ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer", e);
         }
@@ -141,6 +145,8 @@ public class TrainerServiceImpl implements TrainerService {
             if (!trainerRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Trainer not found with id: " + id);
             }
+        } catch(ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainer by id", e);
         }
@@ -156,6 +162,8 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             return trainerResponseMapper.toTrainerProfileResponse(trainerRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username)));
+        } catch(ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by username", e);
         }
@@ -190,6 +198,8 @@ public class TrainerServiceImpl implements TrainerService {
 
             trainer.setActive(active);
             trainerRepository.save(trainer);
+        } catch(ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer activation status", e);
         }

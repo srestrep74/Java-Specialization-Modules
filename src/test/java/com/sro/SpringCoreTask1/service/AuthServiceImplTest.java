@@ -1,9 +1,10 @@
 package com.sro.SpringCoreTask1.service;
 
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
+import com.sro.SpringCoreTask1.exception.AuthenticationFailedException;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
-import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.impl.AuthServiceImpl;
@@ -51,199 +52,145 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticateTrainee_ShouldReturnTrue_WhenCredentialsAreValid() {
+    void authenticate_ShouldReturnLoginResponseForTrainee_WhenCredentialsAreValid() {
         when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
 
-        boolean result = authService.authenticateTrainee("trainee1", "password1");
+        LoginResponse response = authService.authenticate("trainee1", "password1");
 
-        assertTrue(result);
-        assertEquals(1L, authService.getCurrentTraineeId());
-        assertNull(authService.getCurrentTrainerId());
-        verify(traineeRepository).findByUsername("trainee1");
+        assertTrue(response.success());
+        assertEquals("trainee1", response.username());
+        assertTrue(authService.isAuthenticated());
+        assertTrue(authService.isCurrentUserTrainee());
+        assertFalse(authService.isCurrentUserTrainer());
+        assertEquals(trainee, authService.getCurrentUser());
     }
 
     @Test
-    void authenticateTrainee_ShouldThrowResourceNotFoundException_WhenTraineeNotFound() {
+    void authenticate_ShouldReturnLoginResponseForTrainer_WhenCredentialsAreValid() {
+        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
+
+        LoginResponse response = authService.authenticate("trainer1", "password1");
+
+        assertTrue(response.success());
+        assertEquals("trainer1", response.username());
+        assertTrue(authService.isAuthenticated());
+        assertFalse(authService.isCurrentUserTrainee());
+        assertTrue(authService.isCurrentUserTrainer());
+        assertEquals(trainer, authService.getCurrentUser());
+    }
+
+    @Test
+    void authenticate_ShouldThrowIllegalArgumentException_WhenCredentialsAreNull() {
+        assertThrows(IllegalArgumentException.class, () -> authService.authenticate(null, null));
+        assertThrows(IllegalArgumentException.class, () -> authService.authenticate("username", null));
+        assertThrows(IllegalArgumentException.class, () -> authService.authenticate(null, "password"));
+    }
+
+    @Test
+    void authenticate_ShouldThrowAuthenticationFailedException_WhenUserNotFound() {
         when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.empty());
+        when(trainerRepository.findByUsername("trainee1")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> authService.authenticateTrainee("trainee1", "password1"));
+        assertThrows(AuthenticationFailedException.class, () -> authService.authenticate("trainee1", "password1"));
     }
 
     @Test
-    void authenticateTrainee_ShouldThrowResourceNotFoundException_WhenTraineeIsNotActive() {
+    void authenticate_ShouldThrowAuthenticationFailedException_WhenUserNotActive() {
         trainee.setActive(false);
         when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
 
-        assertThrows(ResourceNotFoundException.class, () -> authService.authenticateTrainee("trainee1", "password1"));
+        assertThrows(AuthenticationFailedException.class, () -> authService.authenticate("trainee1", "password1"));
     }
 
     @Test
-    void authenticateTrainee_ShouldReturnFalse_WhenPasswordIsIncorrect() {
+    void authenticate_ShouldThrowAuthenticationFailedException_WhenPasswordIncorrect() {
         when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
 
-        boolean result = authService.authenticateTrainee("trainee1", "wrongpassword");
-
-        assertFalse(result);
-        assertNull(authService.getCurrentTraineeId());
-        assertNull(authService.getCurrentTrainerId());
+        assertThrows(AuthenticationFailedException.class, () -> authService.authenticate("trainee1", "wrongpassword"));
     }
 
     @Test
-    void authenticateTrainee_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
+    void authenticate_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(traineeRepository.findByUsername("trainee1")).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, () -> authService.authenticateTrainee("trainee1", "password1"));
+        assertThrows(DatabaseOperationException.class, () -> authService.authenticate("trainee1", "password1"));
     }
 
     @Test
-    void authenticateTrainer_ShouldReturnTrue_WhenCredentialsAreValid() {
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
-
-        boolean result = authService.authenticateTrainer("trainer1", "password1");
-
-        assertTrue(result);
-        assertEquals(1L, authService.getCurrentTrainerId());
-        assertNull(authService.getCurrentTraineeId());
-        verify(trainerRepository).findByUsername("trainer1");
-    }
-
-    @Test
-    void authenticateTrainer_ShouldThrowResourceNotFoundException_WhenTrainerNotFound() {
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> authService.authenticateTrainer("trainer1", "password1"));
-    }
-
-    @Test
-    void authenticateTrainer_ShouldThrowResourceNotFoundException_WhenTrainerIsNotActive() {
-        trainer.setActive(false);
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
-
-        assertThrows(ResourceNotFoundException.class, () -> authService.authenticateTrainer("trainer1", "password1"));
-    }
-
-    @Test
-    void authenticateTrainer_ShouldReturnFalse_WhenPasswordIsIncorrect() {
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
-
-        boolean result = authService.authenticateTrainer("trainer1", "wrongpassword");
-
-        assertFalse(result);
-        assertNull(authService.getCurrentTrainerId());
-        assertNull(authService.getCurrentTraineeId());
-    }
-
-    @Test
-    void authenticateTrainer_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainerRepository.findByUsername("trainer1")).thenThrow(new RuntimeException("Database error"));
-
-        assertThrows(DatabaseOperationException.class, () -> authService.authenticateTrainer("trainer1", "password1"));
-    }
-    @Test
-    void getCurrentTraineeId_ShouldReturnAuthenticatedTraineeId() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        authService.authenticateTrainee("trainee1", "password1");
-    
-        Long result = authService.getCurrentTraineeId();
-    
-        assertEquals(1L, result);
-
-        verify(traineeRepository).findByUsername("trainee1");
-    }
-
-    @Test
-    void getCurrentTrainerId_ShouldReturnAuthenticatedTrainerId() {
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
-        authService.authenticateTrainer("trainer1", "password1");
-
-        Long result = authService.getCurrentTrainerId();
-    
-        assertEquals(1L, result);
-    
-        verify(trainerRepository).findByUsername("trainer1");
-    }
-
-    @Test
-    void isTraineeAuthenticated_ShouldReturnTrue_WhenTraineeIsAuthenticated() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        authService.authenticateTrainee("trainee1", "password1");
-
-        boolean result = authService.isTraineeAuthenticated();
-    
-        assertTrue(result);
-    
-        verify(traineeRepository).findByUsername("trainee1");
-    }
-
-    @Test
-    void isTrainerAuthenticated_ShouldReturnTrue_WhenTrainerIsAuthenticated() {
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
-        authService.authenticateTrainer("trainer1", "password1");
-    
-        boolean result = authService.isTrainerAuthenticated();
-
-        assertTrue(result);
-    
-        verify(trainerRepository).findByUsername("trainer1");
-    }
-
-    @Test
-    void logout_ShouldClearAuthenticatedIds() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        authService.authenticateTrainee("trainee1", "password1");
-        authService.logout();
-    
-        assertNull(authService.getCurrentTraineeId());
-        assertNull(authService.getCurrentTrainerId());
-    
-        verify(traineeRepository).findByUsername("trainee1");
-    }
-
-    @Test
-    void changeTraineePassword_ShouldUpdatePassword_WhenTraineeExists() {
+    void changePassword_ShouldUpdatePasswordForTrainee_WhenCredentialsAreValid() {
         when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
 
-        authService.changeTraineePassword("trainee1", "newpassword");
+        authService.changePassword("trainee1", "password1", "newpassword");
 
-        verify(traineeRepository).save(trainee);
         assertEquals("newpassword", trainee.getPassword());
+        verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void changeTraineePassword_ShouldThrowResourceNotFoundException_WhenTraineeNotFound() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> authService.changeTraineePassword("trainee1", "newpassword"));
-    }
-
-    @Test
-    void changeTraineePassword_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(traineeRepository.findByUsername("trainee1")).thenThrow(new RuntimeException("Database error"));
-
-        assertThrows(DatabaseOperationException.class, () -> authService.changeTraineePassword("trainee1", "newpassword"));
-    }
-
-    @Test
-    void changeTrainerPassword_ShouldUpdatePassword_WhenTrainerExists() {
+    void changePassword_ShouldUpdatePasswordForTrainer_WhenCredentialsAreValid() {
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        authService.changeTrainerPassword("trainer1", "newpassword");
+        authService.changePassword("trainer1", "password1", "newpassword");
 
-        verify(trainerRepository).save(trainer);
         assertEquals("newpassword", trainer.getPassword());
+        verify(trainerRepository).save(trainer);
     }
 
     @Test
-    void changeTrainerPassword_ShouldThrowResourceNotFoundException_WhenTrainerNotFound() {
-        when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> authService.changeTrainerPassword("trainer1", "newpassword"));
+    void changePassword_ShouldThrowIllegalArgumentException_WhenParametersAreNull() {
+        assertThrows(IllegalArgumentException.class, () -> authService.changePassword(null, null, null));
+        assertThrows(IllegalArgumentException.class, () -> authService.changePassword("user", null, null));
+        assertThrows(IllegalArgumentException.class, () -> authService.changePassword(null, "pass", null));
+        assertThrows(IllegalArgumentException.class, () -> authService.changePassword(null, null, "newpass"));
     }
 
     @Test
-    void changeTrainerPassword_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainerRepository.findByUsername("trainer1")).thenThrow(new RuntimeException("Database error"));
+    void changePassword_ShouldThrowAuthenticationFailedException_WhenCurrentPasswordIncorrect() {
+        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
 
-        assertThrows(DatabaseOperationException.class, () -> authService.changeTrainerPassword("trainer1", "newpassword"));
+        assertThrows(AuthenticationFailedException.class, 
+            () -> authService.changePassword("trainee1", "wrongpassword", "newpassword"));
+    }
+
+    @Test
+    void changePassword_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
+        when(traineeRepository.findByUsername("trainee1")).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(DatabaseOperationException.class, 
+            () -> authService.changePassword("trainee1", "password1", "newpassword"));
+    }
+
+    @Test
+    void logout_ShouldClearCurrentUser() {
+        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        authService.authenticate("trainee1", "password1");
+
+        authService.logout();
+
+        assertNull(authService.getCurrentUser());
+        assertFalse(authService.isAuthenticated());
+    }
+
+    @Test
+    void getCurrentUser_ShouldReturnAuthenticatedUser() {
+        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        authService.authenticate("trainee1", "password1");
+
+        assertEquals(trainee, authService.getCurrentUser());
+    }
+
+    @Test
+    void isAuthenticated_ShouldReturnFalse_WhenNoUserLoggedIn() {
+        assertFalse(authService.isAuthenticated());
+    }
+
+    @Test
+    void isCurrentUserTrainee_ShouldReturnFalse_WhenNoUserLoggedIn() {
+        assertFalse(authService.isCurrentUserTrainee());
+    }
+
+    @Test
+    void isCurrentUserTrainer_ShouldReturnFalse_WhenNoUserLoggedIn() {
+        assertFalse(authService.isCurrentUserTrainer());
     }
 }

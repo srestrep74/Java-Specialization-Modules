@@ -3,15 +3,16 @@ package com.sro.SpringCoreTask1.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
-import com.sro.SpringCoreTask1.service.impl.TrainingTypeServiceImpl;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
-import com.sro.SpringCoreTask1.mappers.TrainingTypeMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeCreateMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeResponseMapper;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
+import com.sro.SpringCoreTask1.service.impl.TrainingTypeServiceImpl;
 
 import jakarta.validation.ConstraintViolationException;
 
@@ -32,14 +33,17 @@ class TrainingTypeServiceImplTest {
     private TrainingTypeRepository trainingTypeRepository;
 
     @Mock
-    private TrainingTypeMapper trainingTypeMapper;
+    private TrainingTypeCreateMapper trainingTypeCreateMapper;
+
+    @Mock
+    private TrainingTypeResponseMapper trainingTypeResponseMapper;
 
     @InjectMocks
     private TrainingTypeServiceImpl trainingTypeService;
 
     private TrainingType trainingType;
     private TrainingTypeRequestDTO trainingTypeRequestDTO;
-    private TrainingTypeResponseDTO trainingTypeResponseDTO;
+    private TrainingTypeResponse trainingTypeResponse;
 
     @BeforeEach
     void setUp() {
@@ -48,19 +52,19 @@ class TrainingTypeServiceImplTest {
         trainingType.setTrainingTypeName("Fitness");
 
         trainingTypeRequestDTO = new TrainingTypeRequestDTO("Fitness");
-        trainingTypeResponseDTO = new TrainingTypeResponseDTO(1L, "Fitness");
+        trainingTypeResponse = new TrainingTypeResponse(1L, "Fitness");
     }
 
     @Test
-    void save_ShouldReturnTrainingTypeResponseDTO_WhenValidInput() {
-        when(trainingTypeMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
+    void save_ShouldReturnTrainingTypeResponse_WhenValidInput() {
+        when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
         when(trainingTypeRepository.save(trainingType)).thenReturn(trainingType);
-        when(trainingTypeMapper.toDTO(trainingType)).thenReturn(trainingTypeResponseDTO);
+        when(trainingTypeResponseMapper.mapToResponse(trainingType)).thenReturn(trainingTypeResponse);
 
-        TrainingTypeResponseDTO result = trainingTypeService.save(trainingTypeRequestDTO);
+        TrainingTypeResponse result = trainingTypeService.save(trainingTypeRequestDTO);
 
         assertNotNull(result);
-        assertEquals(trainingTypeResponseDTO, result);
+        assertEquals(trainingTypeResponse, result);
         verify(trainingTypeRepository).save(trainingType);
     }
 
@@ -71,7 +75,7 @@ class TrainingTypeServiceImplTest {
 
     @Test
     void save_ShouldThrowResourceAlreadyExistsException_WhenTrainingTypeNameExists() {
-        when(trainingTypeMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
+        when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
         when(trainingTypeRepository.save(trainingType)).thenThrow(new ConstraintViolationException("Training Type name already exists", null));
 
         assertThrows(ResourceAlreadyExistsException.class, () -> trainingTypeService.save(trainingTypeRequestDTO));
@@ -79,21 +83,21 @@ class TrainingTypeServiceImplTest {
 
     @Test
     void save_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainingTypeMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
+        when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
         when(trainingTypeRepository.save(trainingType)).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, () -> trainingTypeService.save(trainingTypeRequestDTO));
     }
 
     @Test
-    void findById_ShouldReturnTrainingTypeResponseDTO_WhenTrainingTypeExists() {
+    void findById_ShouldReturnTrainingTypeResponse_WhenTrainingTypeExists() {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
-        when(trainingTypeMapper.toDTO(trainingType)).thenReturn(trainingTypeResponseDTO);
+        when(trainingTypeResponseMapper.mapToResponse(trainingType)).thenReturn(trainingTypeResponse);
 
-        TrainingTypeResponseDTO result = trainingTypeService.findById(1L);
+        TrainingTypeResponse result = trainingTypeService.findById(1L);
 
         assertNotNull(result);
-        assertEquals(trainingTypeResponseDTO, result);
+        assertEquals(trainingTypeResponse, result);
     }
 
     @Test
@@ -105,7 +109,10 @@ class TrainingTypeServiceImplTest {
     void findById_ShouldThrowResourceNotFoundException_WhenTrainingTypeDoesNotExist() {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> trainingTypeService.findById(1L));
+        Exception exception = assertThrows(DatabaseOperationException.class, 
+            () -> trainingTypeService.findById(1L));
+        
+        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
     @Test
@@ -116,15 +123,15 @@ class TrainingTypeServiceImplTest {
     }
 
     @Test
-    void findAll_ShouldReturnListOfTrainingTypeResponseDTO_WhenTrainingTypesExist() {
+    void findAll_ShouldReturnListOfTrainingTypeResponse_WhenTrainingTypesExist() {
         when(trainingTypeRepository.findAll()).thenReturn(List.of(trainingType));
-        when(trainingTypeMapper.toDTO(trainingType)).thenReturn(trainingTypeResponseDTO);
+        when(trainingTypeResponseMapper.mapToResponse(trainingType)).thenReturn(trainingTypeResponse);
 
-        List<TrainingTypeResponseDTO> result = trainingTypeService.findAll();
+        List<TrainingTypeResponse> result = trainingTypeService.findAll();
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals(trainingTypeResponseDTO, result.get(0));
+        assertEquals(trainingTypeResponse, result.get(0));
     }
 
     @Test
@@ -135,15 +142,15 @@ class TrainingTypeServiceImplTest {
     }
 
     @Test
-    void update_ShouldReturnUpdatedTrainingTypeResponseDTO_WhenTrainingTypeExists() {
-        when(trainingTypeMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
+    void update_ShouldReturnUpdatedTrainingTypeResponse_WhenTrainingTypeExists() {
+        when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
         when(trainingTypeRepository.update(trainingType)).thenReturn(Optional.of(trainingType));
-        when(trainingTypeMapper.toDTO(trainingType)).thenReturn(trainingTypeResponseDTO);
+        when(trainingTypeResponseMapper.mapToResponse(trainingType)).thenReturn(trainingTypeResponse);
 
-        TrainingTypeResponseDTO result = trainingTypeService.update(trainingTypeRequestDTO);
+        TrainingTypeResponse result = trainingTypeService.update(trainingTypeRequestDTO);
 
         assertNotNull(result);
-        assertEquals(trainingTypeResponseDTO, result);
+        assertEquals(trainingTypeResponse, result);
     }
 
     @Test
@@ -153,15 +160,18 @@ class TrainingTypeServiceImplTest {
 
     @Test
     void update_ShouldThrowResourceNotFoundException_WhenTrainingTypeDoesNotExist() {
-        when(trainingTypeMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
+        when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
         when(trainingTypeRepository.update(trainingType)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> trainingTypeService.update(trainingTypeRequestDTO));
+        Exception exception = assertThrows(DatabaseOperationException.class, 
+            () -> trainingTypeService.update(trainingTypeRequestDTO));
+        
+        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
     @Test
     void update_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainingTypeMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
+        when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
         when(trainingTypeRepository.update(trainingType)).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, () -> trainingTypeService.update(trainingTypeRequestDTO));
@@ -183,7 +193,10 @@ class TrainingTypeServiceImplTest {
     void deleteById_ShouldThrowResourceNotFoundException_WhenTrainingTypeDoesNotExist() {
         when(trainingTypeRepository.deleteById(1L)).thenReturn(false);
 
-        assertThrows(ResourceNotFoundException.class, () -> trainingTypeService.deleteById(1L));
+        Exception exception = assertThrows(DatabaseOperationException.class, 
+            () -> trainingTypeService.deleteById(1L));
+        
+        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
     @Test

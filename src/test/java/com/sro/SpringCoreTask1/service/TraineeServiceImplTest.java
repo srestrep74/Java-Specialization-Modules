@@ -3,14 +3,20 @@ package com.sro.SpringCoreTask1.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.sro.SpringCoreTask1.dto.request.TraineeRequestDTO;
-import com.sro.SpringCoreTask1.dto.response.TraineeResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeTrainerListRequest;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
-import com.sro.SpringCoreTask1.mappers.TraineeMapper;
+import com.sro.SpringCoreTask1.mappers.trainee.TraineeCreateMapper;
+import com.sro.SpringCoreTask1.mappers.trainee.TraineeResponseMapper;
+import com.sro.SpringCoreTask1.mappers.trainee.TraineeUpdateMapper;
+import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.impl.TraineeServiceImpl;
@@ -27,6 +33,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceImplTest {
@@ -38,14 +45,27 @@ class TraineeServiceImplTest {
     private TrainerRepository trainerRepository;
 
     @Mock
-    private TraineeMapper traineeMapper;
+    private TraineeCreateMapper traineeCreateMapper;
+
+    @Mock
+    private TraineeUpdateMapper traineeUpdateMapper;
+
+    @Mock
+    private TraineeResponseMapper traineeResponseMapper;
+
+    @Mock
+    private TrainerResponseMapper trainerResponseMapper;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
 
     private Trainee trainee;
-    private TraineeRequestDTO traineeRequestDTO;
-    private TraineeResponseDTO traineeResponseDTO;
+    private Trainer trainer;
+    private RegisterTraineeRequest registerTraineeRequest;
+    private RegisterTraineeResponse registerTraineeResponse;
+    private TraineeProfileResponse traineeProfileResponse;
+    private UpdateTraineeProfileRequest updateTraineeProfileRequest;
+    private UpdateTraineeTrainerListRequest updateTraineeTrainerListRequest;
 
     @BeforeEach
     void setUp() {
@@ -59,20 +79,63 @@ class TraineeServiceImplTest {
         trainee.setAddress("123 Street");
         trainee.setDateOfBirth(LocalDate.of(2000, 1, 1));
 
-        traineeRequestDTO = new TraineeRequestDTO("John", "Doe", "johndoe", "password", true, "123 Street", LocalDate.of(2000, 1, 1), null);
-        traineeResponseDTO = new TraineeResponseDTO(1L, "John", "Doe", "johndoe", true, "123 Street", LocalDate.of(2000, 1, 1));
+        trainer = new Trainer();
+        trainer.setId(1L);
+        trainer.setFirstName("Trainer");
+        trainer.setLastName("One");
+        trainer.setUsername("trainer1");
+        trainer.setActive(true);
+
+        registerTraineeRequest = new RegisterTraineeRequest(
+            "John", 
+            "Doe", 
+            LocalDate.of(2000, 1, 1), 
+            "123 Street"
+        );
+
+        registerTraineeResponse = new RegisterTraineeResponse(
+            "johndoe", 
+            "generatedPassword"
+        );
+
+        traineeProfileResponse = new TraineeProfileResponse(
+            "John", 
+            "Doe", 
+            LocalDate.of(2000, 1, 1),
+            "123 Street",
+            true,
+            List.of(new TraineeProfileResponse.TrainerInfo(
+                "trainer1",
+                "Trainer",
+                "One",
+                1L
+            ))
+        );
+
+        updateTraineeProfileRequest = new UpdateTraineeProfileRequest(
+            "johndoe",
+            "John", 
+            "Updated", 
+            LocalDate.of(2000, 1, 1),
+            "123 Updated Street", 
+            true
+        );
+
+        updateTraineeTrainerListRequest = new UpdateTraineeTrainerListRequest(
+            List.of("trainer1")
+        );
     }
 
     @Test
-    void save_ShouldReturnTraineeResponseDTO_WhenValidInput() {
-        when(traineeMapper.toEntity(traineeRequestDTO)).thenReturn(trainee);
+    void save_ShouldReturnRegisterTraineeResponse_WhenValidInput() {
+        when(traineeCreateMapper.toEntity(registerTraineeRequest)).thenReturn(trainee);
         when(traineeRepository.save(trainee)).thenReturn(trainee);
-        when(traineeMapper.toDTO(trainee)).thenReturn(traineeResponseDTO);
+        when(traineeCreateMapper.toRegisterResponse(trainee)).thenReturn(registerTraineeResponse);
 
-        TraineeResponseDTO result = traineeService.save(traineeRequestDTO);
+        RegisterTraineeResponse result = traineeService.save(registerTraineeRequest);
 
         assertNotNull(result);
-        assertEquals(traineeResponseDTO, result);
+        assertEquals(registerTraineeResponse, result);
         verify(traineeRepository).save(trainee);
     }
 
@@ -82,36 +145,36 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void save_ShouldThrowIllegalArgumentException_WhenFirstNameIsNull() {
-        TraineeRequestDTO invalidRequest = new TraineeRequestDTO(null, "Doe", "johndoe", "password", true, "123 Street", LocalDate.of(2000, 1, 1), List.of(1L));
+    void save_ShouldThrowIllegalArgumentException_WhenRequiredFieldsAreMissing() {
+        RegisterTraineeRequest invalidRequest = new RegisterTraineeRequest(null, null, null, null);
         assertThrows(IllegalArgumentException.class, () -> traineeService.save(invalidRequest));
     }
 
     @Test
     void save_ShouldThrowResourceAlreadyExistsException_WhenUsernameExists() {
-        when(traineeMapper.toEntity(traineeRequestDTO)).thenReturn(trainee);
+        when(traineeCreateMapper.toEntity(registerTraineeRequest)).thenReturn(trainee);
         when(traineeRepository.save(trainee)).thenThrow(new ConstraintViolationException("Username already exists", null));
 
-        assertThrows(ResourceAlreadyExistsException.class, () -> traineeService.save(traineeRequestDTO));
+        assertThrows(ResourceAlreadyExistsException.class, () -> traineeService.save(registerTraineeRequest));
     }
 
     @Test
     void save_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(traineeMapper.toEntity(traineeRequestDTO)).thenReturn(trainee);
+        when(traineeCreateMapper.toEntity(registerTraineeRequest)).thenReturn(trainee);
         when(traineeRepository.save(trainee)).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, () -> traineeService.save(traineeRequestDTO));
+        assertThrows(DatabaseOperationException.class, () -> traineeService.save(registerTraineeRequest));
     }
 
     @Test
-    void findById_ShouldReturnTraineeResponseDTO_WhenTraineeExists() {
+    void findById_ShouldReturnTraineeProfileResponse_WhenTraineeExists() {
         when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
-        when(traineeMapper.toDTO(trainee)).thenReturn(traineeResponseDTO);
+        when(traineeResponseMapper.toProfileResponse(trainee)).thenReturn(traineeProfileResponse);
 
-        TraineeResponseDTO result = traineeService.findById(1L);
+        TraineeProfileResponse result = traineeService.findById(1L);
 
         assertNotNull(result);
-        assertEquals(traineeResponseDTO, result);
+        assertEquals(traineeProfileResponse, result);
     }
 
     @Test
@@ -134,15 +197,15 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void findAll_ShouldReturnListOfTraineeResponseDTO_WhenTraineesExist() {
+    void findAll_ShouldReturnListOfTraineeProfileResponse_WhenTraineesExist() {
         when(traineeRepository.findAll()).thenReturn(List.of(trainee));
-        when(traineeMapper.toDTO(trainee)).thenReturn(traineeResponseDTO);
+        when(traineeResponseMapper.toProfileResponse(trainee)).thenReturn(traineeProfileResponse);
 
-        List<TraineeResponseDTO> result = traineeService.findAll();
+        List<TraineeProfileResponse> result = traineeService.findAll();
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals(traineeResponseDTO, result.get(0));
+        assertEquals(traineeProfileResponse, result.get(0));
     }
 
     @Test
@@ -153,37 +216,39 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void update_ShouldReturnUpdatedTraineeResponseDTO_WhenTraineeExists() {
+    void update_ShouldReturnUpdatedTraineeProfileResponse_WhenTraineeExists() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
-        when(traineeMapper.toEntity(traineeRequestDTO)).thenReturn(trainee);
+        when(traineeUpdateMapper.toEntity(updateTraineeProfileRequest, trainee)).thenReturn(trainee);
         when(traineeRepository.update(trainee)).thenReturn(Optional.of(trainee));
-        when(traineeMapper.toDTO(trainee)).thenReturn(traineeResponseDTO);
+        when(traineeResponseMapper.toProfileResponse(trainee)).thenReturn(traineeProfileResponse);
 
-        TraineeResponseDTO result = traineeService.update(traineeRequestDTO);
+        TraineeProfileResponse result = traineeService.update("johndoe", updateTraineeProfileRequest);
 
         assertNotNull(result);
-        assertEquals(traineeResponseDTO, result);
+        assertEquals(traineeProfileResponse, result);
     }
 
     @Test
     void update_ShouldThrowIllegalArgumentException_WhenTraineeIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> traineeService.update(null));
+        assertThrows(IllegalArgumentException.class, () -> traineeService.update("johndoe", null));
     }
 
     @Test
     void update_ShouldThrowResourceNotFoundException_WhenTraineeDoesNotExist() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> traineeService.update(traineeRequestDTO));
+        assertThrows(ResourceNotFoundException.class, 
+            () -> traineeService.update("johndoe", updateTraineeProfileRequest));
     }
 
     @Test
     void update_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
-        when(traineeMapper.toEntity(traineeRequestDTO)).thenReturn(trainee);
+        when(traineeUpdateMapper.toEntity(updateTraineeProfileRequest, trainee)).thenReturn(trainee);
         when(traineeRepository.update(trainee)).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, () -> traineeService.update(traineeRequestDTO));
+        assertThrows(DatabaseOperationException.class, 
+            () -> traineeService.update("johndoe", updateTraineeProfileRequest));
     }
 
     @Test
@@ -213,14 +278,14 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void findByUsername_ShouldReturnTraineeResponseDTO_WhenTraineeExists() {
+    void findByUsername_ShouldReturnTraineeProfileResponse_WhenTraineeExists() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
-        when(traineeMapper.toDTO(trainee)).thenReturn(traineeResponseDTO);
+        when(traineeResponseMapper.toProfileResponse(trainee)).thenReturn(traineeProfileResponse);
 
-        TraineeResponseDTO result = traineeService.findByUsername("johndoe");
+        TraineeProfileResponse result = traineeService.findByUsername("johndoe");
 
         assertNotNull(result);
-        assertEquals(traineeResponseDTO, result);
+        assertEquals(traineeProfileResponse, result);
     }
 
     @Test
@@ -270,10 +335,6 @@ class TraineeServiceImplTest {
 
     @Test
     void addTrainerToTrainee_ShouldAddTrainer_WhenValidInput() {
-        Trainer trainer = new Trainer();
-        trainer.setId(1L);
-        trainer.setActive(true);
-
         when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
 
@@ -303,11 +364,7 @@ class TraineeServiceImplTest {
 
     @Test
     void addTrainerToTrainee_ShouldThrowResourceAlreadyExistsException_WhenTrainerAlreadyAssigned() {
-        Trainer trainer = new Trainer();
-        trainer.setId(1L);
-        trainer.setActive(true);
         trainee.addTrainer(trainer);
-
         when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
 
@@ -323,11 +380,7 @@ class TraineeServiceImplTest {
 
     @Test
     void removeTrainerFromTrainee_ShouldRemoveTrainer_WhenValidInput() {
-        Trainer trainer = new Trainer();
-        trainer.setId(1L);
-        trainer.setActive(true);
         trainee.addTrainer(trainer);
-
         when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
 
@@ -357,10 +410,6 @@ class TraineeServiceImplTest {
 
     @Test
     void removeTrainerFromTrainee_ShouldThrowResourceNotFoundException_WhenTrainerNotAssigned() {
-        Trainer trainer = new Trainer();
-        trainer.setId(1L);
-        trainer.setActive(true);
-
         when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findById(1L)).thenReturn(Optional.of(trainer));
 
@@ -375,30 +424,53 @@ class TraineeServiceImplTest {
     }
 
     @Test
-    void setTraineeStatus_ShouldToggleStatus_WhenTraineeExists() {
-        when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
+    void updateTraineeTrainers_ShouldThrowIllegalArgumentException_WhenUsernameIsNull() {
+        assertThrows(IllegalArgumentException.class, 
+            () -> traineeService.updateTraineeTrainers(null, updateTraineeTrainerListRequest));
+    }
 
-        assertDoesNotThrow(() -> traineeService.setTraineeStatus(1L));
+    @Test
+    void updateTraineeTrainers_ShouldThrowResourceNotFoundException_WhenTraineeDoesNotExist() {
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, 
+            () -> traineeService.updateTraineeTrainers("johndoe", updateTraineeTrainerListRequest));
+    }
+
+    @Test
+    void updateTraineeTrainers_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
+        when(trainerRepository.findByUsername("trainer1")).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(DatabaseOperationException.class, 
+            () -> traineeService.updateTraineeTrainers("johndoe", updateTraineeTrainerListRequest));
+    }
+
+    @Test
+    void updateActivationStatus_ShouldUpdateStatus_WhenValidInput() {
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
+
+        assertDoesNotThrow(() -> traineeService.updateActivationStatus("johndoe", false));
         verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void setTraineeStatus_ShouldThrowIllegalArgumentException_WhenIdIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> traineeService.setTraineeStatus(null));
+    void updateActivationStatus_ShouldThrowIllegalArgumentException_WhenUsernameIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> traineeService.updateActivationStatus(null, true));
     }
 
     @Test
-    void setTraineeStatus_ShouldThrowResourceNotFoundException_WhenTraineeDoesNotExist() {
-        when(traineeRepository.findById(1L)).thenReturn(Optional.empty());
+    void updateActivationStatus_ShouldThrowResourceNotFoundException_WhenTraineeDoesNotExist() {
+        when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> traineeService.setTraineeStatus(1L));
+        assertThrows(ResourceNotFoundException.class, () -> traineeService.updateActivationStatus("johndoe", true));
     }
 
     @Test
-    void setTraineeStatus_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(traineeRepository.findById(1L)).thenThrow(new RuntimeException("Database error"));
+    void updateActivationStatus_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
+        when(traineeRepository.findByUsername("johndoe")).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, () -> traineeService.setTraineeStatus(1L));
+        assertThrows(DatabaseOperationException.class, () -> traineeService.updateActivationStatus("johndoe", true));
     }
 
     @Test
@@ -413,5 +485,28 @@ class TraineeServiceImplTest {
         when(traineeRepository.updatePassword(1L, "newPassword")).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, () -> traineeService.updateTraineePassword(1L, "newPassword"));
+    }
+
+    @Test
+    void findTrainersByTraineeId_ShouldReturnTrainers_WhenTraineeExists() {
+        when(traineeRepository.findTrainersByTraineeId(1L)).thenReturn(Set.of(trainer));
+
+        Set<Trainer> result = traineeService.findTrainersByTraineeId(1L);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.contains(trainer));
+    }
+
+    @Test
+    void findTrainersByTraineeId_ShouldThrowIllegalArgumentException_WhenIdIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> traineeService.findTrainersByTraineeId(null));
+    }
+
+    @Test
+    void findTrainersByTraineeId_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
+        when(traineeRepository.findTrainersByTraineeId(1L)).thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(DatabaseOperationException.class, () -> traineeService.findTrainersByTraineeId(1L));
     }
 }
