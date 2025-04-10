@@ -12,7 +12,7 @@ import com.sro.SpringCoreTask1.entity.Training;
 import com.sro.SpringCoreTask1.repository.base.BaseRepository;
 
 public interface TrainingRepository extends BaseRepository<Training, Long> {
-    List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO);
+    List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField, String sortDirection);
     List<Training> findTrainingsByTrainerWithFilters(TrainerTrainingFilter filterDTO);
     boolean existsByTraineeIdAndTrainerAndTrainingDate(Trainee trainee, Trainer traineer, LocalDate trainingDate);
 }

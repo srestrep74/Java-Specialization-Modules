@@ -150,13 +150,13 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO) {
+    public List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField, String sortDirection) {
         if (filterDTO == null) {
             throw new IllegalArgumentException("TraineeTrainingFilterDTO cannot be null");
         }
 
         try {
-            return trainingRepository.findTrainingsByTraineeWithFilters(filterDTO).stream()
+            return trainingRepository.findTrainingsByTraineeWithFilters(filterDTO, sortField, sortDirection).stream()
                     .map(trainingTraineeMapper::toTraineeTrainingResponse)
                     .toList();
         } catch (Exception e) {

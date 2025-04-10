@@ -13,6 +13,8 @@ import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
@@ -82,7 +84,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
     @Override
-    public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO) {
+    public List<Training> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField, String sortDirection) {
         try {
             CriteriaBuilder cb = entityManager.getCriteriaBuilder();
             CriteriaQuery<Training> cq = cb.createQuery(Training.class);
@@ -108,6 +110,12 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             Optional.ofNullable(filterDTO.trainingType())
                     .filter(type -> !type.isEmpty())
                     .ifPresent(type -> predicates.add(cb.equal(training.get("trainingType").get("name"), type)));
+            
+            Path<Object> fieldPath = training.get(sortField);
+            Order order = "ASC".equalsIgnoreCase(sortDirection)
+                ? cb.asc(fieldPath)
+                : cb.desc(fieldPath);
+            cq.orderBy(order);
 
             cq.where(predicates.toArray(new Predicate[0]));
             TypedQuery<Training> query = entityManager.createQuery(cq);

@@ -218,8 +218,9 @@ public class TraineeController {
 
     @Operation(
         summary = "Get trainee's training sessions",
-        description = "Retrieves a list of training sessions for the specified trainee "
-            + "with optional filtering by date range, trainer name, and training type.",
+        description = "Retrieves a list of training sessions for the specified trainee with optional filtering and sorting capabilities. "
+        + "Results can be filtered by date range, trainer name, and training type. "
+        + "The response can be sorted by any training duration or date in ascending or descending order.",
         operationId = "getTraineeTrainings"
     )
     @ApiResponses(value = {
@@ -241,7 +242,8 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid filter parameters",
+            description = "Invalid parameters provided. Possible issues: "
+                + "invalid date format, invalid sort field, or invalid sort direction",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiError.class)
@@ -267,12 +269,31 @@ public class TraineeController {
             @Parameter(description = "Filter by trainer username", example = "john.doe") 
             @RequestParam(required = false) String trainerName,
             @Parameter(description = "Filter by training type", example = "Yoga") 
-            @RequestParam(required = false) String trainingType) {
+            @RequestParam(required = false) String trainingType,
+            @Parameter( 
+                description = "Field to sort by. Available fields: "
+                    + "trainingDate, duration. Default: trainingDate",
+                example = "trainingDate",
+                schema = @Schema(
+                    allowableValues = {"trainingDate", "duration"},
+                    defaultValue = "trainingDate"
+                )
+            ) 
+            @RequestParam(required = false, defaultValue = "trainingDate") String sortField,
+            @Parameter(
+                description = "Sort direction. Default: DESC (newest first)",
+                example = "DESC",
+                schema = @Schema(
+                    allowableValues = {"ASC", "DESC"},
+                    defaultValue = "DESC"
+                )
+            ) 
+            @RequestParam(required = false, defaultValue = "DESC") String sortDirection) {
         
         TraineeTrainingFilter filterDTO = new TraineeTrainingFilter(
             username, fromDate, toDate, trainerName, trainingType);
         
-        List<TraineeTrainingResponse> trainings = trainingService.findTrainingsByTraineeWithFilters(filterDTO);
+        List<TraineeTrainingResponse> trainings = trainingService.findTrainingsByTraineeWithFilters(filterDTO, sortField, sortDirection);
         return ResponseEntity.ok(trainings);
     }
 

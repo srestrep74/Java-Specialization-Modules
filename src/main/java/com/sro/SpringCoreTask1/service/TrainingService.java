@@ -17,6 +17,6 @@ public interface TrainingService {
     void deleteById(Long id);
     TrainingSummaryResponse update(UpdateTrainingRequest updateTrainingRequest);
     
-    List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO);
+    List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField, String sortDirection);
     List<TrainerTrainingResponse> findTrainingsByTrainerWithFilters(TrainerTrainingFilter filterDTO);
 }
