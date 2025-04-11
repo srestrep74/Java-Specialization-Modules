@@ -75,6 +75,8 @@ public class TrainingServiceImpl implements TrainingService {
 
             Training training = trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee, trainer.getTrainingType());
             trainingRepository.save(training);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error adding Training", e);
         }

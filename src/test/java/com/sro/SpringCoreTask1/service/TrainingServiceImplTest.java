@@ -110,7 +110,7 @@ class TrainingServiceImplTest {
             "trainer1", 
             "Morning Session", 
             LocalDate.now(), 
-            "60"
+            60
         );
 
         updateTrainingRequest = new UpdateTrainingRequest(

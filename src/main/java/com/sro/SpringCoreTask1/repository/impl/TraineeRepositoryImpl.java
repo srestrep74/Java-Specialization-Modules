@@ -9,6 +9,7 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
@@ -27,6 +28,8 @@ public class TraineeRepositoryImpl implements TraineeRepository {
         try {
             entityManager.persist(trainee);
             return trainee;
+        } catch(ConstraintViolationException e) {
+            throw e;
         } catch (PersistenceException e) {
             throw e;
         }
