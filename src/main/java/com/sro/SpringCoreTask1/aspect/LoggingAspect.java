@@ -115,10 +115,13 @@ public class LoggingAspect {
         int statusCode = 200;
         String responseBody = "empty";
         
+        if (result instanceof ResponseEntity) {
             ResponseEntity<?> response = (ResponseEntity<?>) result;
             statusCode = response.getStatusCode().value();
-            if (response.getBody() != null) {
-            responseBody = response.getBody() != null ? response.getBody().toString() : "empty";
+            Object body = response.getBody();
+            if (body != null) {
+                responseBody = body.toString();
+            }
         }
         
         logger.info("REST Request - COMPLETED: {} {} - Status: {} - Handler: {}.{}()",
