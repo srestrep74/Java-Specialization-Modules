@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeActivation;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
@@ -122,6 +123,7 @@ public class TraineeController {
             )
         )
     })
+    @Authenticated(requireTrainee = true)
     @GetMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> getProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
