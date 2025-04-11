@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.sro.SpringCoreTask1.entity.Trainee;
+import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.impl.TraineeRepositoryImpl;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,17 +18,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 class TraineeRepositoryImplTest {
 
     @Mock
     private EntityManager entityManager;
-
-    @Mock
-    private EntityTransaction transaction;
 
     @Mock
     private TypedQuery<Trainee> query;
@@ -49,15 +48,13 @@ class TraineeRepositoryImplTest {
         trainee.setActive(true);
         trainee.setAddress("123 Street");
         trainee.setDateOfBirth(LocalDate.of(2000, 1, 1));
+        trainee.setTrainers(new HashSet<>());
     }
 
     @Test
     void save_ShouldPersistTrainee_WhenValid() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         Trainee result = traineeRepository.save(trainee);
         verify(entityManager).persist(trainee);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertEquals(trainee, result);
     }
 
@@ -88,18 +85,14 @@ class TraineeRepositoryImplTest {
 
     @Test
     void deleteById_ShouldRemoveTrainee_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
         boolean result = traineeRepository.deleteById(1L);
         verify(entityManager).remove(trainee);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertTrue(result);
     }
 
     @Test
     void deleteById_ShouldReturnFalse_WhenNotExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
         boolean result = traineeRepository.deleteById(1L);
         assertFalse(result);
@@ -107,7 +100,6 @@ class TraineeRepositoryImplTest {
 
     @Test
     void update_ShouldMergeAndReturnUpdatedTrainee_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
         when(entityManager.merge(trainee)).thenReturn(trainee);
         Optional<Trainee> result = traineeRepository.update(trainee);
@@ -117,7 +109,6 @@ class TraineeRepositoryImplTest {
 
     @Test
     void update_ShouldReturnEmpty_WhenTraineeDoesNotExist() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
         Optional<Trainee> result = traineeRepository.update(trainee);
         assertFalse(result.isPresent());
@@ -125,43 +116,79 @@ class TraineeRepositoryImplTest {
 
     @Test
     void findByUsername_ShouldReturnTrainee_WhenExists() {
-        when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
-        when(query.setParameter("username", "johndoe")).thenReturn(query);
+        when(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class))
+            .thenReturn(query);
+        when(query.setParameter("username", "drakemalfoy")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(trainee);
-        Optional<Trainee> result = traineeRepository.findByUsername("johndoe");
+        Optional<Trainee> result = traineeRepository.findByUsername("drakemalfoy");
         assertTrue(result.isPresent());
         assertEquals(trainee, result.get());
     }
 
     @Test
     void findByUsername_ShouldReturnEmpty_WhenNotExists() {
-        when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
-        when(query.setParameter("username", "johndoe")).thenReturn(query);
+        when(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class))
+            .thenReturn(query);
+        when(query.setParameter("username", "drakemalfoy")).thenReturn(query);
         when(query.getSingleResult()).thenThrow(new NoResultException());
-        Optional<Trainee> result = traineeRepository.findByUsername("johndoe");
+        Optional<Trainee> result = traineeRepository.findByUsername("drakemalfoy");
         assertFalse(result.isPresent());
     }
 
     @Test
     void deleteByUsername_ShouldRemoveTrainee_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
-        when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
-        when(query.setParameter("username", "johndoe")).thenReturn(query);
+        when(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class))
+            .thenReturn(query);
+        when(query.setParameter("username", "drakemalfoy")).thenReturn(query);
         when(query.getSingleResult()).thenReturn(trainee);
-        boolean result = traineeRepository.deleteByUsername("johndoe");
+        when(entityManager.contains(trainee)).thenReturn(true);
+        
+        boolean result = traineeRepository.deleteByUsername("drakemalfoy");
         verify(entityManager).remove(trainee);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertTrue(result);
     }
 
     @Test
     void deleteByUsername_ShouldReturnFalse_WhenNotExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
-        when(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)).thenReturn(query);
-        when(query.setParameter("username", "johndoe")).thenReturn(query);
+        when(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class))
+            .thenReturn(query);
+        when(query.setParameter("username", "drakemalfoy")).thenReturn(query);
         when(query.getSingleResult()).thenThrow(new NoResultException());
-        boolean result = traineeRepository.deleteByUsername("johndoe");
+        boolean result = traineeRepository.deleteByUsername("drakemalfoy");
         assertFalse(result);
+    }
+
+    @Test
+    void updatePassword_ShouldUpdate_WhenTraineeExists() {
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
+        boolean result = traineeRepository.updatePassword(1L, "newPassword");
+        assertEquals("newPassword", trainee.getPassword());
+        assertTrue(result);
+    }
+
+    @Test
+    void updatePassword_ShouldReturnFalse_WhenTraineeNotExists() {
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
+        boolean result = traineeRepository.updatePassword(1L, "newPassword");
+        assertFalse(result);
+    }
+
+    @Test
+    void findTrainersByTraineeId_ShouldReturnTrainers_WhenTraineeExists() {
+        Trainer trainer = new Trainer();
+        trainee.getTrainers().add(trainer);
+        
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
+        Set<Trainer> result = traineeRepository.findTrainersByTraineeId(1L);
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertTrue(result.contains(trainer));
+    }
+
+    @Test
+    void findTrainersByTraineeId_ShouldReturnEmptySet_WhenTraineeNotExists() {
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
+        Set<Trainer> result = traineeRepository.findTrainersByTraineeId(1L);
+        assertTrue(result.isEmpty());
     }
 }

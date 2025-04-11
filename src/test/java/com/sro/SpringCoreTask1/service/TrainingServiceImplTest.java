@@ -160,10 +160,10 @@ class TrainingServiceImplTest {
     void save_ShouldThrowResourceNotFoundException_WhenTraineeNotFound() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, 
             () -> trainingService.save(createTrainingRequest));
         
-        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
+        assertTrue(exception.getMessage().contains("Trainee not found"));
     }
 
     @Test
@@ -171,10 +171,10 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, 
             () -> trainingService.save(createTrainingRequest));
         
-        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
+        assertTrue(exception.getMessage().contains("Trainer not found"));
     }
 
     @Test

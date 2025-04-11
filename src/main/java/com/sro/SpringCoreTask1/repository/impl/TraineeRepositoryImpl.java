@@ -101,6 +101,8 @@ public class TraineeRepositoryImpl implements TraineeRepository {
 
             entityManager.remove(entityManager.contains(trainee) ? trainee : entityManager.merge(trainee));
             return true;
+        } catch(NoResultException e) {
+            return false;
         } catch (PersistenceException e) {
             throw e;
         }

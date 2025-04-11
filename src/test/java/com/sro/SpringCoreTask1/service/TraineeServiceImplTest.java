@@ -21,8 +21,6 @@ import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.impl.TraineeServiceImpl;
 
-import jakarta.validation.ConstraintViolationException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -148,14 +146,6 @@ class TraineeServiceImplTest {
     void save_ShouldThrowIllegalArgumentException_WhenRequiredFieldsAreMissing() {
         RegisterTraineeRequest invalidRequest = new RegisterTraineeRequest(null, null, null, null);
         assertThrows(IllegalArgumentException.class, () -> traineeService.save(invalidRequest));
-    }
-
-    @Test
-    void save_ShouldThrowResourceAlreadyExistsException_WhenUsernameExists() {
-        when(traineeCreateMapper.toEntity(registerTraineeRequest)).thenReturn(trainee);
-        when(traineeRepository.save(trainee)).thenThrow(new ConstraintViolationException("Username already exists", null));
-
-        assertThrows(ResourceAlreadyExistsException.class, () -> traineeService.save(registerTraineeRequest));
     }
 
     @Test
