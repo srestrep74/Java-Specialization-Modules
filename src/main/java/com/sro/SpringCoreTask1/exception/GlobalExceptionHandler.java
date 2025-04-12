@@ -3,84 +3,70 @@ package com.sro.SpringCoreTask1.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.sro.SpringCoreTask1.util.response.ApiStandardError;
+import com.sro.SpringCoreTask1.util.response.ErrorResponseBuilder;
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleResourceNotFoundException(
+    public ResponseEntity<ApiStandardError> handleResourceNotFoundException(
             ResourceNotFoundException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, "Resource Not Found", ex.getMessage(), request.getRequestURI());
+        return ErrorResponseBuilder.notFound(ex.getMessage(), request);
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<ApiError> handleResourceAlreadyExistsException(
+    public ResponseEntity<ApiStandardError> handleResourceAlreadyExistsException(
             ResourceAlreadyExistsException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.CONFLICT, "Resource Already Exists", ex.getMessage(), request.getRequestURI());
+        return ErrorResponseBuilder.conflict(ex.getMessage(), request);
     }
 
     @ExceptionHandler(DatabaseOperationException.class)
-    public ResponseEntity<ApiError> handleDatabaseOperationException(
+    public ResponseEntity<ApiStandardError> handleDatabaseOperationException(
             DatabaseOperationException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Database Operation Error", ex.getMessage(), request.getRequestURI());
+        return ErrorResponseBuilder.internalServerError(ex.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleMethodArgumentNotValidException(
+    public ResponseEntity<ApiStandardError> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
         String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .reduce("", (a, b) -> a + (a.isEmpty() ? "" : ", ") + b);
 
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation Error", errorMessage, request.getRequestURI());
+        return ErrorResponseBuilder.validationError(errorMessage, request);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiError> handleConstraintViolationException(
+    public ResponseEntity<ApiStandardError> handleConstraintViolationException(
             ConstraintViolationException ex, HttpServletRequest request) {
         String errorMessage = ex.getConstraintViolations().stream()
                 .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
                 .reduce("", (a, b) -> a + (a.isEmpty() ? "" : ", ") + b);
 
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation Error", errorMessage, request.getRequestURI());
+        return ErrorResponseBuilder.validationError(errorMessage, request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgumentException(
+    public ResponseEntity<ApiStandardError> handleIllegalArgumentException(
             IllegalArgumentException ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid Request", ex.getMessage(), request.getRequestURI());
+        return ErrorResponseBuilder.validationError(ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleGenericException(
+    public ResponseEntity<ApiStandardError> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", ex.getMessage(), request.getRequestURI());
-    }
-
-    private ResponseEntity<ApiError> buildErrorResponse(
-            HttpStatus status, String error, String message, String path) {
-        ApiError apiError = new ApiError(
-                status.value(),
-                error,
-                message,
-                path
-        );
-        return new ResponseEntity<>(apiError, status);
+        return ErrorResponseBuilder.internalServerError(ex.getMessage(), request);
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiError> handleUnauthorizedException(
+    public ResponseEntity<ApiStandardError> handleUnauthorizedException(
             UnauthorizedException ex, HttpServletRequest request) {
-        return buildErrorResponse(
-            HttpStatus.UNAUTHORIZED, 
-            "Unauthorized", 
-            ex.getMessage(), 
-            request.getRequestURI()
-        );
+        return ErrorResponseBuilder.unauthorized(ex.getMessage(), request);
     }
 }

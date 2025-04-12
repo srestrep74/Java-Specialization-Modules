@@ -17,9 +17,9 @@ import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
-import com.sro.SpringCoreTask1.exception.ApiError;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainingService;
+import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import com.sro.SpringCoreTask1.util.response.ResponseBuilder;
 
@@ -65,7 +65,7 @@ public class TraineeController {
             description = "Invalid input data",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -73,7 +73,7 @@ public class TraineeController {
             description = "Trainee username already exists",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -81,7 +81,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
@@ -112,7 +112,7 @@ public class TraineeController {
             description = "Trainee not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -120,7 +120,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
@@ -153,7 +153,7 @@ public class TraineeController {
             description = "Invalid input data",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -161,7 +161,7 @@ public class TraineeController {
             description = "Trainee not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -169,7 +169,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
@@ -199,7 +199,7 @@ public class TraineeController {
             description = "Trainee not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -207,7 +207,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
@@ -240,7 +240,7 @@ public class TraineeController {
             description = "Trainee not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -249,7 +249,7 @@ public class TraineeController {
                 + "invalid date format, invalid sort field, or invalid sort direction",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -257,7 +257,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
@@ -317,7 +317,7 @@ public class TraineeController {
             description = "Trainee not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -325,7 +325,7 @@ public class TraineeController {
             description = "Invalid request payload",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -333,7 +333,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
@@ -367,7 +367,7 @@ public class TraineeController {
             description = "Trainee or Trainer not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -375,7 +375,7 @@ public class TraineeController {
             description = "Invalid request payload or trainer is not active",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -383,7 +383,7 @@ public class TraineeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })

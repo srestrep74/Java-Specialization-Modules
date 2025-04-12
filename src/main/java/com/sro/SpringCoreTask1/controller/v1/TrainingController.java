@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.training.CreateTrainingRequest;
-import com.sro.SpringCoreTask1.exception.ApiError;
 import com.sro.SpringCoreTask1.service.TrainingService;
+import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,7 +47,7 @@ public class TrainingController {
             description = "Invalid input data",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -55,7 +55,7 @@ public class TrainingController {
             description = "Trainee, trainer, or training type not found",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -63,7 +63,7 @@ public class TrainingController {
             description = "Conflict with existing training session",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -71,7 +71,7 @@ public class TrainingController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })

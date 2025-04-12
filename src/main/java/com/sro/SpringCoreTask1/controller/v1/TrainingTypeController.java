@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
-import com.sro.SpringCoreTask1.exception.ApiError;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
+import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -49,7 +49,7 @@ public class TrainingTypeController {
             description = "Internal server error",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiError.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
