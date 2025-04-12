@@ -112,6 +112,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public void setCurrentUser(User user) {
+        this.authenticatedUser = user;
+    }
+
+    @Override
     public boolean isAuthenticated() {
         return this.authenticatedUser != null;
     }

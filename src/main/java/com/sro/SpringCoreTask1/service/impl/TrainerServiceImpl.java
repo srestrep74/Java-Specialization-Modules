@@ -15,6 +15,7 @@ import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.mappers.trainer.TrainerUpdateMapper;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
+import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.util.ProfileUtil;
 
@@ -32,14 +33,16 @@ public class TrainerServiceImpl implements TrainerService {
 
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
+    private final AuthService authService;
 
     private final TrainerCreateMapper trainerCreateMapper;
     private final TrainerUpdateMapper trainerUpdateMapper;
     private final TrainerResponseMapper trainerResponseMapper;
 
-    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper, TrainerResponseMapper trainerResponseMapper) {
+    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, AuthService authService,  TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper, TrainerResponseMapper trainerResponseMapper) {
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
+        this.authService = authService;
         this.trainerCreateMapper = trainerCreateMapper;
         this.trainerUpdateMapper = trainerUpdateMapper;
         this.trainerResponseMapper = trainerResponseMapper;
@@ -198,6 +201,8 @@ public class TrainerServiceImpl implements TrainerService {
 
             trainer.setActive(active);
             trainerRepository.save(trainer);
+
+            authService.setCurrentUser(trainer);
         } catch(ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {

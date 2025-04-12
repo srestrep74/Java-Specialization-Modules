@@ -122,7 +122,6 @@ public class AuthController {
             content = @Content(schema = @Schema(implementation = ApiStandardError.class))
         )
     })
-    @Authenticated
     @PostMapping("/logout")
     public ResponseEntity<Void> logout() {
         authService.logout();

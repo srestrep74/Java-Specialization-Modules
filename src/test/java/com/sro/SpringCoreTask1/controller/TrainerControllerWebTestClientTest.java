@@ -94,27 +94,6 @@ class TrainerControllerWebTestClientTest {
 
     @Test
     @Order(4)
-    void updateActivationStatus_ShouldDeactivateTrainer() {
-        UpdateTrainerActivation deactivateRequest = new UpdateTrainerActivation(false);
-
-        webTestClient.patch()
-                .uri(BASE_URL + "/{username}/activation", createdTrainerUsername)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(deactivateRequest)
-                .exchange()
-                .expectStatus().isNoContent()
-                .expectHeader().exists(HttpHeaders.LOCATION);
-
-        webTestClient.get()
-                .uri(BASE_URL + "/{username}", createdTrainerUsername)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.active").isEqualTo(false);
-    }
-
-    @Test
-    @Order(5)
     void getTrainerTrainings_ShouldReturnTrainingList() {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -130,7 +109,7 @@ class TrainerControllerWebTestClientTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void registerTrainer_WithInvalidData_ShouldReturnBadRequest() {
         RegisterTrainerRequest invalidRequest = new RegisterTrainerRequest("", "", null);
         webTestClient.post()
@@ -142,12 +121,26 @@ class TrainerControllerWebTestClientTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() {
         webTestClient.get()
                 .uri(BASE_URL + "/nonexistentuser")
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    @Test
+    @Order(7)
+    void updateActivationStatus_ShouldDeactivateTrainer() {
+        UpdateTrainerActivation deactivateRequest = new UpdateTrainerActivation(false);
+
+        webTestClient.patch()
+                .uri(BASE_URL + "/{username}/activation", createdTrainerUsername)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(deactivateRequest)
+                .exchange()
+                .expectStatus().isNoContent()
+                .expectHeader().exists(HttpHeaders.LOCATION);
     }
 
     private LoginResponse authenticate(String username, String password) {

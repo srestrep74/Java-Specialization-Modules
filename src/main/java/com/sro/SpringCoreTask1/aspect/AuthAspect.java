@@ -24,6 +24,10 @@ public class AuthAspect {
             throw new UnauthorizedException("Authentication required. Please log in first.");
         }
 
+        if (authService.getCurrentUser() != null && !authService.getCurrentUser().isActive()) {
+            throw new UnauthorizedException("Access denied. This resource is only available for active users.");
+        }
+
         if (authConfig.requireTrainee() && !authService.isCurrentUserTrainee()) {
             throw new UnauthorizedException("Access denied. This resource is only available for trainees.");
         }

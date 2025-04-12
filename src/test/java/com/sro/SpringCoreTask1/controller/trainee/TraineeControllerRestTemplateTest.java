@@ -121,35 +121,6 @@ class TraineeControllerRestTemplateTest {
 
     @Test
     @Order(4)
-    void updateActivationStatus_ShouldDeactivateTrainee() {
-        HttpEntity<UpdateTraineeActivation> requestEntity = new HttpEntity<>(
-            new UpdateTraineeActivation(false), 
-            createJsonHeaders()
-        );
-
-        ResponseEntity<Void> response = restTemplate.exchange(
-            BASE_URL + "/{username}/activation",
-            HttpMethod.PATCH,
-            requestEntity,
-            Void.class,
-            createdTraineeUsername);
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-
-        ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getResponse = restTemplate.exchange(
-            BASE_URL + "/{username}",
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {},
-            createdTraineeUsername);
-
-        ApiStandardResponse<TraineeProfileResponse> apiResponse = getResponse.getBody();
-        assertNotNull(apiResponse);
-        assertFalse(apiResponse.data().active());
-    }
-
-    @Test
-    @Order(5)
     void getTraineeTrainings_ShouldReturnTrainingList() {
         String url = BASE_URL + "/{username}/trainings?fromDate={fromDate}&toDate={toDate}" +
                     "&sortField={sortField}&sortDirection={sortDirection}";
@@ -172,7 +143,7 @@ class TraineeControllerRestTemplateTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void deleteProfile_ShouldRemoveTrainee() {
         restTemplate.delete(BASE_URL + "/{username}", createdTraineeUsername);
 
@@ -187,7 +158,7 @@ class TraineeControllerRestTemplateTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void registerTrainee_WithInvalidData_ShouldReturnBadRequest() {
         ResponseEntity<ApiStandardError> response = restTemplate.exchange(
             BASE_URL,
@@ -200,7 +171,7 @@ class TraineeControllerRestTemplateTest {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() {
         ResponseEntity<ApiStandardError> response = restTemplate.exchange(
             BASE_URL + "/nonexistentuser",

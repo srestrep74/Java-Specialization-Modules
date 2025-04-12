@@ -17,6 +17,7 @@ import com.sro.SpringCoreTask1.mappers.trainee.TraineeUpdateMapper;
 import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
+import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.util.ProfileUtil;
 
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 @Service
 public class TraineeServiceImpl implements TraineeService {
 
+    private final AuthService authService;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TraineeCreateMapper traineeCreateMapper;
@@ -41,12 +43,14 @@ public class TraineeServiceImpl implements TraineeService {
     private final TrainerResponseMapper trainerResponseMapper;
 
     public TraineeServiceImpl(
+            AuthService authService,
             TraineeRepository traineeRepository,
             TrainerRepository trainerRepository,
             TraineeCreateMapper traineeCreateMapper,
             TraineeUpdateMapper traineeUpdateMapper,
             TraineeResponseMapper traineeResponseMapper,
             TrainerResponseMapper trainerResponseMapper) {
+        this.authService = authService;
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.traineeCreateMapper = traineeCreateMapper;
@@ -325,6 +329,8 @@ public class TraineeServiceImpl implements TraineeService {
 
             trainee.setActive(active);
             traineeRepository.save(trainee);
+
+            authService.setCurrentUser(trainee);
         } catch(ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {

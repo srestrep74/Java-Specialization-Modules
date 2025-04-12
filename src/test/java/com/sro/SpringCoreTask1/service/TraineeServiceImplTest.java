@@ -54,6 +54,9 @@ class TraineeServiceImplTest {
     @Mock
     private TrainerResponseMapper trainerResponseMapper;
 
+    @Mock
+    private AuthService authService;
+
     @InjectMocks
     private TraineeServiceImpl traineeService;
 

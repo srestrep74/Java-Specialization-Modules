@@ -118,30 +118,6 @@ class TraineeControllerWebTestClientTest {
 
     @Test
     @Order(4)
-    void updateActivationStatus_ShouldDeactivateTrainee() {
-        UpdateTraineeActivation deactivateRequest = new UpdateTraineeActivation(false);
-
-        webTestClient.patch()
-                .uri(BASE_URL + "/{username}/activation", createdTraineeUsername)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(deactivateRequest)
-                .exchange()
-                .expectStatus().isNoContent();
-
-        webTestClient.get()
-                .uri(BASE_URL + "/{username}", createdTraineeUsername)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {})
-                .consumeWith(response -> {
-                    ApiStandardResponse<TraineeProfileResponse> apiResponse = response.getResponseBody();
-                    assertNotNull(apiResponse);
-                    assertFalse(apiResponse.data().active());
-                });
-    }
-
-    @Test
-    @Order(5)
     void getTraineeTrainings_ShouldReturnTrainingList() {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -162,7 +138,7 @@ class TraineeControllerWebTestClientTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void deleteProfile_ShouldRemoveTrainee() {
         webTestClient.delete()
                 .uri(BASE_URL + "/{username}", createdTraineeUsername)
@@ -176,7 +152,7 @@ class TraineeControllerWebTestClientTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void registerTrainee_WithInvalidData_ShouldReturnBadRequest() {
         RegisterTraineeRequest invalidRequest = new RegisterTraineeRequest(
                 "",

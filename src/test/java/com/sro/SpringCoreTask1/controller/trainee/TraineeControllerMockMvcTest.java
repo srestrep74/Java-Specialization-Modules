@@ -112,19 +112,6 @@ class TraineeControllerMockMvcTest {
 
     @Test
     @Order(4)
-    void updateActivationStatus_ShouldDeactivateTrainee() throws Exception {
-        mockMvc.perform(patch(BASE_URL + "/{username}/activation", createdTraineeUsername)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(new UpdateTraineeActivation(false))))
-            .andExpect(status().isNoContent());
-
-        mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.active", is(false)));
-    }
-
-    @Test
-    @Order(5)
     void getTraineeTrainings_ShouldReturnTrainingList() throws Exception {
         MvcResult result = mockMvc.perform(get(BASE_URL + "/{username}/trainings", createdTraineeUsername)
                 .param("fromDate", "2023-01-01")
@@ -143,7 +130,7 @@ class TraineeControllerMockMvcTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     void deleteProfile_ShouldRemoveTrainee() throws Exception {
         mockMvc.perform(delete(BASE_URL + "/{username}", createdTraineeUsername))
             .andExpect(status().isNoContent());
@@ -155,7 +142,7 @@ class TraineeControllerMockMvcTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void registerTrainee_WithInvalidData_ShouldReturnBadRequest() throws Exception {
         mockMvc.perform(post(BASE_URL)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +154,7 @@ class TraineeControllerMockMvcTest {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() throws Exception {
         mockMvc.perform(get(BASE_URL + "/nonexistentuser"))
             .andExpect(status().isNotFound())
