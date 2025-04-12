@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.ChangePasswordRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
@@ -28,6 +29,7 @@ public class AuthController {
         return ResponseEntity.ok(loginResponse);
     }
 
+    @Authenticated
     @PutMapping("/change-password")
     public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         authService.changePassword(changePasswordRequest.username(), changePasswordRequest.oldPassword(), changePasswordRequest.newPassword());
