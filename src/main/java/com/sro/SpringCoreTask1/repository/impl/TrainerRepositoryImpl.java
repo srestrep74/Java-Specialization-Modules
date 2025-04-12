@@ -103,7 +103,12 @@ public class TrainerRepositoryImpl implements TrainerRepository {
             subquery.select(subTrainer.get("id"))
                     .where(cb.equal(assignedTrainees.get("username"), traineeUsername));
 
-            cq.select(trainer).where(cb.not(trainer.get("id").in(subquery)));
+            cq.select(trainer).where(
+                cb.and(
+                    cb.not(trainer.get("id").in(subquery)),
+                    cb.equal(trainer.get("active"), true)
+                )
+            );
 
             return entityManager.createQuery(cq).getResultList();
         } catch (PersistenceException e) {
