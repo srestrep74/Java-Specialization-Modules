@@ -5,10 +5,11 @@ import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
@@ -19,22 +20,17 @@ import java.util.Set;
 @Repository
 public class TraineeRepositoryImpl implements TraineeRepository {
 
-    private final EntityManager entityManager;
-
-    public TraineeRepositoryImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public Trainee save(Trainee trainee) {
-        EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
             entityManager.persist(trainee);
-            transaction.commit();
             return trainee;
+        } catch(ConstraintViolationException e) {
+            throw e;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -52,38 +48,28 @@ public class TraineeRepositoryImpl implements TraineeRepository {
 
     @Override
     public boolean deleteById(Long id) {
-        EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
             Trainee trainee = entityManager.find(Trainee.class, id);
             if (trainee == null) {
-                rollbackTransaction(transaction);
                 return false;
             }
             entityManager.remove(trainee);
-            transaction.commit();
             return true;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
 
     @Override
     public Optional<Trainee> update(Trainee trainee) {
-        EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
             Trainee existingTrainee = entityManager.find(Trainee.class, trainee.getId());
             if (existingTrainee == null) {
-                rollbackTransaction(transaction);
                 return Optional.empty();
             }
             Trainee updatedTrainee = entityManager.merge(trainee);
-            transaction.commit();
             return Optional.of(updatedTrainee);
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -91,7 +77,7 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     @Override
     public Optional<Trainee> findByUsername(String username) {
         try {
-            return Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t WHERE t.username = :username", Trainee.class)
+            return Optional.ofNullable(entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class)
                                                    .setParameter("username", username)
                                                    .getSingleResult());
         } catch (NoResultException e) {
@@ -101,12 +87,11 @@ public class TraineeRepositoryImpl implements TraineeRepository {
 
     @Override
     public boolean deleteByUsername(String username) {
-        EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
-            Trainee trainee = findByUsername(username).orElse(null);
+            Trainee trainee = entityManager.createQuery("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username", Trainee.class)
+                                            .setParameter("username", username)
+                                            .getSingleResult();
             if (trainee == null) {
-                rollbackTransaction(transaction);
                 return false;
             }
 
@@ -114,30 +99,25 @@ public class TraineeRepositoryImpl implements TraineeRepository {
                 trainee.removeTrainer(trainer);
             }
 
-            entityManager.remove(trainee);
-            transaction.commit();
+            entityManager.remove(entityManager.contains(trainee) ? trainee : entityManager.merge(trainee));
             return true;
+        } catch(NoResultException e) {
+            return false;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
 
     @Override
     public boolean updatePassword(Long id, String newPassword) {
-        EntityTransaction transaction = entityManager.getTransaction();
         try {
-            transaction.begin();
             Trainee trainee = entityManager.find(Trainee.class, id);
             if (trainee == null) {
-                rollbackTransaction(transaction);
                 return false;
             }
             trainee.setPassword(newPassword);
-            transaction.commit();
             return true;
         } catch (PersistenceException e) {
-            rollbackTransaction(transaction);
             throw e;
         }
     }
@@ -146,11 +126,5 @@ public class TraineeRepositoryImpl implements TraineeRepository {
     public Set<Trainer> findTrainersByTraineeId(Long traineeId) {
         Trainee trainee = entityManager.find(Trainee.class, traineeId);
         return trainee != null ? trainee.getTrainers() : new HashSet<>();
-    }
-
-    private void rollbackTransaction(EntityTransaction transaction) {
-        if (transaction != null && transaction.isActive()) {
-            transaction.rollback();
-        }
     }
 }

@@ -1,18 +1,20 @@
 package com.sro.SpringCoreTask1.service.impl;
 
-import com.sro.SpringCoreTask1.dto.request.TrainingTypeRequestDTO;
-import com.sro.SpringCoreTask1.dto.response.TrainingTypeResponseDTO;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.entity.TrainingType;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.exception.ResourceNotFoundException;
 import com.sro.SpringCoreTask1.exception.ResourceAlreadyExistsException;
-import com.sro.SpringCoreTask1.mappers.TrainingTypeMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeCreateMapper;
+import com.sro.SpringCoreTask1.mappers.trainingType.TrainingTypeResponseMapper;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
 
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,23 +22,27 @@ import java.util.List;
 public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     private final TrainingTypeRepository trainingTypeRepository;
-    private final TrainingTypeMapper trainingTypeMapper;
 
-    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeMapper trainingTypeMapper) {
+    private final TrainingTypeCreateMapper trainingTypeCreateMapper;
+    private final TrainingTypeResponseMapper trainingTypeResponseMapper;
+    
+    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeCreateMapper trainingTypeCreateMapper, TrainingTypeResponseMapper trainingTypeResponseMapper) {
         this.trainingTypeRepository = trainingTypeRepository;
-        this.trainingTypeMapper = trainingTypeMapper;
+        this.trainingTypeCreateMapper = trainingTypeCreateMapper;
+        this.trainingTypeResponseMapper = trainingTypeResponseMapper;
     }
 
     @Override
-    public TrainingTypeResponseDTO save(TrainingTypeRequestDTO trainingTypeRequestDTO) {
+    @Transactional
+    public TrainingTypeResponse save(TrainingTypeRequestDTO trainingTypeRequestDTO) {
         if (trainingTypeRequestDTO == null) {
             throw new IllegalArgumentException("TrainingTypeRequestDTO cannot be null");
         }
 
         try {
-            TrainingType trainingType = trainingTypeMapper.toEntity(trainingTypeRequestDTO);
+            TrainingType trainingType = trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO);
             TrainingType savedTrainingType = trainingTypeRepository.save(trainingType);
-            return trainingTypeMapper.toDTO(savedTrainingType);
+            return trainingTypeResponseMapper.mapToResponse(savedTrainingType);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Training Type with name " + trainingTypeRequestDTO.trainingTypeName() + " already exists");
         } catch (Exception e) {
@@ -45,28 +51,27 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
-    public TrainingTypeResponseDTO findById(Long id) {
+    @Transactional(readOnly = true)
+    public TrainingTypeResponse findById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training Type id cannot be null");
         }
 
         try {
             return trainingTypeRepository.findById(id)
-                    .map(trainingTypeMapper::toDTO)
+                    .map(trainingTypeResponseMapper::mapToResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + id));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Training Type by id", e);
         }
     }
 
     @Override
-    public List<TrainingTypeResponseDTO> findAll() {
+    @Transactional(readOnly = true)
+    public List<TrainingTypeResponse> findAll() {
         try {
             return trainingTypeRepository.findAll().stream()
-                    .map(trainingTypeMapper::toDTO)
+                    .map(trainingTypeResponseMapper::mapToResponse)
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding all Training Types", e);
@@ -74,25 +79,24 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     }
 
     @Override
-    public TrainingTypeResponseDTO update(TrainingTypeRequestDTO trainingTypeRequestDTO) {
+    @Transactional
+    public TrainingTypeResponse update(TrainingTypeRequestDTO trainingTypeRequestDTO) {
         if (trainingTypeRequestDTO == null) {
             throw new IllegalArgumentException("TrainingTypeRequestDTO cannot be null");
         }
 
         try {
-            TrainingType trainingType = trainingTypeMapper.toEntity(trainingTypeRequestDTO);
+            TrainingType trainingType = trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO);
             return trainingTypeRepository.update(trainingType)
-                    .map(trainingTypeMapper::toDTO)
+                    .map(trainingTypeResponseMapper::mapToResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Training Type not found with id: " + trainingType.getId()));
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training Type", e);
         }
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training Type id cannot be null");
@@ -102,10 +106,7 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             if (!trainingTypeRepository.deleteById(id)) {
                 throw new ResourceNotFoundException("Training Type not found with id: " + id);
             }
-        } catch (ResourceNotFoundException e) {
-            throw e;
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Training Type by id", e);
         }
     }

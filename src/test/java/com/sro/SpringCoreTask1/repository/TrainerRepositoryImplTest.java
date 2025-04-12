@@ -69,23 +69,15 @@ class TrainerRepositoryImplTest {
 
     @Test
     void save_ShouldPersistTrainer_WhenValid() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         Trainer result = trainerRepository.save(trainer);
         verify(entityManager).persist(trainer);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertEquals(trainer, result);
     }
 
     @Test
     void save_ShouldRollbackTransaction_WhenPersistenceExceptionOccurs() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
-        when(transaction.isActive()).thenReturn(true);
         doThrow(new PersistenceException("DB error")).when(entityManager).persist(any(Trainer.class));
         assertThrows(PersistenceException.class, () -> trainerRepository.save(trainer));
-        verify(transaction).begin();
-        verify(transaction).rollback();
-        verify(transaction, never()).commit();
     }
 
     @Test
@@ -123,18 +115,14 @@ class TrainerRepositoryImplTest {
 
     @Test
     void deleteById_ShouldRemoveTrainer_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
         boolean result = trainerRepository.deleteById(1L);
         verify(entityManager).remove(trainer);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertTrue(result);
     }
 
     @Test
     void deleteById_ShouldReturnFalse_WhenNotExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(null);
         boolean result = trainerRepository.deleteById(1L);
         assertFalse(result);
@@ -142,19 +130,13 @@ class TrainerRepositoryImplTest {
 
     @Test
     void deleteById_ShouldRollbackAndRethrow_WhenExceptionOccurs() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
-        when(transaction.isActive()).thenReturn(true);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
         doThrow(new PersistenceException("Delete error")).when(entityManager).remove(any(Trainer.class));
         assertThrows(PersistenceException.class, () -> trainerRepository.deleteById(1L));
-        verify(transaction).begin();
-        verify(transaction).rollback();
-        verify(transaction, never()).commit();
     }
 
     @Test
     void update_ShouldMergeAndReturnUpdatedTrainer_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(trainer);
         when(entityManager.merge(trainer)).thenReturn(trainer);
         Optional<Trainer> result = trainerRepository.update(trainer);
@@ -164,7 +146,6 @@ class TrainerRepositoryImplTest {
 
     @Test
     void update_ShouldReturnEmpty_WhenTrainerDoesNotExist() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(Trainer.class, 1L)).thenReturn(null);
         Optional<Trainer> result = trainerRepository.update(trainer);
         assertFalse(result.isPresent());

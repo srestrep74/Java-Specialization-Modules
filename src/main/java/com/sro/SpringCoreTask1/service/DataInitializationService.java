@@ -13,19 +13,13 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class DataInitializationService {
 
-    private final TraineeService traineeService;
-    private final TrainerService trainerService;
-    private final TrainingService trainingService;
-    private final TrainingTypeService trainingTypeService;
+    private final DataSeedService dataSeedService;
 
     @Value("${storage.init.file}")
     Resource initDataFile;
 
-    public DataInitializationService(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService, TrainingTypeService trainingTypeService) {
-        this.traineeService = traineeService;
-        this.trainerService = trainerService;
-        this.trainingService = trainingService;
-        this.trainingTypeService = trainingTypeService;
+    public DataInitializationService(DataSeedService dataSeedService) {
+        this.dataSeedService = dataSeedService;
     }
 
     @PostConstruct
@@ -33,10 +27,10 @@ public class DataInitializationService {
         try {
             InitialData initialData = JsonFileReader.readJsonFile(initDataFile, InitialData.class);
 
-            initialData.getTrainingTypes().forEach(this.trainingTypeService::save);
-            initialData.getTrainers().forEach(this.trainerService::save);
-            initialData.getTrainees().forEach(this.traineeService::save);
-            initialData.getTrainings().forEach(this.trainingService::save);
+            initialData.getTrainingTypes().forEach(this.dataSeedService::seedTrainingType);
+            initialData.getTrainers().forEach(this.dataSeedService::seedTrainer);
+            initialData.getTrainees().forEach(this.dataSeedService::seedTrainee);
+            initialData.getTrainings().forEach(this.dataSeedService::seedTraining);
         } catch (Exception e) {
             throw new StorageInitializationException("Failed to initialize storage with data: ", e);
         }

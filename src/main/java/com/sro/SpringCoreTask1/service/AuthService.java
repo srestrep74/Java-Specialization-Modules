@@ -1,13 +1,15 @@
 package com.sro.SpringCoreTask1.service;
 
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
+import com.sro.SpringCoreTask1.entity.User;
+
 public interface AuthService {
-    boolean authenticateTrainee(String username, String password);
-    boolean authenticateTrainer(String username, String password);
-    Long getCurrentTraineeId();
-    Long getCurrentTrainerId();
-    boolean isTraineeAuthenticated();
-    boolean isTrainerAuthenticated();
+    LoginResponse authenticate(String username, String password);
+    boolean isAuthenticated();
+    boolean isCurrentUserTrainee();
+    boolean isCurrentUserTrainer();
+    User getCurrentUser();
+    void changePassword(String username, String oldPassword, String newPassword);
     void logout();
-    void changeTraineePassword(String username, String newPassword);
-    void changeTrainerPassword(String username, String newPassword);
+    void setCurrentUser(User user);
 }

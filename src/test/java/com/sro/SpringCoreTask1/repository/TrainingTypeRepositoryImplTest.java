@@ -45,11 +45,8 @@ class TrainingTypeRepositoryImplTest {
 
     @Test
     void save_ShouldPersistTrainingType_WhenValid() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         TrainingType result = trainingTypeRepository.save(trainingType);
         verify(entityManager).persist(trainingType);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertEquals(trainingType, result);
     }
 
@@ -80,18 +77,14 @@ class TrainingTypeRepositoryImplTest {
 
     @Test
     void deleteById_ShouldRemoveTrainingType_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(TrainingType.class, 1L)).thenReturn(trainingType);
         boolean result = trainingTypeRepository.deleteById(1L);
         verify(entityManager).remove(trainingType);
-        verify(transaction).begin();
-        verify(transaction).commit();
         assertTrue(result);
     }
 
     @Test
     void deleteById_ShouldReturnFalse_WhenNotExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(TrainingType.class, 1L)).thenReturn(null);
         boolean result = trainingTypeRepository.deleteById(1L);
         assertFalse(result);
@@ -99,7 +92,6 @@ class TrainingTypeRepositoryImplTest {
 
     @Test
     void update_ShouldMergeAndReturnUpdatedTrainingType_WhenExists() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(TrainingType.class, 1L)).thenReturn(trainingType);
         when(entityManager.merge(trainingType)).thenReturn(trainingType);
         Optional<TrainingType> result = trainingTypeRepository.update(trainingType);
@@ -109,7 +101,6 @@ class TrainingTypeRepositoryImplTest {
 
     @Test
     void update_ShouldReturnEmpty_WhenTrainingTypeDoesNotExist() {
-        when(entityManager.getTransaction()).thenReturn(transaction);
         when(entityManager.find(TrainingType.class, 1L)).thenReturn(null);
         Optional<TrainingType> result = trainingTypeRepository.update(trainingType);
         assertFalse(result.isPresent());
