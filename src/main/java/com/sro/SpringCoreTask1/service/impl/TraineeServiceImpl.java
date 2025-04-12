@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -270,13 +271,29 @@ public class TraineeServiceImpl implements TraineeService {
             Trainee trainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
 
+            List<String> requestedUsernames = updateTrainersRequest.trainers();
+
+            Map<String, Optional<Trainer>> trainerLookup = requestedUsernames.stream()
+                .collect(Collectors.toMap(
+                    trainerUsername -> trainerUsername,
+                    trainerUsername -> trainerRepository.findByUsername(trainerUsername)
+                ));
+
+            List<String> notFound = trainerLookup.entrySet().stream()
+                .filter(entry -> entry.getValue().isEmpty())
+                .map(Map.Entry::getKey)
+                .toList();
+
+            if (!notFound.isEmpty()) {
+                throw new ResourceNotFoundException("Trainers not found: " + String.join(", ", notFound));
+            }
+            
             Set<Trainer> currentTrainers = trainee.getTrainers();
             currentTrainers.stream()
-                .filter(trainer -> !updateTrainersRequest.trainers().contains(trainer.getUsername()))
+                .filter(trainer -> !requestedUsernames.contains(trainer.getUsername()))
                 .forEach(trainer -> removeTrainerFromTrainee(trainee.getId(), trainer.getId()));
-
-            Set<Trainer> newTrainers = updateTrainersRequest.trainers().stream().map(trainerRepository::findByUsername)
-                .filter(Optional::isPresent)
+            
+            Set<Trainer> newTrainers = trainerLookup.values().stream()
                 .map(Optional::get)
                 .collect(Collectors.toSet());
 
@@ -287,6 +304,7 @@ public class TraineeServiceImpl implements TraineeService {
             return trainee.getTrainers().stream()
                 .map(trainerResponseMapper::toSummaryResponseDTO)
                 .toList();
+                
         } catch(ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
