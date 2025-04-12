@@ -2,10 +2,13 @@ package com.sro.SpringCoreTask1.dtos.v1.request.trainee;
 
 import java.time.LocalDate;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public record UpdateTraineeProfileRequest(
-    String firstName,
-    String lastName,
+    @NotBlank String firstName,
+    @NotBlank String lastName,
     LocalDate dateOfBirth,
     String address,
-    boolean active
+    @NotNull boolean active
 ) {}

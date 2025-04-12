@@ -6,6 +6,7 @@ import com.sro.SpringCoreTask1.dtos.v1.request.trainee.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.*;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerResponse;
 import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 
@@ -201,6 +202,21 @@ class TraineeControllerWebTestClientTest {
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody(new ParameterizedTypeReference<ApiStandardError>() {});
+    }
+
+    @Test
+    @Order(9)
+    void getUnassignedTrainers_ShouldReturnTrainerList() {
+        webTestClient.get()
+                .uri(BASE_URL + "/{username}/unassigned-trainers", createdTraineeUsername)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<List<UnassignedTrainerResponse>>>() {})
+                .consumeWith(response -> {
+                    ApiStandardResponse<List<UnassignedTrainerResponse>> apiResponse = response.getResponseBody();
+                    assertNotNull(apiResponse);
+                    assertNotNull(apiResponse.data());
+                });
     }
 
     private LoginResponse authenticate(String username, String password) {

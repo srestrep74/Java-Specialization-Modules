@@ -17,7 +17,9 @@ import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TraineeProfileResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerResponse;
 import com.sro.SpringCoreTask1.service.TraineeService;
+import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.service.TrainingService;
 import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
@@ -38,10 +40,12 @@ import jakarta.validation.Valid;
 public class TraineeController {
 
     private final TraineeService traineeService;
+    private final TrainerService trainerService;
     private final TrainingService trainingService;
 
-    public TraineeController(TraineeService traineeService, TrainingService trainingService) {
+    public TraineeController(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService) {
         this.traineeService = traineeService;
+        this.trainerService = trainerService;
         this.trainingService = trainingService;
     }
 
@@ -399,5 +403,57 @@ public class TraineeController {
             @Valid @RequestBody UpdateTraineeTrainerListRequest updateTrainersRequest) {
         List<TrainerSummaryResponse> updatedTrainers = traineeService.updateTraineeTrainers(username, updateTrainersRequest);
         return ResponseBuilder.list(updatedTrainers);
+    }
+
+    @Operation(
+        summary = "Get unassigned trainers",
+        description = "Retrieves a list of active trainers not currently assigned "
+            + "to the specified trainee. Returns HAL+JSON response with _links containing:"
+            + "\n- self: Link to this resource"
+            + "\n- profile: Link to each trainer's profile"
+            + "\n- trainings: Link to each trainer's training sessions",
+        operationId = "getUnassignedTrainers"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Unassigned trainers retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = UnassignedTrainerResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid parameter",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Trainee not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        )
+    })
+    @Authenticated(requireTrainee = true)
+    @GetMapping("/{username}/unassigned-trainers")
+    public ResponseEntity<ApiStandardResponse<List<UnassignedTrainerResponse>>> getUnassignedTrainers(
+            @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
+            @PathVariable String username) {
+        List<UnassignedTrainerResponse> trainers = trainerService.findUnassignedTrainersByTraineeUsername(username);
+        return ResponseBuilder.list(trainers);
     }
 }

@@ -115,17 +115,6 @@ class TrainerControllerWebTestClientTest {
 
     @Test
     @Order(5)
-    void getUnassignedTrainers_ShouldReturnTrainerList() {
-        webTestClient.get()
-                .uri(BASE_URL + "/unassigned?traineeUsername=testTrainee")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBodyList(UnassignedTrainerResponse.class)
-                .value(trainers -> assertNotNull(trainers));
-    }
-
-    @Test
-    @Order(6)
     void getTrainerTrainings_ShouldReturnTrainingList() {
         webTestClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -141,7 +130,7 @@ class TrainerControllerWebTestClientTest {
     }
 
     @Test
-    @Order(7)
+    @Order(6)
     void registerTrainer_WithInvalidData_ShouldReturnBadRequest() {
         RegisterTrainerRequest invalidRequest = new RegisterTrainerRequest("", "", null);
         webTestClient.post()
@@ -153,7 +142,7 @@ class TrainerControllerWebTestClientTest {
     }
 
     @Test
-    @Order(8)
+    @Order(7)
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() {
         webTestClient.get()
                 .uri(BASE_URL + "/nonexistentuser")
