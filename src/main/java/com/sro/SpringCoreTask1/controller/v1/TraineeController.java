@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +20,8 @@ import com.sro.SpringCoreTask1.dtos.v1.response.trainee.TrainerSummaryResponse;
 import com.sro.SpringCoreTask1.exception.ApiError;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainingService;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
+import com.sro.SpringCoreTask1.util.response.ResponseBuilder;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,7 +57,7 @@ public class TraineeController {
             description = "Trainee registered successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = RegisterTraineeResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = RegisterTraineeResponse.class)
             )
         ),
         @ApiResponse(
@@ -85,10 +86,10 @@ public class TraineeController {
         )
     })
     @PostMapping
-    public ResponseEntity<RegisterTraineeResponse> registerTrainee(
+    public ResponseEntity<ApiStandardResponse<RegisterTraineeResponse>> registerTrainee(
             @Valid @RequestBody RegisterTraineeRequest traineeRequest) {
         RegisterTraineeResponse traineeResponse = traineeService.save(traineeRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(traineeResponse);
+        return ResponseBuilder.created(traineeResponse);
     }
 
     @Operation(
@@ -103,7 +104,7 @@ public class TraineeController {
             description = "Trainee profile retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TraineeProfileResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class, oneOf  = TraineeProfileResponse.class)
             )
         ),
         @ApiResponse(
@@ -125,11 +126,11 @@ public class TraineeController {
     })
     @Authenticated(requireTrainee = true)
     @GetMapping("/{username}")
-    public ResponseEntity<TraineeProfileResponse> getProfile(
+    public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username) {
         TraineeProfileResponse profile = traineeService.findByUsername(username);
-        return ResponseEntity.ok(profile);
+        return ResponseBuilder.success(profile);
     }
 
     @Operation(
@@ -144,7 +145,7 @@ public class TraineeController {
             description = "Profile updated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TraineeProfileResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeProfileResponse.class)
             )
         ),
         @ApiResponse(
@@ -173,12 +174,12 @@ public class TraineeController {
         )
     })
     @PutMapping("/{username}")
-    public ResponseEntity<TraineeProfileResponse> updateProfile(
+    public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
             @Valid @RequestBody UpdateTraineeProfileRequest updatedRequest) {
         TraineeProfileResponse profile = traineeService.update(username, updatedRequest);
-        return ResponseEntity.ok(profile);
+        return ResponseBuilder.success(profile);
     }
 
     @Operation(
@@ -211,11 +212,11 @@ public class TraineeController {
         )
     })
     @DeleteMapping("/{username}")
-    public ResponseEntity<Void> deleteProfile(
+    public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true) 
             @PathVariable String username) {
         traineeService.deleteByUsername(username);
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.noContent();
     }
 
     @Operation(
@@ -231,7 +232,7 @@ public class TraineeController {
             description = "Training sessions retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TraineeTrainingResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeTrainingResponse.class)
             )
         ),
         @ApiResponse(
@@ -261,7 +262,7 @@ public class TraineeController {
         )
     })
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<List<TraineeTrainingResponse>> getTraineeTrainings(
+    public ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> getTraineeTrainings(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
             @Parameter(description = "Start date for filtering (yyyy-MM-dd)", example = "2023-01-01") 
@@ -296,7 +297,7 @@ public class TraineeController {
             username, fromDate, toDate, trainerName, trainingType);
         
         List<TraineeTrainingResponse> trainings = trainingService.findTrainingsByTraineeWithFilters(filterDTO, sortField, sortDirection);
-        return ResponseEntity.ok(trainings);
+        return ResponseBuilder.list(trainings);
     }
 
     @Operation(
@@ -337,13 +338,13 @@ public class TraineeController {
         )
     })
     @PatchMapping("/{username}/activation")
-    public ResponseEntity<Void> updateActivationStatus(
+    public ResponseEntity<ApiStandardResponse<Void>> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
             @Parameter(description = "Activation status payload") 
             @RequestBody UpdateTraineeActivation updateTraineeActivation) {
         traineeService.updateActivationStatus(username, updateTraineeActivation.active());
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.noContent();
     }
 
     @Operation(
@@ -358,7 +359,7 @@ public class TraineeController {
             description = "Trainers list updated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerSummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TrainerSummaryResponse.class)
             )
         ),
         @ApiResponse(
@@ -387,11 +388,11 @@ public class TraineeController {
         )
     })
     @PutMapping("/{username}/trainers")
-    public ResponseEntity<List<TrainerSummaryResponse>> updateTrainersList(
+    public ResponseEntity<ApiStandardResponse<List<TrainerSummaryResponse>>> updateTrainersList(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
             @PathVariable String username,
             @Valid @RequestBody UpdateTraineeTrainerListRequest updateTrainersRequest) {
         List<TrainerSummaryResponse> updatedTrainers = traineeService.updateTraineeTrainers(username, updateTrainersRequest);
-        return ResponseEntity.ok(updatedTrainers);
+        return ResponseBuilder.list(updatedTrainers);
     }
 }
