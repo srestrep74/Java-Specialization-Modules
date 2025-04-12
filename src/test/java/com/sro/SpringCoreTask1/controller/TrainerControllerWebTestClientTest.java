@@ -71,7 +71,6 @@ class TrainerControllerWebTestClientTest {
     @Order(3)
     void updateProfile_ShouldUpdateTrainerDetails() {
         UpdateTrainerProfileRequest updateRequest = new UpdateTrainerProfileRequest(
-                createdTrainerUsername,
                 "Sergio Updated",
                 "Rodriguez Updated",
                 1L,

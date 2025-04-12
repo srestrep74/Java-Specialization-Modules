@@ -88,7 +88,6 @@ class TraineeControllerWebTestClientTest {
     @Order(3)
     void updateProfile_ShouldUpdateTraineeDetails() {
         UpdateTraineeProfileRequest updateRequest = new UpdateTraineeProfileRequest(
-                createdTraineeUsername,
                 "Sebas Updated",
                 "Rpo Updated",
                 LocalDate.of(1991, 6, 16),

@@ -1,7 +1,6 @@
 package com.sro.SpringCoreTask1.dtos.v1.request.trainer;
 
 public record UpdateTrainerProfileRequest(
-    String username,
     String firstName,
     String lastName,
     Long specialization,

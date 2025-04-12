@@ -121,9 +121,13 @@ public class TraineeServiceImpl implements TraineeService {
             throw new IllegalArgumentException("Trainee cannot be null");
         }
 
+        if (username == null || username.isEmpty()) {
+            throw new IllegalArgumentException("Trainee username cannot be null or empty");
+        }
+
         try {
             Trainee existingTrainee = traineeRepository.findByUsername(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + traineeRequestDTO.username()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
             Trainee trainee = traineeUpdateMapper.toEntity(traineeRequestDTO, existingTrainee);
             trainee.setId(existingTrainee.getId());
             trainee.setPassword(existingTrainee.getPassword());

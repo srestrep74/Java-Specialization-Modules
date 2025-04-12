@@ -89,7 +89,7 @@ class TraineeControllerMockMvcTest {
     @Order(3)
     void updateProfile_ShouldUpdateTraineeDetails() throws Exception {
         UpdateTraineeProfileRequest updateRequest = new UpdateTraineeProfileRequest(
-            createdTraineeUsername, "Sebas Updated", "Rpo Updated", 
+            "Sebas Updated", "Rpo Updated", 
             LocalDate.of(1991, 6, 16), "456 Updated St, Boston", true);
 
         MvcResult result = mockMvc.perform(put(BASE_URL + "/{username}", createdTraineeUsername)

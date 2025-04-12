@@ -111,7 +111,6 @@ class TraineeServiceImplTest {
         );
 
         updateTraineeProfileRequest = new UpdateTraineeProfileRequest(
-            "johndoe",
             "John", 
             "Updated", 
             LocalDate.of(2000, 1, 1),

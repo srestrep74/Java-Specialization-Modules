@@ -94,7 +94,7 @@ class TrainerServiceImplTest {
         );
     
         updateTrainerProfileRequest = new UpdateTrainerProfileRequest(
-            "John", "Doe", "johndoe", 1L, true
+            "John", "Doe", 1L, true
         );
     
         unassignedTrainerResponse = new UnassignedTrainerResponse(
