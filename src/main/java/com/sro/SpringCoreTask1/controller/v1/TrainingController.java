@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.CreateTrainingRequest;
 import com.sro.SpringCoreTask1.service.TrainingService;
 import com.sro.SpringCoreTask1.util.response.ApiStandardError;
@@ -75,6 +76,7 @@ public class TrainingController {
             )
         )
     })
+    @Authenticated
     @PostMapping
     public ResponseEntity<Void> createTraining(
             @Parameter(description = "Details of the training session to create") 

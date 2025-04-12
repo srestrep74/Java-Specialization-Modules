@@ -173,6 +173,7 @@ public class TraineeController {
             )
         )
     })
+    @Authenticated(requireTrainee = true)
     @PutMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -211,6 +212,7 @@ public class TraineeController {
             )
         )
     })
+    @Authenticated(requireTrainee = true)
     @DeleteMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true) 
@@ -261,6 +263,7 @@ public class TraineeController {
             )
         )
     })
+    @Authenticated(requireTrainee = true)
     @GetMapping("/{username}/trainings")
     public ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> getTraineeTrainings(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -337,6 +340,7 @@ public class TraineeController {
             )
         )
     })
+    @Authenticated(requireTrainee = true)
     @PatchMapping("/{username}/activation")
     public ResponseEntity<ApiStandardResponse<Void>> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -387,6 +391,7 @@ public class TraineeController {
             )
         )
     })
+    @Authenticated(requireTrainee = true)
     @PutMapping("/{username}/trainers")
     public ResponseEntity<ApiStandardResponse<List<TrainerSummaryResponse>>> updateTrainersList(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 

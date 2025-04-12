@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
 import com.sro.SpringCoreTask1.util.response.ApiStandardError;
@@ -53,6 +54,7 @@ public class TrainingTypeController {
             )
         )
     })
+    @Authenticated
     @GetMapping
     public ResponseEntity<List<TrainingTypeResponse>> findAll() {
         return ResponseEntity.ok(trainingTypeService.findAll());

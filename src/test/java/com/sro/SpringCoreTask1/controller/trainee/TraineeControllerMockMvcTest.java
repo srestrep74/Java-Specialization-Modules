@@ -1,9 +1,12 @@
 package com.sro.SpringCoreTask1.controller.trainee;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.*;
+import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.*;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -43,17 +46,20 @@ class TraineeControllerMockMvcTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isCreated())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status", is(201)))
             .andReturn();
 
-        RegisterTraineeResponse response = objectMapper.readValue(
-            result.getResponse().getContentAsString(), RegisterTraineeResponse.class);
+        ApiStandardResponse<RegisterTraineeResponse> response = objectMapper.readValue(
+            result.getResponse().getContentAsString(), 
+            new TypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {});
         
         assertNotNull(response);
-        assertNotNull(response.username());
-        assertNotNull(response.password());
+        assertNotNull(response.data());
+        assertNotNull(response.data().username());
+        assertNotNull(response.data().password());
         
-        createdTraineeUsername = response.username();
-        createdTraineePassword = response.password();
+        createdTraineeUsername = response.data().username();
+        createdTraineePassword = response.data().password();
         authenticate(createdTraineeUsername, createdTraineePassword);
     }
 
@@ -63,11 +69,14 @@ class TraineeControllerMockMvcTest {
         MvcResult result = mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status", is(200)))
             .andReturn();
 
-        TraineeProfileResponse profile = objectMapper.readValue(
-            result.getResponse().getContentAsString(), TraineeProfileResponse.class);
+        ApiStandardResponse<TraineeProfileResponse> apiResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<ApiStandardResponse<TraineeProfileResponse>>() {});
         
+        TraineeProfileResponse profile = apiResponse.data();
         assertEquals("Sebas", profile.firstName());
         assertEquals("Rpo", profile.lastName());
         assertEquals(LocalDate.of(1990, 5, 15), profile.dateOfBirth());
@@ -87,11 +96,14 @@ class TraineeControllerMockMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status", is(200)))
             .andReturn();
 
-        TraineeProfileResponse updatedProfile = objectMapper.readValue(
-            result.getResponse().getContentAsString(), TraineeProfileResponse.class);
+        ApiStandardResponse<TraineeProfileResponse> apiResponse = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<ApiStandardResponse<TraineeProfileResponse>>() {});
         
+        TraineeProfileResponse updatedProfile = apiResponse.data();
         assertEquals("Sebas Updated", updatedProfile.firstName());
         assertEquals("Rpo Updated", updatedProfile.lastName());
         assertEquals(LocalDate.of(1991, 6, 16), updatedProfile.dateOfBirth());
@@ -108,7 +120,7 @@ class TraineeControllerMockMvcTest {
 
         mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.active", is(false)));
+            .andExpect(jsonPath("$.data.active", is(false)));
     }
 
     @Test
@@ -120,9 +132,14 @@ class TraineeControllerMockMvcTest {
                 .param("sortField", "trainingDate")
                 .param("sortDirection", "DESC"))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status", is(200)))
             .andReturn();
 
-        assertNotNull(objectMapper.readValue(result.getResponse().getContentAsString(), List.class));
+        ApiStandardResponse<List<TraineeTrainingResponse>> response = objectMapper.readValue(
+            result.getResponse().getContentAsString(),
+            new TypeReference<ApiStandardResponse<List<TraineeTrainingResponse>>>() {});
+        
+        assertNotNull(response.data());
     }
 
     @Test
@@ -132,7 +149,9 @@ class TraineeControllerMockMvcTest {
             .andExpect(status().isNoContent());
 
         mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status", is(404)));
     }
 
     @Test
@@ -142,14 +161,18 @@ class TraineeControllerMockMvcTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(
                     new RegisterTraineeRequest("", "", null, ""))))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status", is(400)));
     }
 
     @Test
     @Order(8)
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() throws Exception {
         mockMvc.perform(get(BASE_URL + "/nonexistentuser"))
-            .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.status", is(404)));
     }
 
     private void authenticate(String username, String password) throws Exception {

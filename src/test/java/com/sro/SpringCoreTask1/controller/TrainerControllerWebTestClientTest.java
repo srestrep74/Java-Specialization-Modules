@@ -1,7 +1,9 @@
 package com.sro.SpringCoreTask1.controller;
 
+import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ class TrainerControllerWebTestClientTest {
 
     private static final String BASE_URL = "/api/v1/trainers";
     private static String createdTrainerUsername;
+    private static String createdTrainerPassword;
 
     @Autowired
     private WebTestClient webTestClient;
@@ -42,6 +45,8 @@ class TrainerControllerWebTestClientTest {
                     RegisterTrainerResponse responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
                     createdTrainerUsername = responseBody.username();
+                    createdTrainerPassword = responseBody.password();
+                    authenticate(createdTrainerUsername, createdTrainerPassword);
                 });
     }
 
@@ -155,5 +160,18 @@ class TrainerControllerWebTestClientTest {
                 .uri(BASE_URL + "/nonexistentuser")
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    private LoginResponse authenticate(String username, String password) {
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        return webTestClient.post()
+                .uri("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(loginRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(LoginResponse.class)
+                .returnResult()
+                .getResponseBody();
     }
 }

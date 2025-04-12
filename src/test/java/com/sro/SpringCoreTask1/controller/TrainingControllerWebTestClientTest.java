@@ -2,8 +2,11 @@ package com.sro.SpringCoreTask1.controller;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.training.CreateTrainingRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
@@ -19,6 +22,7 @@ import java.time.LocalDate;
 class TrainingControllerWebTestClientTest {
 
     private static final String BASE_URL = "/api/v1/trainings";
+    private static RegisterTraineeResponse trainee;
     private static String traineeUsername;
     private static String trainerUsername;
 
@@ -36,7 +40,8 @@ class TrainingControllerWebTestClientTest {
 
         RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
                 "Test", "Trainee", LocalDate.of(1990, 1, 1), "Test Address");
-        traineeUsername = traineeService.save(traineeRequest).username();
+        trainee = traineeService.save(traineeRequest);
+        traineeUsername = trainee.username();
 
         RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
                 "Test", "Trainer", 1L);
@@ -53,6 +58,8 @@ class TrainingControllerWebTestClientTest {
                 LocalDate.now(),
                 60
         );
+
+        authenticate(trainee.username(), trainee.password());
 
         webTestClient.post()
                 .uri(BASE_URL)
@@ -93,5 +100,18 @@ class TrainingControllerWebTestClientTest {
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isNotFound();
+    }
+
+    private LoginResponse authenticate(String username, String password) {
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        return webTestClient.post()
+                .uri("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(loginRequest)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(LoginResponse.class)
+                .returnResult()
+                .getResponseBody();
     }
 }

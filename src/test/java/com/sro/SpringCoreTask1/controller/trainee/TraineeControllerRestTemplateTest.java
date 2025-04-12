@@ -5,13 +5,16 @@ import com.sro.SpringCoreTask1.dtos.v1.request.trainee.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.*;
+import com.sro.SpringCoreTask1.util.response.ApiStandardError;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -35,35 +38,42 @@ class TraineeControllerRestTemplateTest {
             "123 Main St, New York"
         );
 
-        ResponseEntity<RegisterTraineeResponse> response = restTemplate.postForEntity(
-            BASE_URL, 
-            request, 
-            RegisterTraineeResponse.class);
+        ResponseEntity<ApiStandardResponse<RegisterTraineeResponse>> response = restTemplate.exchange(
+            BASE_URL,
+            HttpMethod.POST,
+            new HttpEntity<>(request, createJsonHeaders()),
+            new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {});
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
 
-        RegisterTraineeResponse responseBody = response.getBody();
+        ApiStandardResponse<RegisterTraineeResponse> responseBody = response.getBody();
         assertNotNull(responseBody);
-        assertNotNull(responseBody.username());
-        assertNotNull(responseBody.password());
+        assertNotNull(responseBody.data());
+        assertNotNull(responseBody.data().username());
+        assertNotNull(responseBody.data().password());
         
-        createdTraineeUsername = responseBody.username();
-        createdTraineePassword = responseBody.password();
+        createdTraineeUsername = responseBody.data().username();
+        createdTraineePassword = responseBody.data().password();
         authenticate(createdTraineeUsername, createdTraineePassword);
     }
 
     @Test
     @Order(2)
     void getProfile_ShouldReturnTraineeProfile() {
-        ResponseEntity<TraineeProfileResponse> response = restTemplate.getForEntity(
-            BASE_URL + "/{username}", 
-            TraineeProfileResponse.class, 
+        ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> response = restTemplate.exchange(
+            BASE_URL + "/{username}",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {},
             createdTraineeUsername);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        TraineeProfileResponse profile = response.getBody();
+        ApiStandardResponse<TraineeProfileResponse> apiResponse = response.getBody();
+        assertNotNull(apiResponse);
+        
+        TraineeProfileResponse profile = apiResponse.data();
         assertNotNull(profile);
         assertEquals("Sebas", profile.firstName());
         assertEquals("Rpo", profile.lastName());
@@ -90,16 +100,19 @@ class TraineeControllerRestTemplateTest {
             createJsonHeaders()
         );
 
-        ResponseEntity<TraineeProfileResponse> response = restTemplate.exchange(
+        ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> response = restTemplate.exchange(
             BASE_URL + "/{username}",
             HttpMethod.PUT,
             requestEntity,
-            TraineeProfileResponse.class,
+            new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {},
             createdTraineeUsername);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         
-        TraineeProfileResponse updatedProfile = response.getBody();
+        ApiStandardResponse<TraineeProfileResponse> apiResponse = response.getBody();
+        assertNotNull(apiResponse);
+        
+        TraineeProfileResponse updatedProfile = apiResponse.data();
         assertNotNull(updatedProfile);
         assertEquals("Sebas Updated", updatedProfile.firstName());
         assertEquals("Rpo Updated", updatedProfile.lastName());
@@ -124,14 +137,16 @@ class TraineeControllerRestTemplateTest {
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
 
-        ResponseEntity<TraineeProfileResponse> getResponse = restTemplate.getForEntity(
+        ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getResponse = restTemplate.exchange(
             BASE_URL + "/{username}",
-            TraineeProfileResponse.class,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {},
             createdTraineeUsername);
 
-        TraineeProfileResponse profile = Optional.ofNullable(getResponse.getBody())
-            .orElseThrow(() -> new AssertionError("Response body should not be null"));
-        assertFalse(profile.active());
+        ApiStandardResponse<TraineeProfileResponse> apiResponse = getResponse.getBody();
+        assertNotNull(apiResponse);
+        assertFalse(apiResponse.data().active());
     }
 
     @Test
@@ -140,17 +155,21 @@ class TraineeControllerRestTemplateTest {
         String url = BASE_URL + "/{username}/trainings?fromDate={fromDate}&toDate={toDate}" +
                     "&sortField={sortField}&sortDirection={sortDirection}";
         
-        ResponseEntity<TraineeTrainingResponse[]> response = restTemplate.getForEntity(
+        ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> response = restTemplate.exchange(
             url,
-            TraineeTrainingResponse[].class,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<ApiStandardResponse<List<TraineeTrainingResponse>>>() {},
             createdTraineeUsername,
             "2023-01-01",
             "2023-12-31",
             "trainingDate",
             "DESC");
 
+        ApiStandardResponse<List<TraineeTrainingResponse>> responseBody = response.getBody();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        assertNotNull(responseBody);
+        assertNotNull(responseBody.data());
     }
 
     @Test
@@ -158,9 +177,11 @@ class TraineeControllerRestTemplateTest {
     void deleteProfile_ShouldRemoveTrainee() {
         restTemplate.delete(BASE_URL + "/{username}", createdTraineeUsername);
 
-        ResponseEntity<Void> response = restTemplate.getForEntity(
+        ResponseEntity<ApiStandardError> response = restTemplate.exchange(
             BASE_URL + "/{username}",
-            Void.class,
+            HttpMethod.GET,
+            null,
+            ApiStandardError.class,
             createdTraineeUsername);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -169,22 +190,27 @@ class TraineeControllerRestTemplateTest {
     @Test
     @Order(7)
     void registerTrainee_WithInvalidData_ShouldReturnBadRequest() {
-        ResponseEntity<String> response = restTemplate.postForEntity(
+        ResponseEntity<ApiStandardError> response = restTemplate.exchange(
             BASE_URL,
-            new RegisterTraineeRequest("", "", null, ""),
-            String.class);
+            HttpMethod.POST,
+            new HttpEntity<>(new RegisterTraineeRequest("", "", null, ""), createJsonHeaders()),
+            ApiStandardError.class);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
 
     @Test
     @Order(8)
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() {
-        ResponseEntity<Void> response = restTemplate.getForEntity(
+        ResponseEntity<ApiStandardError> response = restTemplate.exchange(
             BASE_URL + "/nonexistentuser",
-            Void.class);
+            HttpMethod.GET,
+            null,
+            ApiStandardError.class);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
 
     private LoginResponse authenticate(String username, String password) {

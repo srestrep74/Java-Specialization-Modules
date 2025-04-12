@@ -6,9 +6,13 @@ import com.sro.SpringCoreTask1.dtos.v1.request.trainee.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.*;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
+import com.sro.SpringCoreTask1.util.response.ApiStandardError;
+
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import java.time.LocalDate;
@@ -43,15 +47,16 @@ class TraineeControllerWebTestClientTest {
                 .exchange()
                 .expectStatus().isCreated()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                .expectBody(RegisterTraineeResponse.class)
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
                 .consumeWith(response -> {
-                    RegisterTraineeResponse responseBody = response.getResponseBody();
+                    ApiStandardResponse<RegisterTraineeResponse> responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
-                    assertNotNull(responseBody.username());
-                    assertNotNull(responseBody.password());
+                    assertNotNull(responseBody.data());
+                    assertNotNull(responseBody.data().username());
+                    assertNotNull(responseBody.data().password());
                     
-                    createdTraineeUsername = responseBody.username();
-                    createdTraineePassword = responseBody.password();
+                    createdTraineeUsername = responseBody.data().username();
+                    createdTraineePassword = responseBody.data().password();
                     authenticate(createdTraineeUsername, createdTraineePassword);
                 });
     }
@@ -63,9 +68,12 @@ class TraineeControllerWebTestClientTest {
                 .uri(BASE_URL + "/{username}", createdTraineeUsername)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(TraineeProfileResponse.class)
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {})
                 .consumeWith(response -> {
-                    TraineeProfileResponse profile = response.getResponseBody();
+                    ApiStandardResponse<TraineeProfileResponse> apiResponse = response.getResponseBody();
+                    assertNotNull(apiResponse);
+                    
+                    TraineeProfileResponse profile = apiResponse.data();
                     assertNotNull(profile);
                     assertEquals("Sebas", profile.firstName());
                     assertEquals("Rpo", profile.lastName());
@@ -94,9 +102,12 @@ class TraineeControllerWebTestClientTest {
                 .bodyValue(updateRequest)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(TraineeProfileResponse.class)
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {})
                 .consumeWith(response -> {
-                    TraineeProfileResponse updatedProfile = response.getResponseBody();
+                    ApiStandardResponse<TraineeProfileResponse> apiResponse = response.getResponseBody();
+                    assertNotNull(apiResponse);
+                    
+                    TraineeProfileResponse updatedProfile = apiResponse.data();
                     assertNotNull(updatedProfile);
                     assertEquals("Sebas Updated", updatedProfile.firstName());
                     assertEquals("Rpo Updated", updatedProfile.lastName());
@@ -121,8 +132,12 @@ class TraineeControllerWebTestClientTest {
                 .uri(BASE_URL + "/{username}", createdTraineeUsername)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.active").isEqualTo(false);
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {})
+                .consumeWith(response -> {
+                    ApiStandardResponse<TraineeProfileResponse> apiResponse = response.getResponseBody();
+                    assertNotNull(apiResponse);
+                    assertFalse(apiResponse.data().active());
+                });
     }
 
     @Test
@@ -138,10 +153,11 @@ class TraineeControllerWebTestClientTest {
                         .build(createdTraineeUsername))
                 .exchange()
                 .expectStatus().isOk()
-                .expectBodyList(TraineeTrainingResponse.class)
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<List<TraineeTrainingResponse>>>() {})
                 .consumeWith(response -> {
-                    List<TraineeTrainingResponse> trainings = response.getResponseBody();
-                    assertNotNull(trainings);
+                    ApiStandardResponse<List<TraineeTrainingResponse>> apiResponse = response.getResponseBody();
+                    assertNotNull(apiResponse);
+                    assertNotNull(apiResponse.data());
                 });
     }
 
@@ -174,7 +190,8 @@ class TraineeControllerWebTestClientTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(invalidRequest)
                 .exchange()
-                .expectStatus().isBadRequest();
+                .expectStatus().isBadRequest()
+                .expectBody(new ParameterizedTypeReference<ApiStandardError>() {});
     }
 
     @Test
@@ -183,7 +200,8 @@ class TraineeControllerWebTestClientTest {
         webTestClient.get()
                 .uri(BASE_URL + "/nonexistentuser")
                 .exchange()
-                .expectStatus().isNotFound();
+                .expectStatus().isNotFound()
+                .expectBody(new ParameterizedTypeReference<ApiStandardError>() {});
     }
 
     private LoginResponse authenticate(String username, String password) {
