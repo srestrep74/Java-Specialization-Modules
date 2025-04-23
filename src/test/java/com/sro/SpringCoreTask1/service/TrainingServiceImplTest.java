@@ -31,6 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -249,7 +251,7 @@ class TrainingServiceImplTest {
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingUpdateMapper.toEntity(updateTrainingRequest, trainer, trainee, trainingType))
             .thenReturn(training);
-        when(trainingRepository.update(training)).thenReturn(Optional.of(training));
+        when(trainingRepository.save(training)).thenReturn(training);
         when(trainingResponseMapper.toTrainingSummaryResponse(training))
             .thenReturn(trainingSummaryResponse);
 
@@ -291,7 +293,7 @@ class TrainingServiceImplTest {
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingUpdateMapper.toEntity(updateTrainingRequest, trainer, trainee, trainingType))
             .thenReturn(training);
-        when(trainingRepository.update(training)).thenThrow(new RuntimeException("Database error"));
+        when(trainingRepository.save(training)).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, 
             () -> trainingService.update(updateTrainingRequest));
@@ -299,7 +301,7 @@ class TrainingServiceImplTest {
 
     @Test
     void deleteById_ShouldDeleteTraining_WhenTrainingExists() {
-        when(trainingRepository.deleteById(1L)).thenReturn(true);
+        doNothing().when(trainingRepository).deleteById(1L);
 
         assertDoesNotThrow(() -> trainingService.deleteById(1L));
     }
@@ -310,18 +312,8 @@ class TrainingServiceImplTest {
     }
 
     @Test
-    void deleteById_ShouldThrowResourceNotFoundException_WhenTrainingDoesNotExist() {
-        when(trainingRepository.deleteById(1L)).thenReturn(false);
-
-        Exception exception = assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.deleteById(1L));
-        
-        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
-    }
-
-    @Test
     void deleteById_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainingRepository.deleteById(1L)).thenThrow(new RuntimeException("Database error"));
+        doThrow(new RuntimeException("Database error")).when(trainingRepository).deleteById(1L);
 
         assertThrows(DatabaseOperationException.class, () -> trainingService.deleteById(1L));
     }
@@ -336,7 +328,7 @@ class TrainingServiceImplTest {
             "Fitness"        
         );
         
-        when(trainingRepository.findTrainingsByTraineeWithFilters(filter, "date", "asc"))
+        when(trainingRepository.findAll(any(Specification.class), any(Sort.class)))
             .thenReturn(List.of(training));
         when(trainingTraineeMapper.toTraineeTrainingResponse(training))
             .thenReturn(traineeTrainingResponse);
@@ -365,7 +357,7 @@ class TrainingServiceImplTest {
             "Fitness"                 
         );
         
-        when(trainingRepository.findTrainingsByTraineeWithFilters(filter, "date", "asc"))
+        when(trainingRepository.findAll(any(Specification.class), any(Sort.class)))
             .thenThrow(new RuntimeException("Database error"));
     
         assertThrows(DatabaseOperationException.class, 
@@ -381,7 +373,7 @@ class TrainingServiceImplTest {
             "johndoe"
         );
         
-        when(trainingRepository.findTrainingsByTrainerWithFilters(filter))
+        when(trainingRepository.findAll(any(Specification.class)))
             .thenThrow(new RuntimeException("Database error"));
     
         assertThrows(DatabaseOperationException.class, 

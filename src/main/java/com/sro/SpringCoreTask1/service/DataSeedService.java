@@ -113,7 +113,7 @@ public class DataSeedService {
                 throw new IllegalArgumentException("Trainer not assigned to Trainee");
             }
 
-            boolean isDuplicateTraining = trainingRepository.existsByTraineeIdAndTrainerAndTrainingDate(trainee, trainer, trainingRequestDTO.trainingDate());
+            boolean isDuplicateTraining = trainingRepository.existsByTraineeAndTrainerAndTrainingDate(trainee, trainer, trainingRequestDTO.trainingDate());
             if (isDuplicateTraining) {
                 throw new ResourceAlreadyExistsException("A training with the same trainer and date already exists.");
             }
