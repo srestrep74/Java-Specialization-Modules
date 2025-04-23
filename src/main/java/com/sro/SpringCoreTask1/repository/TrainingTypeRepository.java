@@ -1,8 +1,14 @@
 package com.sro.SpringCoreTask1.repository;
 
-import com.sro.SpringCoreTask1.entity.TrainingType;
-import com.sro.SpringCoreTask1.repository.base.BaseRepository;
+import java.util.Optional;
 
-public interface TrainingTypeRepository extends BaseRepository<TrainingType, Long>{
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.sro.SpringCoreTask1.entity.TrainingType;
+
+public interface TrainingTypeRepository extends JpaRepository<TrainingType, Long> {
     
+    Optional<TrainingType> findByTrainingTypeName(String trainingTypeName);
+
+    boolean existsByTrainingTypeName(String trainingTypeName);
 }
