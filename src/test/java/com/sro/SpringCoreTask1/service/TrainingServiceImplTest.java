@@ -20,6 +20,8 @@ import com.sro.SpringCoreTask1.mappers.training.TrainingResponseMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingTraineeMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingUpdateMapper;
 import com.sro.SpringCoreTask1.mappers.training.TraininigTrainerMapper;
+import com.sro.SpringCoreTask1.metrics.TraineeTrainingMetrics;
+import com.sro.SpringCoreTask1.metrics.TrainingMetrics;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
@@ -64,6 +66,12 @@ class TrainingServiceImplTest {
 
     @Mock
     private TraininigTrainerMapper traininigTrainerMapper;
+    
+    @Mock
+    private TrainingMetrics trainingMetrics;
+    
+    @Mock
+    private TraineeTrainingMetrics traineeTrainingMetrics;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -148,9 +156,17 @@ class TrainingServiceImplTest {
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee, trainingType))
             .thenReturn(training);
+        doNothing().when(trainingMetrics).recordNewTraining();
+        doNothing().when(trainingMetrics).recordTrainingDuration(anyLong());
+        doNothing().when(traineeTrainingMetrics).recordTraineeSession();
+        doNothing().when(traineeTrainingMetrics).recordTraineeTrainingDuration(anyLong());
 
         assertDoesNotThrow(() -> trainingService.save(createTrainingRequest));
         verify(trainingRepository).save(training);
+        verify(trainingMetrics).recordNewTraining();
+        verify(trainingMetrics).recordTrainingDuration(60L);
+        verify(traineeTrainingMetrics).recordTraineeSession();
+        verify(traineeTrainingMetrics).recordTraineeTrainingDuration(60L);
     }
 
     @Test
@@ -254,11 +270,15 @@ class TrainingServiceImplTest {
         when(trainingRepository.save(training)).thenReturn(training);
         when(trainingResponseMapper.toTrainingSummaryResponse(training))
             .thenReturn(trainingSummaryResponse);
+        doNothing().when(trainingMetrics).recordTrainingDuration(anyLong());
+        doNothing().when(traineeTrainingMetrics).recordTraineeTrainingDuration(anyLong());
 
         TrainingSummaryResponse result = trainingService.update(updateTrainingRequest);
 
         assertNotNull(result);
         assertEquals(trainingSummaryResponse, result);
+        verify(trainingMetrics).recordTrainingDuration(60L);
+        verify(traineeTrainingMetrics).recordTraineeTrainingDuration(60L);
     }
 
     @Test
