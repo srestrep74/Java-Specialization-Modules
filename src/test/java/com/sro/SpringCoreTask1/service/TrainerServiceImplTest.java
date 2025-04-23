@@ -28,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -267,7 +268,7 @@ class TrainerServiceImplTest {
 
     @Test
     void deleteById_ShouldDeleteTrainer_WhenTrainerExists() {
-        when(trainerRepository.deleteById(1L)).thenReturn(true);
+        when(trainerRepository.existsById(1L)).thenReturn(true);
 
         assertDoesNotThrow(() -> trainerService.deleteById(1L));
     }
@@ -279,14 +280,15 @@ class TrainerServiceImplTest {
 
     @Test
     void deleteById_ShouldThrowResourceNotFoundException_WhenTrainerDoesNotExist() {
-        when(trainerRepository.deleteById(1L)).thenReturn(false);
+        when(trainerRepository.existsById(1L)).thenReturn(false);
 
         assertThrows(ResourceNotFoundException.class, () -> trainerService.deleteById(1L));
     }
 
     @Test
     void deleteById_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainerRepository.deleteById(1L)).thenThrow(new RuntimeException("Database error"));
+        when(trainerRepository.existsById(1L)).thenReturn(true);
+        doThrow(new RuntimeException("Database error")).when(trainerRepository).deleteById(1L);
 
         assertThrows(DatabaseOperationException.class, () -> trainerService.deleteById(1L));
     }
@@ -323,7 +325,7 @@ class TrainerServiceImplTest {
 
     @Test
     void findUnassignedTrainersByTraineeUsername_ShouldReturnList_WhenTrainersExist() {
-        when(trainerRepository.findUnassignedTrainersByTraineeUsername("traineeUser"))
+        when(trainerRepository.findAll(any(Specification.class)))
             .thenReturn(List.of(trainer));
         when(trainerResponseMapper.toUnassignedTrainerResponse(trainer))
             .thenReturn(unassignedTrainerResponse);
@@ -344,7 +346,7 @@ class TrainerServiceImplTest {
 
     @Test
     void findUnassignedTrainersByTraineeUsername_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainerRepository.findUnassignedTrainersByTraineeUsername("traineeUser"))
+        when(trainerRepository.findAll(any(Specification.class)))
             .thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, 
@@ -383,7 +385,7 @@ class TrainerServiceImplTest {
 
     @Test
     void updateTrainerPassword_ShouldUpdatePassword_WhenValidInput() {
-        when(trainerRepository.changeTrainerPassword(1L, "newPassword")).thenReturn(true);
+        doNothing().when(trainerRepository).updatePassword(1L, "newPassword");
 
         assertTrue(trainerService.updateTrainerPassword(1L, "newPassword"));
     }
@@ -400,8 +402,7 @@ class TrainerServiceImplTest {
 
     @Test
     void updateTrainerPassword_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainerRepository.changeTrainerPassword(1L, "newPassword"))
-            .thenThrow(new RuntimeException("Database error"));
+        doThrow(new RuntimeException("Database error")).when(trainerRepository).updatePassword(1L, "newPassword");
 
         assertThrows(DatabaseOperationException.class, 
             () -> trainerService.updateTrainerPassword(1L, "newPassword"));

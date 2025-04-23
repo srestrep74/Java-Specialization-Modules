@@ -15,12 +15,14 @@ import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.mappers.trainer.TrainerUpdateMapper;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
+import com.sro.SpringCoreTask1.repository.specification.TrainerSpecifications;
 import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.util.ProfileUtil;
 
 import jakarta.validation.ConstraintViolationException;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,9 +147,11 @@ public class TrainerServiceImpl implements TrainerService {
         }
 
         try {
-            if (!trainerRepository.deleteById(id)) {
+            if (!trainerRepository.existsById(id)) {
                 throw new ResourceNotFoundException("Trainer not found with id: " + id);
             }
+
+            trainerRepository.deleteById(id);
         } catch(ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -180,7 +184,12 @@ public class TrainerServiceImpl implements TrainerService {
         }
 
         try {
-            return trainerRepository.findUnassignedTrainersByTraineeUsername(traineeUsername).stream()
+            Specification<Trainer> spec = Specification
+                    .where(TrainerSpecifications.isActive())
+                    .and(TrainerSpecifications.notAssignedToTrainee(traineeUsername))
+                    .and(TrainerSpecifications.withTrainingTypeFetched());
+
+            return trainerRepository.findAll(spec).stream()
                     .map(trainerResponseMapper::toUnassignedTrainerResponse)
                     .toList();
         } catch (Exception e) {
@@ -218,7 +227,8 @@ public class TrainerServiceImpl implements TrainerService {
         }
 
         try {
-            return trainerRepository.changeTrainerPassword(trainerId, newPassword);
+            trainerRepository.updatePassword(trainerId, newPassword);
+            return true;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer password", e);
         }
