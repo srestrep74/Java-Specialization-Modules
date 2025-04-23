@@ -11,13 +11,22 @@ import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerRespons
 
 public interface TrainerService {
     RegisterTrainerResponse save(RegisterTrainerRequest dto);
+
     TrainerProfileResponse findById(Long id);
+
     List<TrainerProfileResponse> findAll();
+
     void deleteById(Long id);
+
     TrainerProfileResponse update(String username, UpdateTrainerProfileRequest dto);
+
     TrainerProfileResponse findByUsername(String username);
+
     List<UnassignedTrainerResponse> findUnassignedTrainersByTraineeUsername(String traineeUsername);
+
     void updateActivationStatus(String username, boolean active);
+
     boolean updateTrainerPassword(Long trainerId, String newPassword);
+
     Set<TrainerProfileResponse> findTrainersByTraineeId(Long traineeId);
 }

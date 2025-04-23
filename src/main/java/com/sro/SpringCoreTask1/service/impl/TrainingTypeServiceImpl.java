@@ -25,8 +25,9 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
 
     private final TrainingTypeCreateMapper trainingTypeCreateMapper;
     private final TrainingTypeResponseMapper trainingTypeResponseMapper;
-    
-    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository, TrainingTypeCreateMapper trainingTypeCreateMapper, TrainingTypeResponseMapper trainingTypeResponseMapper) {
+
+    public TrainingTypeServiceImpl(TrainingTypeRepository trainingTypeRepository,
+            TrainingTypeCreateMapper trainingTypeCreateMapper, TrainingTypeResponseMapper trainingTypeResponseMapper) {
         this.trainingTypeRepository = trainingTypeRepository;
         this.trainingTypeCreateMapper = trainingTypeCreateMapper;
         this.trainingTypeResponseMapper = trainingTypeResponseMapper;
@@ -44,7 +45,8 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             TrainingType savedTrainingType = trainingTypeRepository.save(trainingType);
             return trainingTypeResponseMapper.mapToResponse(savedTrainingType);
         } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Training Type with name " + trainingTypeRequestDTO.trainingTypeName() + " already exists");
+            throw new ResourceAlreadyExistsException(
+                    "Training Type with name " + trainingTypeRequestDTO.trainingTypeName() + " already exists");
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Training Type", e);
         }
@@ -90,7 +92,8 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
             TrainingType savedTrainingType = trainingTypeRepository.save(trainingType);
             return trainingTypeResponseMapper.mapToResponse(savedTrainingType);
         } catch (ResourceNotFoundException e) {
-            throw new ResourceNotFoundException("Training Type not found with id: " + trainingTypeRequestDTO.trainingTypeName());
+            throw new ResourceNotFoundException(
+                    "Training Type not found with id: " + trainingTypeRequestDTO.trainingTypeName());
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training Type", e);
         }

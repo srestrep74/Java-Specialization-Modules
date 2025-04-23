@@ -15,7 +15,8 @@ public class TrainingSpecifications {
     }
 
     public static Specification<Training> hasTrainerUsername(String username) {
-        return (root, query, cb) -> StringUtils.hasText(username) ? cb.equal(root.get("trainer").get("username"), username) : null;
+        return (root, query,
+                cb) -> StringUtils.hasText(username) ? cb.equal(root.get("trainer").get("username"), username) : null;
     }
 
     public static Specification<Training> dateAfterOrEqual(LocalDate date) {
@@ -27,20 +28,26 @@ public class TrainingSpecifications {
     }
 
     public static Specification<Training> trainerUsernameContains(String username) {
-        return (root, query, cb) -> StringUtils.hasText(username) ? cb.like(root.get("trainer").get("username"), "%" + username.toLowerCase() + "%") : null;
+        return (root, query, cb) -> StringUtils.hasText(username)
+                ? cb.like(root.get("trainer").get("username"), "%" + username.toLowerCase() + "%")
+                : null;
     }
 
     public static Specification<Training> traineeUsernameContains(String username) {
-        return (root, query, cb) -> StringUtils.hasText(username) ? cb.like(root.get("trainee").get("username"), "%" + username.toLowerCase() + "%") : null;
+        return (root, query, cb) -> StringUtils.hasText(username)
+                ? cb.like(root.get("trainee").get("username"), "%" + username.toLowerCase() + "%")
+                : null;
     }
 
     public static Specification<Training> hasTrainingType(String trainingType) {
-        return (root, query, cb) -> StringUtils.hasText(trainingType) ? cb.equal(root.get("trainingType").get("trainingTypeName"), trainingType) : null;
+        return (root, query, cb) -> StringUtils.hasText(trainingType)
+                ? cb.equal(root.get("trainingType").get("trainingTypeName"), trainingType)
+                : null;
     }
 
     public static Specification<Training> withTraineeAndTrainerFetched() {
         return (root, query, cb) -> {
-            if(query != null && !Long.class.equals(query.getResultType())) {
+            if (query != null && !Long.class.equals(query.getResultType())) {
                 root.fetch("trainee");
                 root.fetch("trainer");
                 root.fetch("trainingType");
@@ -48,5 +55,5 @@ public class TrainingSpecifications {
             return null;
         };
     }
-    
+
 }

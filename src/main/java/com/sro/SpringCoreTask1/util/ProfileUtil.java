@@ -12,7 +12,7 @@ public class ProfileUtil {
         Random random = new Random();
 
         StringBuilder password = new StringBuilder();
-        for(int i = 0 ; i < 10 ; i++) {
+        for (int i = 0; i < 10; i++) {
             password.append(characters.charAt(random.nextInt(characters.length())));
         }
 

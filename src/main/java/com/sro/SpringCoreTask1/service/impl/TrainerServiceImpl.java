@@ -41,7 +41,9 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerUpdateMapper trainerUpdateMapper;
     private final TrainerResponseMapper trainerResponseMapper;
 
-    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, AuthService authService,  TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper, TrainerResponseMapper trainerResponseMapper) {
+    public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository,
+            AuthService authService, TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper,
+            TrainerResponseMapper trainerResponseMapper) {
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
         this.authService = authService;
@@ -58,24 +60,27 @@ public class TrainerServiceImpl implements TrainerService {
         }
 
         if (trainerRequestDTO.firstName() == null || trainerRequestDTO.firstName().isEmpty() ||
-            trainerRequestDTO.lastName() == null || trainerRequestDTO.lastName().isEmpty() ||
-            trainerRequestDTO.specialization() == null) {
-            throw new IllegalArgumentException("Trainer first name, last name, and specialization cannot be null or empty");
+                trainerRequestDTO.lastName() == null || trainerRequestDTO.lastName().isEmpty() ||
+                trainerRequestDTO.specialization() == null) {
+            throw new IllegalArgumentException(
+                    "Trainer first name, last name, and specialization cannot be null or empty");
         }
-        
-        String generatedUsername = ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName());
+
+        String generatedUsername = ProfileUtil.generateUsername(trainerRequestDTO.firstName(),
+                trainerRequestDTO.lastName());
         String generatedPassword = ProfileUtil.generatePassword();
 
         try {
             TrainingType trainingType = trainingTypeRepository.findById(trainerRequestDTO.specialization())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainerRequestDTO.specialization()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "TrainingType not found with id: " + trainerRequestDTO.specialization()));
             Trainer trainer = trainerCreateMapper.toEntity(trainerRequestDTO, trainingType);
             trainer.setUsername(generatedUsername);
             trainer.setPassword(generatedPassword);
             Trainer savedTrainer = trainerRepository.save(trainer);
 
             return trainerCreateMapper.toRegisterResponse(savedTrainer);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainer with username " + generatedUsername + " already exists");
@@ -125,14 +130,15 @@ public class TrainerServiceImpl implements TrainerService {
 
         try {
             TrainingType trainingType = trainingTypeRepository.findById(trainerRequestDTO.specialization())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainerRequestDTO.specialization()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "TrainingType not found with id: " + trainerRequestDTO.specialization()));
             Trainer existingTrainer = trainerRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username));
             Trainer trainer = trainerUpdateMapper.toEntity(trainerRequestDTO, existingTrainer, trainingType);
 
             trainer.setPassword(existingTrainer.getPassword());
             return trainerResponseMapper.toTrainerProfileResponse(trainerRepository.save(trainer));
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer", e);
@@ -152,7 +158,7 @@ public class TrainerServiceImpl implements TrainerService {
             }
 
             trainerRepository.deleteById(id);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainer by id", e);
@@ -169,7 +175,7 @@ public class TrainerServiceImpl implements TrainerService {
         try {
             return trainerResponseMapper.toTrainerProfileResponse(trainerRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with username: " + username)));
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainer by username", e);
@@ -212,7 +218,7 @@ public class TrainerServiceImpl implements TrainerService {
             trainerRepository.save(trainer);
 
             authService.setCurrentUser(trainer);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainer activation status", e);

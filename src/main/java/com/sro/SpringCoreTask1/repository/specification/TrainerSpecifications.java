@@ -31,7 +31,7 @@ public class TrainerSpecifications {
 
                 subquery.select(subRoot.get("id"))
                         .where(cb.equal(assignedTrainees.get("username"), traineeUsername));
-                
+
                 return cb.not(root.get("id").in(subquery));
             }
             return null;
@@ -46,5 +46,5 @@ public class TrainerSpecifications {
             return null;
         };
     }
-    
+
 }

@@ -6,9 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-
 public class ResponseBuilder {
-    
+
     public static <T> ResponseEntity<ApiStandardResponse<T>> success(T data) {
         return success(HttpStatus.OK, "Operation completed successfully", data);
     }
@@ -26,11 +25,10 @@ public class ResponseBuilder {
     public static <T> ResponseEntity<ApiStandardResponse<Void>> noContent() {
         String path = ServletUriComponentsBuilder.fromCurrentRequest().build().toUriString();
         ApiStandardResponse<Void> response = new ApiStandardResponse<>(
-            HttpStatus.NO_CONTENT.value(),
-            "No content",
-            path,
-            null
-        );
+                HttpStatus.NO_CONTENT.value(),
+                "No content",
+                path,
+                null);
         return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
     }
 

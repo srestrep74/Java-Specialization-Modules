@@ -27,7 +27,7 @@ import com.sro.SpringCoreTask1.util.ProfileUtil;
 
 @Service
 public class DataSeedService {
-    
+
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
@@ -38,12 +38,15 @@ public class DataSeedService {
     private final TrainingSeedMapper trainingSeedMapper;
     private final TrainingTypeSeedMapper trainingTypeSeedMapper;
 
-    public DataSeedService(TraineeRepository traineeRepository, TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository, TrainingRepository trainingRepository, TraineeSeedMapper traineeSeedMapper, TrainerSeedMapper trainerSeedMapper, TrainingSeedMapper trainingSeedMapper, TrainingTypeSeedMapper trainingTypeSeedMapper) {
+    public DataSeedService(TraineeRepository traineeRepository, TrainerRepository trainerRepository,
+            TrainingTypeRepository trainingTypeRepository, TrainingRepository trainingRepository,
+            TraineeSeedMapper traineeSeedMapper, TrainerSeedMapper trainerSeedMapper,
+            TrainingSeedMapper trainingSeedMapper, TrainingTypeSeedMapper trainingTypeSeedMapper) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
         this.trainingRepository = trainingRepository;
-        this.traineeSeedMapper = traineeSeedMapper; 
+        this.traineeSeedMapper = traineeSeedMapper;
         this.trainerSeedMapper = trainerSeedMapper;
         this.trainingSeedMapper = trainingSeedMapper;
         this.trainingTypeSeedMapper = trainingTypeSeedMapper;
@@ -53,7 +56,8 @@ public class DataSeedService {
     public void seedTrainee(TraineeSeedRequest traineeRequestDTO) {
         try {
             Trainee trainee = traineeSeedMapper.toEntity(traineeRequestDTO);
-            trainee.setUsername(ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
+            trainee.setUsername(
+                    ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
             trainee.setPassword(ProfileUtil.generatePassword());
             Trainee savedTrainee = traineeRepository.save(trainee);
 
@@ -63,7 +67,8 @@ public class DataSeedService {
                 }
             }
         } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Trainee with username " + traineeRequestDTO.username() + " already exists");
+            throw new ResourceAlreadyExistsException(
+                    "Trainee with username " + traineeRequestDTO.username() + " already exists");
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Trainee", e);
         }
@@ -77,13 +82,16 @@ public class DataSeedService {
 
         try {
             TrainingType trainingType = trainingTypeRepository.findById(trainerRequestDTO.trainingTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainerRequestDTO.trainingTypeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "TrainingType not found with id: " + trainerRequestDTO.trainingTypeId()));
             Trainer trainer = trainerSeedMapper.toEntity(trainerRequestDTO, trainingType);
-            trainer.setUsername(ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName()));
+            trainer.setUsername(
+                    ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName()));
             trainer.setPassword(ProfileUtil.generatePassword());
             trainerRepository.save(trainer);
         } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Trainer with username " + trainerRequestDTO.username() + " already exists");
+            throw new ResourceAlreadyExistsException(
+                    "Trainer with username " + trainerRequestDTO.username() + " already exists");
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Trainer", e);
         }
@@ -97,9 +105,11 @@ public class DataSeedService {
 
         try {
             Trainee trainee = traineeRepository.findById(trainingRequestDTO.traineeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainingRequestDTO.traineeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainee not found with id: " + trainingRequestDTO.traineeId()));
             Trainer trainer = trainerRepository.findById(trainingRequestDTO.trainerId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainer not found with id: " + trainingRequestDTO.trainerId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainer not found with id: " + trainingRequestDTO.trainerId()));
 
             if (!trainer.isActive()) {
                 throw new ResourceNotFoundException("Trainer with id: " + trainer.getId() + " is not active");
@@ -113,18 +123,21 @@ public class DataSeedService {
                 throw new IllegalArgumentException("Trainer not assigned to Trainee");
             }
 
-            boolean isDuplicateTraining = trainingRepository.existsByTraineeAndTrainerAndTrainingDate(trainee, trainer, trainingRequestDTO.trainingDate());
+            boolean isDuplicateTraining = trainingRepository.existsByTraineeAndTrainerAndTrainingDate(trainee, trainer,
+                    trainingRequestDTO.trainingDate());
             if (isDuplicateTraining) {
                 throw new ResourceAlreadyExistsException("A training with the same trainer and date already exists.");
             }
 
             TrainingType trainingType = trainingTypeRepository.findById(trainingRequestDTO.trainingTypeId())
-                    .orElseThrow(() -> new ResourceNotFoundException("TrainingType not found with id: " + trainingRequestDTO.trainingTypeId()));
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "TrainingType not found with id: " + trainingRequestDTO.trainingTypeId()));
 
             Training training = trainingSeedMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
             trainingRepository.save(training);
         } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Training with name " + trainingRequestDTO.trainingName() + " already exists");
+            throw new ResourceAlreadyExistsException(
+                    "Training with name " + trainingRequestDTO.trainingName() + " already exists");
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Training", e);
         }
@@ -140,12 +153,13 @@ public class DataSeedService {
             TrainingType trainingType = trainingTypeSeedMapper.toEntity(trainingTypeRequestDTO);
             trainingTypeRepository.save(trainingType);
         } catch (ConstraintViolationException e) {
-            throw new ResourceAlreadyExistsException("Training Type with name " + trainingTypeRequestDTO.trainingTypeName() + " already exists");
+            throw new ResourceAlreadyExistsException(
+                    "Training Type with name " + trainingTypeRequestDTO.trainingTypeName() + " already exists");
         } catch (Exception e) {
             throw new DatabaseOperationException("Error saving Training Type", e);
         }
     }
-    
+
     @Transactional
     private void addTrainerToTrainee(Long traineeId, Long trainerId) {
         if (traineeId == null || trainerId == null) {
@@ -173,6 +187,5 @@ public class DataSeedService {
             throw new DatabaseOperationException("Error adding Trainer to Trainee", e);
         }
     }
-    
 
 }

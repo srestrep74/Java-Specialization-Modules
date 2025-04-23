@@ -7,8 +7,12 @@ import java.util.List;
 
 public interface TrainingTypeService {
     TrainingTypeResponse save(TrainingTypeRequestDTO trainingTypeRequestDTO);
+
     TrainingTypeResponse findById(Long id);
+
     List<TrainingTypeResponse> findAll();
+
     void deleteById(Long id);
+
     TrainingTypeResponse update(TrainingTypeRequestDTO trainingTypeRequestDTO);
 }

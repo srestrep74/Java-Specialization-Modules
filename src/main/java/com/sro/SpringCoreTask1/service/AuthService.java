@@ -5,11 +5,18 @@ import com.sro.SpringCoreTask1.entity.User;
 
 public interface AuthService {
     LoginResponse authenticate(String username, String password);
+
     boolean isAuthenticated();
+
     boolean isCurrentUserTrainee();
+
     boolean isCurrentUserTrainer();
+
     User getCurrentUser();
+
     void changePassword(String username, String oldPassword, String newPassword);
+
     void logout();
+
     void setCurrentUser(User user);
 }

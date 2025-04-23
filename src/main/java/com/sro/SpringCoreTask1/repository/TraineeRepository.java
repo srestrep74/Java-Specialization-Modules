@@ -17,9 +17,6 @@ public interface TraineeRepository extends JpaRepository<Trainee, Long> {
 
     Optional<Trainee> findByUsername(String username);
 
-    @Query("SELECT t FROM Trainee t LEFT JOIN FETCH t.trainers WHERE t.username = :username")
-    Optional<Trainee> findByUsernameWithTrainers(@Param("username") String username);
-
     boolean existsByUsername(String username);
 
     @Modifying
