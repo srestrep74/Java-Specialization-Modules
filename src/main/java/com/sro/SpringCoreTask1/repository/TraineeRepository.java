@@ -29,4 +29,7 @@ public interface TraineeRepository extends JpaRepository<Trainee, Long> {
 
     @Query("SELECT tr FROM Trainee t JOIN t.trainers tr WHERE t.id = :traineeId")
     Set<Trainer> findTrainersByTraineeId(@Param("traineeId") Long traineeId);
+
+    @Query("SELECT COUNT(t) FROM Trainee t WHERE t.active = true")
+    long countByActive(boolean active);
 }
