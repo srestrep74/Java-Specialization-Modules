@@ -9,6 +9,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
+
 import jakarta.annotation.PostConstruct;
 
 @Component
@@ -31,35 +32,43 @@ public class TraineeTrainingMetrics {
     }
 
     @PostConstruct
-    public void init() {
-        traineeSessionCounter = Counter.builder("trainee.training.sessions")
-                .description("Total trainee training sessions")
-                .register(meterRegistry);
+    public void registerMetrics() {
+        registerSessionCounter();
+        registerTrainingDurationSummary();
+        registerActiveTraineeGauge();
+        registerAverageTrainingsPerTraineeGauge();
+    }
 
+    private void registerSessionCounter() {
+        traineeSessionCounter = Counter.builder("trainee.training.sessions")
+                .description("Total number of training sessions attended by trainees")
+                .register(meterRegistry);
+    }
+
+    private void registerTrainingDurationSummary() {
         traineeTrainingDurationSummary = DistributionSummary.builder("trainee.training.duration")
                 .baseUnit("minutes")
-                .description("Duration of trainee training sessions")
+                .description("Distribution of training durations for trainees")
                 .register(meterRegistry);
+    }
 
-        Gauge.builder(
-                "trainee.active.count",
-                traineeRepository,
+    private void registerActiveTraineeGauge() {
+        Gauge.builder("trainee.active.count", traineeRepository, 
                 repo -> repo.countByActive(true))
-                .description("Number of active trainees")
-                .register(meterRegistry);
+            .description("Current number of active trainees")
+            .register(meterRegistry);
+    }
 
-        Gauge.builder(
-                "trainee.avg.training.count",
-                traineeRepository,
+    private void registerAverageTrainingsPerTraineeGauge() {
+        Gauge.builder("trainee.avg.training.count", traineeRepository, 
                 repo -> {
-                    long traineesCount = repo.count();
-                    if (traineesCount == 0)
-                        return 0;
+                    long traineeCount = repo.count();
+                    if (traineeCount == 0) return 0.0;
                     long totalTrainings = trainingRepository.count();
-                    return (double) totalTrainings / traineesCount;
+                    return (double) totalTrainings / traineeCount;
                 })
-                .description("Average number of trainings per trainee")
-                .register(meterRegistry);
+            .description("Average number of trainings per trainee")
+            .register(meterRegistry);
     }
 
     public void recordTraineeSession() {

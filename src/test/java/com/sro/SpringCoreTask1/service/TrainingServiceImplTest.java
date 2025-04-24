@@ -21,6 +21,7 @@ import com.sro.SpringCoreTask1.mappers.training.TrainingTraineeMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingUpdateMapper;
 import com.sro.SpringCoreTask1.mappers.training.TraininigTrainerMapper;
 import com.sro.SpringCoreTask1.metrics.TraineeTrainingMetrics;
+import com.sro.SpringCoreTask1.metrics.TrainerTrainingMetrics;
 import com.sro.SpringCoreTask1.metrics.TrainingMetrics;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
@@ -72,6 +73,9 @@ class TrainingServiceImplTest {
     
     @Mock
     private TraineeTrainingMetrics traineeTrainingMetrics;
+
+    @Mock
+    private TrainerTrainingMetrics trainerTrainingMetrics;
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -160,6 +164,9 @@ class TrainingServiceImplTest {
         doNothing().when(trainingMetrics).recordTrainingDuration(anyLong());
         doNothing().when(traineeTrainingMetrics).recordTraineeSession();
         doNothing().when(traineeTrainingMetrics).recordTraineeTrainingDuration(anyLong());
+        doNothing().when(trainerTrainingMetrics).recordTrainerSession();
+        doNothing().when(trainerTrainingMetrics).recordTrainerTrainingDuration(anyLong());
+
 
         assertDoesNotThrow(() -> trainingService.save(createTrainingRequest));
         verify(trainingRepository).save(training);
@@ -167,6 +174,8 @@ class TrainingServiceImplTest {
         verify(trainingMetrics).recordTrainingDuration(60L);
         verify(traineeTrainingMetrics).recordTraineeSession();
         verify(traineeTrainingMetrics).recordTraineeTrainingDuration(60L);
+        verify(trainerTrainingMetrics).recordTrainerSession();
+        verify(trainerTrainingMetrics).recordTrainerTrainingDuration(60L);
     }
 
     @Test
@@ -272,6 +281,7 @@ class TrainingServiceImplTest {
             .thenReturn(trainingSummaryResponse);
         doNothing().when(trainingMetrics).recordTrainingDuration(anyLong());
         doNothing().when(traineeTrainingMetrics).recordTraineeTrainingDuration(anyLong());
+        doNothing().when(trainerTrainingMetrics).recordTrainerTrainingDuration(anyLong());
 
         TrainingSummaryResponse result = trainingService.update(updateTrainingRequest);
 
@@ -279,6 +289,7 @@ class TrainingServiceImplTest {
         assertEquals(trainingSummaryResponse, result);
         verify(trainingMetrics).recordTrainingDuration(60L);
         verify(traineeTrainingMetrics).recordTraineeTrainingDuration(60L);
+        verify(trainerTrainingMetrics).recordTrainerTrainingDuration(60L);
     }
 
     @Test

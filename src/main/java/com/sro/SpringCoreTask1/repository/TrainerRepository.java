@@ -21,4 +21,7 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long>, JpaSpec
     @Query("SELECT t FROM Trainer t JOIN t.trainees tr WHERE tr.id = :traineeId")
     Set<Trainer> findTrainersByTraineeId(Long traineeId);
 
+    @Query("SELECT COUNT(t) FROM Trainer t WHERE t.active = :active")
+    long countByActive(boolean active);
+
 }

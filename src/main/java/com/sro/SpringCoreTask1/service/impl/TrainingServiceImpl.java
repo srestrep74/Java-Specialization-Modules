@@ -18,6 +18,7 @@ import com.sro.SpringCoreTask1.mappers.training.TrainingTraineeMapper;
 import com.sro.SpringCoreTask1.mappers.training.TrainingUpdateMapper;
 import com.sro.SpringCoreTask1.mappers.training.TraininigTrainerMapper;
 import com.sro.SpringCoreTask1.metrics.TraineeTrainingMetrics;
+import com.sro.SpringCoreTask1.metrics.TrainerTrainingMetrics;
 import com.sro.SpringCoreTask1.metrics.TrainingMetrics;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
@@ -40,6 +41,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TraineeRepository traineeRepository;
     private final TrainingMetrics trainingMetrics;
     private final TraineeTrainingMetrics traineeTrainingMetrics;
+    private final TrainerTrainingMetrics trainerTrainingMetrics;
 
     private final TrainingTraineeMapper trainingTraineeMapper;
     private final TraininigTrainerMapper traininigTrainerMapper;
@@ -57,7 +59,8 @@ public class TrainingServiceImpl implements TrainingService {
             TrainingResponseMapper trainingResponseMapper,
             TrainingUpdateMapper trainingUpdateMapper,
             TrainingMetrics trainingMetrics,
-            TraineeTrainingMetrics traineeTrainingMetrics) {
+            TraineeTrainingMetrics traineeTrainingMetrics,
+            TrainerTrainingMetrics trainerTrainingMetrics) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
@@ -68,6 +71,7 @@ public class TrainingServiceImpl implements TrainingService {
         this.trainingUpdateMapper = trainingUpdateMapper;
         this.trainingMetrics = trainingMetrics;
         this.traineeTrainingMetrics = traineeTrainingMetrics;
+        this.trainerTrainingMetrics = trainerTrainingMetrics;
     }
 
     @Override
@@ -94,6 +98,9 @@ public class TrainingServiceImpl implements TrainingService {
 
             traineeTrainingMetrics.recordTraineeSession();
             traineeTrainingMetrics.recordTraineeTrainingDuration(training.getDuration());
+            
+            trainerTrainingMetrics.recordTrainerSession();
+            trainerTrainingMetrics.recordTrainerTrainingDuration(training.getDuration());
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -150,6 +157,7 @@ public class TrainingServiceImpl implements TrainingService {
 
             trainingMetrics.recordTrainingDuration(savedTraining.getDuration());
             traineeTrainingMetrics.recordTraineeTrainingDuration(savedTraining.getDuration());
+            trainerTrainingMetrics.recordTrainerTrainingDuration(savedTraining.getDuration());
 
             return trainingResponseMapper.toTrainingSummaryResponse(savedTraining);
         } catch (Exception e) {
