@@ -37,12 +37,10 @@ class TraineeRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // Crear y persistir un tipo de entrenamiento
         trainingType = new TrainingType();
         trainingType.setTrainingTypeName("Fitness");
         entityManager.persist(trainingType);
 
-        // Crear entrenadores
         trainer1 = new Trainer();
         trainer1.setFirstName("John");
         trainer1.setLastName("Doe");
@@ -61,7 +59,6 @@ class TraineeRepositoryTest {
         trainer2.setTrainingType(trainingType);
         entityManager.persist(trainer2);
 
-        // Crear aprendices
         trainee1 = new Trainee();
         trainee1.setFirstName("Mark");
         trainee1.setLastName("Johnson");
@@ -82,11 +79,9 @@ class TraineeRepositoryTest {
         trainee2.setAddress("456 Elm St");
         entityManager.persist(trainee2);
 
-        // Asociar trainer1 con trainee1
         trainer1.getTrainees().add(trainee1);
         trainee1.getTrainers().add(trainer1);
         
-        // Asociar trainer2 con trainee1
         trainer2.getTrainees().add(trainee1);
         trainee1.getTrainers().add(trainer2);
 
@@ -96,10 +91,7 @@ class TraineeRepositoryTest {
     @Test
     @DisplayName("Should find trainee by username when trainee exists")
     void findByUsername_ShouldReturnTrainee_WhenTraineeExists() {
-        // when
         Optional<Trainee> found = traineeRepository.findByUsername("markj");
-
-        // then
         assertThat(found).isPresent();
         assertThat(found.get().getFirstName()).isEqualTo("Mark");
         assertThat(found.get().getLastName()).isEqualTo("Johnson");
@@ -108,21 +100,15 @@ class TraineeRepositoryTest {
     @Test
     @DisplayName("Should return empty when finding by non-existent username")
     void findByUsername_ShouldReturnEmpty_WhenTraineeDoesNotExist() {
-        // when
         Optional<Trainee> found = traineeRepository.findByUsername("nonexistent");
-
-        // then
         assertThat(found).isEmpty();
     }
 
     @Test
     @DisplayName("Should check if trainee exists by username")
     void existsByUsername_ShouldReturnTrue_WhenTraineeExists() {
-        // when
         boolean exists = traineeRepository.existsByUsername("markj");
         boolean notExists = traineeRepository.existsByUsername("nonexistent");
-
-        // then
         assertThat(exists).isTrue();
         assertThat(notExists).isFalse();
     }
@@ -131,14 +117,9 @@ class TraineeRepositoryTest {
     @DisplayName("Should update trainee password")
     @Transactional
     void updatePassword_ShouldUpdatePasswordSuccessfully() {
-        // given
         String newPassword = "newPassword123";
-        
-        // when
         int updatedRows = traineeRepository.updatePassword(trainee1.getId(), newPassword);
-        entityManager.clear(); // Clear persistence context to force reload
-        
-        // then
+        entityManager.clear();
         assertThat(updatedRows).isEqualTo(1);
         Trainee updatedTrainee = entityManager.find(Trainee.class, trainee1.getId());
         assertThat(updatedTrainee.getPassword()).isEqualTo(newPassword);
@@ -148,10 +129,7 @@ class TraineeRepositoryTest {
     @DisplayName("Should delete trainee by username")
     @Transactional
     void deleteByUsername_ShouldDeleteTrainee() {
-        // when
         int deletedRows = traineeRepository.deleteByUsername("markj");
-        
-        // then
         assertThat(deletedRows).isEqualTo(1);
         Optional<Trainee> deleted = traineeRepository.findByUsername("markj");
         assertThat(deleted).isEmpty();
@@ -160,10 +138,7 @@ class TraineeRepositoryTest {
     @Test
     @DisplayName("Should find trainers by trainee id")
     void findTrainersByTraineeId_ShouldReturnTrainers() {
-        // when
         Set<Trainer> trainers = traineeRepository.findTrainersByTraineeId(trainee1.getId());
-        
-        // then
         assertThat(trainers).hasSize(2);
         assertThat(trainers).contains(trainer1, trainer2);
     }
@@ -171,10 +146,7 @@ class TraineeRepositoryTest {
     @Test
     @DisplayName("Should count active trainees")
     void countByActive_ShouldReturnCorrectCount() {
-        // when
         long activeCount = traineeRepository.countByActive(true);
-        
-        // then
         assertThat(activeCount).isEqualTo(1);
     }
 } 
