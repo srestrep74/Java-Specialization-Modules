@@ -139,7 +139,7 @@ class TrainerControllerWebTestClientTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(deactivateRequest)
                 .exchange()
-                .expectStatus().isNoContent()
+                .expectStatus().isOk()
                 .expectHeader().exists(HttpHeaders.LOCATION);
     }
 

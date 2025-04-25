@@ -102,7 +102,7 @@ class AuthControllerWebTestClientTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(changeRequest)
                 .exchange()
-                .expectStatus().isNoContent();
+                .expectStatus().isOk();
 
         testPassword = newPassword;
     }

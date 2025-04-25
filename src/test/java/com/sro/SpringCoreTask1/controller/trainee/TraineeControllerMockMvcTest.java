@@ -133,7 +133,7 @@ class TraineeControllerMockMvcTest {
     @Order(5)
     void deleteProfile_ShouldRemoveTrainee() throws Exception {
         mockMvc.perform(delete(BASE_URL + "/{username}", createdTraineeUsername))
-            .andExpect(status().isNoContent());
+            .andExpect(status().isOk());
 
         mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
             .andExpect(status().isNotFound())
