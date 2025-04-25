@@ -19,6 +19,9 @@ import com.sro.SpringCoreTask1.mappers.seed.TraineeSeedMapper;
 import com.sro.SpringCoreTask1.mappers.seed.TrainerSeedMapper;
 import com.sro.SpringCoreTask1.mappers.seed.TrainingSeedMapper;
 import com.sro.SpringCoreTask1.mappers.seed.TrainingTypeSeedMapper;
+import com.sro.SpringCoreTask1.metrics.TrainingMetrics;
+import com.sro.SpringCoreTask1.metrics.TraineeTrainingMetrics;
+import com.sro.SpringCoreTask1.metrics.TrainerTrainingMetrics;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
@@ -38,10 +41,16 @@ public class DataSeedService {
     private final TrainingSeedMapper trainingSeedMapper;
     private final TrainingTypeSeedMapper trainingTypeSeedMapper;
 
+    private final TrainingMetrics trainingMetrics;
+    private final TraineeTrainingMetrics traineeTrainingMetrics;
+    private final TrainerTrainingMetrics trainerTrainingMetrics;
+
     public DataSeedService(TraineeRepository traineeRepository, TrainerRepository trainerRepository,
             TrainingTypeRepository trainingTypeRepository, TrainingRepository trainingRepository,
             TraineeSeedMapper traineeSeedMapper, TrainerSeedMapper trainerSeedMapper,
-            TrainingSeedMapper trainingSeedMapper, TrainingTypeSeedMapper trainingTypeSeedMapper) {
+            TrainingSeedMapper trainingSeedMapper, TrainingTypeSeedMapper trainingTypeSeedMapper,
+            TrainingMetrics trainingMetrics, TraineeTrainingMetrics traineeTrainingMetrics,
+            TrainerTrainingMetrics trainerTrainingMetrics) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
@@ -50,6 +59,9 @@ public class DataSeedService {
         this.trainerSeedMapper = trainerSeedMapper;
         this.trainingSeedMapper = trainingSeedMapper;
         this.trainingTypeSeedMapper = trainingTypeSeedMapper;
+        this.trainingMetrics = trainingMetrics;
+        this.traineeTrainingMetrics = traineeTrainingMetrics;
+        this.trainerTrainingMetrics = trainerTrainingMetrics;
     }
 
     @Transactional
@@ -137,6 +149,15 @@ public class DataSeedService {
 
             Training training = trainingSeedMapper.toEntity(trainingRequestDTO, trainee, trainer, trainingType);
             trainingRepository.save(training);
+
+            trainingMetrics.recordNewTraining();
+            trainingMetrics.recordTrainingDuration(training.getDuration());
+
+            traineeTrainingMetrics.recordTraineeSession();
+            traineeTrainingMetrics.recordTraineeTrainingDuration(training.getDuration());
+
+            trainerTrainingMetrics.recordTrainerSession();
+            trainerTrainingMetrics.recordTrainerTrainingDuration(training.getDuration());
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException(
                     "Training with name " + trainingRequestDTO.trainingName() + " already exists");

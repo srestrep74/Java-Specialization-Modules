@@ -49,6 +49,7 @@ public class TraineeTrainingMetrics {
         traineeTrainingDurationSummary = DistributionSummary.builder("trainee.training.duration")
                 .baseUnit("minutes")
                 .description("Distribution of training durations for trainees")
+                .publishPercentiles(0.5, 0.75, 0.95, 0.99)
                 .register(meterRegistry);
     }
 
