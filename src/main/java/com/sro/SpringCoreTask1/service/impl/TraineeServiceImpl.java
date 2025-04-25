@@ -73,7 +73,7 @@ public class TraineeServiceImpl implements TraineeService {
         }
 
         String generatedUsername = ProfileUtil.generateUsername(traineeRequestDTO.firstName(),
-                traineeRequestDTO.lastName());
+                traineeRequestDTO.lastName(), username -> traineeRepository.existsByUsername(username));
         String generatedPassword = ProfileUtil.generatePassword();
 
         try {

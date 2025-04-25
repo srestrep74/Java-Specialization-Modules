@@ -299,7 +299,7 @@ public class TrainerController {
     )
     @ApiResponses(value = {
         @ApiResponse(
-            responseCode = "204",
+            responseCode = "200",
             description = "Activation status updated successfully",
             content = @Content
         ),

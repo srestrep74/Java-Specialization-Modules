@@ -207,7 +207,7 @@ public class TraineeController {
     )
     @ApiResponses(value = {
         @ApiResponse(
-            responseCode = "204",
+            responseCode = "200",
             description = "Profile deleted successfully",
             content = @Content
         ),
@@ -333,7 +333,7 @@ public class TraineeController {
     )
     @ApiResponses(value = {
         @ApiResponse(
-            responseCode = "204",
+            responseCode = "200",
             description = "Activation status updated successfully",
             content = @Content
         ),

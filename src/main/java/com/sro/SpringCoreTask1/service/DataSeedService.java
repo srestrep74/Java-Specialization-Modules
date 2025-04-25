@@ -57,7 +57,8 @@ public class DataSeedService {
         try {
             Trainee trainee = traineeSeedMapper.toEntity(traineeRequestDTO);
             trainee.setUsername(
-                    ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName()));
+                    ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName(),
+                            username -> traineeRepository.existsByUsername(username)));
             trainee.setPassword(ProfileUtil.generatePassword());
             Trainee savedTrainee = traineeRepository.save(trainee);
 
@@ -86,7 +87,8 @@ public class DataSeedService {
                             "TrainingType not found with id: " + trainerRequestDTO.trainingTypeId()));
             Trainer trainer = trainerSeedMapper.toEntity(trainerRequestDTO, trainingType);
             trainer.setUsername(
-                    ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName()));
+                    ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName(),
+                            username -> trainerRepository.existsByUsername(username)));
             trainer.setPassword(ProfileUtil.generatePassword());
             trainerRepository.save(trainer);
         } catch (ConstraintViolationException e) {

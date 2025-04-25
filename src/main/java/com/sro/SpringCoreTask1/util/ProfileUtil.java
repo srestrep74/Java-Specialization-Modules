@@ -1,10 +1,18 @@
 package com.sro.SpringCoreTask1.util;
 
 import java.util.Random;
+import java.util.function.Function;
 
 public class ProfileUtil {
-    public static String generateUsername(String firstName, String lastName) {
-        return firstName.toLowerCase() + "." + lastName.toLowerCase();
+    public static String generateUsername(String firstName, String lastName, Function<String, Boolean> existsByUsername) {
+        String baseUsername = firstName.toLowerCase() + "." + lastName.toLowerCase();
+        String username = baseUsername;
+        int counter = 1;
+        while (existsByUsername.apply(username)) {
+            username = baseUsername + counter;
+            counter++;
+        }
+        return username;
     }
 
     public static String generatePassword() {

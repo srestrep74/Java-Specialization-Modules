@@ -14,6 +14,8 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long>, JpaSpec
 
     Optional<Trainer> findByUsername(String username);
 
+    boolean existsByUsername(String username);
+
     @Modifying
     @Query("UPDATE Trainer t SET t.password = :newPassword WHERE t.id = :trainerId")
     void updatePassword(Long trainerId, String newPassword);

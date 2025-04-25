@@ -67,7 +67,7 @@ public class TrainerServiceImpl implements TrainerService {
         }
 
         String generatedUsername = ProfileUtil.generateUsername(trainerRequestDTO.firstName(),
-                trainerRequestDTO.lastName());
+                trainerRequestDTO.lastName(), username -> trainerRepository.existsByUsername(username));
         String generatedPassword = ProfileUtil.generatePassword();
 
         try {
