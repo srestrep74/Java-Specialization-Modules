@@ -337,6 +337,6 @@ public class TrainerController {
             @RequestBody UpdateTrainerActivation updateTrainerActivation) {
         trainerService.updateActivationStatus(username, updateTrainerActivation.active());
         Link profileLink = linkTo(methodOn(TrainerController.class).getProfile(username)).withRel("profile");
-        return ResponseEntity.noContent().header(HttpHeaders.LOCATION, profileLink.toUri().toString()).build();
+        return ResponseEntity.ok().header(HttpHeaders.LOCATION, profileLink.toUri().toString()).build();
     }
 }
