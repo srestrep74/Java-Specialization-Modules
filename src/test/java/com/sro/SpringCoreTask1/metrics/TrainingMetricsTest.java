@@ -89,7 +89,8 @@ class TrainingMetricsTest {
         Gauge gauge = meterRegistry.find("training.today.count").gauge();
         assertNotNull(gauge);
         assertEquals(2.0, gauge.value());
-        verify(trainingRepository).findAll(any(Specification.class));
+
+        verify(trainingRepository, times(1)).findAll(any(Specification.class));
     }
 
     @Test
@@ -105,6 +106,7 @@ class TrainingMetricsTest {
         Gauge gauge = meterRegistry.find("training.weekly.count").gauge();
         assertNotNull(gauge);
         assertEquals(3.0, gauge.value());
-        verify(trainingRepository).findAll(any(Specification.class));
+
+        verify(trainingRepository, times(1)).findAll(any(Specification.class));
     }
 }

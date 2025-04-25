@@ -67,10 +67,10 @@ class TrainingServiceImplTest {
 
     @Mock
     private TraininigTrainerMapper traininigTrainerMapper;
-    
+
     @Mock
     private TrainingMetrics trainingMetrics;
-    
+
     @Mock
     private TraineeTrainingMetrics traineeTrainingMetrics;
 
@@ -120,38 +120,34 @@ class TrainingServiceImplTest {
         training.setTrainingType(trainingType);
 
         createTrainingRequest = new CreateTrainingRequest(
-            "johndoe", 
-            "trainer1", 
-            "Morning Session", 
-            LocalDate.now(), 
-            60
-        );
+                "johndoe",
+                "trainer1",
+                "Morning Session",
+                LocalDate.now(),
+                60);
 
         updateTrainingRequest = new UpdateTrainingRequest(
-            "Updated Session", 
-            LocalDate.now().plusDays(1), 
-            90, 
-            "trainer1", 
-            "johndoe", 
-            "Fitness"
-        );
+                "Updated Session",
+                LocalDate.now().plusDays(1),
+                90,
+                "trainer1",
+                "johndoe",
+                "Fitness");
 
         trainingSummaryResponse = new TrainingSummaryResponse(
-            "Morning Session", 
-            "Trainer One", 
-            "John Doe", 
-            "Fitness", 
-            LocalDate.now(), 
-            60
-        );
+                "Morning Session",
+                "Trainer One",
+                "John Doe",
+                "Fitness",
+                LocalDate.now(),
+                60);
 
         traineeTrainingResponse = new TraineeTrainingResponse(
-            "Morning Session", 
-            LocalDate.now(), 
-            "Fitness", 
-            60, 
-            "Trainer One"
-        );
+                "Morning Session",
+                LocalDate.now(),
+                "Fitness",
+                60,
+                "Trainer One");
     }
 
     @Test
@@ -159,14 +155,13 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee, trainingType))
-            .thenReturn(training);
+                .thenReturn(training);
         doNothing().when(trainingMetrics).recordNewTraining();
         doNothing().when(trainingMetrics).recordTrainingDuration(anyLong());
         doNothing().when(traineeTrainingMetrics).recordTraineeSession();
         doNothing().when(traineeTrainingMetrics).recordTraineeTrainingDuration(anyLong());
         doNothing().when(trainerTrainingMetrics).recordTrainerSession();
         doNothing().when(trainerTrainingMetrics).recordTrainerTrainingDuration(anyLong());
-
 
         assertDoesNotThrow(() -> trainingService.save(createTrainingRequest));
         verify(trainingRepository).save(training);
@@ -187,9 +182,9 @@ class TrainingServiceImplTest {
     void save_ShouldThrowResourceNotFoundException_WhenTraineeNotFound() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, 
-            () -> trainingService.save(createTrainingRequest));
-        
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.save(createTrainingRequest));
+
         assertTrue(exception.getMessage().contains("Trainee not found"));
     }
 
@@ -198,9 +193,9 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, 
-            () -> trainingService.save(createTrainingRequest));
-        
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> trainingService.save(createTrainingRequest));
+
         assertTrue(exception.getMessage().contains("Trainer not found"));
     }
 
@@ -209,18 +204,18 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee, trainingType))
-            .thenReturn(training);
+                .thenReturn(training);
         when(trainingRepository.save(training)).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.save(createTrainingRequest));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainingService.save(createTrainingRequest));
     }
 
     @Test
     void findById_ShouldReturnTrainingSummaryResponse_WhenTrainingExists() {
         when(trainingRepository.findById(1L)).thenReturn(Optional.of(training));
         when(trainingResponseMapper.toTrainingSummaryResponse(training))
-            .thenReturn(trainingSummaryResponse);
+                .thenReturn(trainingSummaryResponse);
 
         TrainingSummaryResponse result = trainingService.findById(1L);
 
@@ -237,9 +232,9 @@ class TrainingServiceImplTest {
     void findById_ShouldThrowResourceNotFoundException_WhenTrainingDoesNotExist() {
         when(trainingRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.findById(1L));
-        
+        Exception exception = assertThrows(DatabaseOperationException.class,
+                () -> trainingService.findById(1L));
+
         assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
@@ -254,7 +249,7 @@ class TrainingServiceImplTest {
     void findAll_ShouldReturnListOfTrainingSummaryResponse_WhenTrainingsExist() {
         when(trainingRepository.findAll()).thenReturn(List.of(training));
         when(trainingResponseMapper.toTrainingSummaryResponse(training))
-            .thenReturn(trainingSummaryResponse);
+                .thenReturn(trainingSummaryResponse);
 
         List<TrainingSummaryResponse> result = trainingService.findAll();
 
@@ -275,10 +270,10 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingUpdateMapper.toEntity(updateTrainingRequest, trainer, trainee, trainingType))
-            .thenReturn(training);
+                .thenReturn(training);
         when(trainingRepository.save(training)).thenReturn(training);
         when(trainingResponseMapper.toTrainingSummaryResponse(training))
-            .thenReturn(trainingSummaryResponse);
+                .thenReturn(trainingSummaryResponse);
         doNothing().when(trainingMetrics).recordTrainingDuration(anyLong());
         doNothing().when(traineeTrainingMetrics).recordTraineeTrainingDuration(anyLong());
         doNothing().when(trainerTrainingMetrics).recordTrainerTrainingDuration(anyLong());
@@ -301,9 +296,9 @@ class TrainingServiceImplTest {
     void update_ShouldThrowResourceNotFoundException_WhenTraineeNotFound() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.update(updateTrainingRequest));
-        
+        Exception exception = assertThrows(DatabaseOperationException.class,
+                () -> trainingService.update(updateTrainingRequest));
+
         assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
@@ -312,9 +307,9 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.update(updateTrainingRequest));
-        
+        Exception exception = assertThrows(DatabaseOperationException.class,
+                () -> trainingService.update(updateTrainingRequest));
+
         assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
@@ -323,11 +318,11 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
         when(trainingUpdateMapper.toEntity(updateTrainingRequest, trainer, trainee, trainingType))
-            .thenReturn(training);
+                .thenReturn(training);
         when(trainingRepository.save(training)).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.update(updateTrainingRequest));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainingService.update(updateTrainingRequest));
     }
 
     @Test
@@ -352,20 +347,21 @@ class TrainingServiceImplTest {
     @Test
     void findTrainingsByTraineeWithFilters_ShouldReturnListOfTraineeTrainingResponse() {
         TraineeTrainingFilter filter = new TraineeTrainingFilter(
-            "johndoe",       
-            LocalDate.now(), 
-            LocalDate.now().plusDays(1), 
-            "trainer1",      
-            "Fitness"        
-        );
-        
-        when(trainingRepository.findAll(any(Specification.class), any(Sort.class)))
-            .thenReturn(List.of(training));
+                "johndoe",
+                LocalDate.now(),
+                LocalDate.now().plusDays(1),
+                "trainer1",
+                "Fitness");
+
+        Specification<Training> anyTrainingSpec = any();
+        Sort anySort = any();
+        when(trainingRepository.findAll(anyTrainingSpec, anySort))
+                .thenReturn(List.of(training));
         when(trainingTraineeMapper.toTraineeTrainingResponse(training))
-            .thenReturn(traineeTrainingResponse);
+                .thenReturn(traineeTrainingResponse);
 
         List<TraineeTrainingResponse> result = trainingService
-            .findTrainingsByTraineeWithFilters(filter, "date", "asc");
+                .findTrainingsByTraineeWithFilters(filter, "date", "asc");
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
@@ -374,46 +370,47 @@ class TrainingServiceImplTest {
 
     @Test
     void findTrainingsByTraineeWithFilters_ShouldThrowIllegalArgumentException_WhenFilterIsNull() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainingService.findTrainingsByTraineeWithFilters(null, "date", "asc"));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainingService.findTrainingsByTraineeWithFilters(null, "date", "asc"));
     }
 
     @Test
     void findTrainingsByTraineeWithFilters_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         TraineeTrainingFilter filter = new TraineeTrainingFilter(
-            "johndoe",                
-            LocalDate.now(),          
-            LocalDate.now().plusDays(1), 
-            "trainer1",               
-            "Fitness"                 
-        );
-        
-        when(trainingRepository.findAll(any(Specification.class), any(Sort.class)))
-            .thenThrow(new RuntimeException("Database error"));
-    
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.findTrainingsByTraineeWithFilters(filter, "date", "asc"));
+                "johndoe",
+                LocalDate.now(),
+                LocalDate.now().plusDays(1),
+                "trainer1",
+                "Fitness");
+
+        Specification<Training> anyTrainingSpec = any();
+        Sort anySort = any();
+        when(trainingRepository.findAll(anyTrainingSpec, anySort))
+                .thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(DatabaseOperationException.class,
+                () -> trainingService.findTrainingsByTraineeWithFilters(filter, "date", "asc"));
     }
 
     @Test
     void findTrainingsByTrainerWithFilters_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         TrainerTrainingFilter filter = new TrainerTrainingFilter(
-            "trainee1",
-            LocalDate.now(),
-            LocalDate.now().plusDays(1),
-            "johndoe"
-        );
-        
-        when(trainingRepository.findAll(any(Specification.class)))
-            .thenThrow(new RuntimeException("Database error"));
-    
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainingService.findTrainingsByTrainerWithFilters(filter));
+                "trainee1",
+                LocalDate.now(),
+                LocalDate.now().plusDays(1),
+                "johndoe");
+
+        Specification<Training> anyTrainingSpec = any();
+        when(trainingRepository.findAll(anyTrainingSpec))
+                .thenThrow(new RuntimeException("Database error"));
+
+        assertThrows(DatabaseOperationException.class,
+                () -> trainingService.findTrainingsByTrainerWithFilters(filter));
     }
 
     @Test
     void findTrainingsByTrainerWithFilters_ShouldThrowIllegalArgumentException_WhenFilterIsNull() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainingService.findTrainingsByTrainerWithFilters(null));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainingService.findTrainingsByTrainerWithFilters(null));
     }
 }

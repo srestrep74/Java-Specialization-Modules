@@ -2,6 +2,7 @@ package com.sro.SpringCoreTask1.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
@@ -71,7 +72,7 @@ class TrainerServiceImplTest {
         trainingType = new TrainingType();
         trainingType.setId(1L);
         trainingType.setTrainingTypeName("Fitness");
-    
+
         trainer = new Trainer();
         trainer.setId(1L);
         trainer.setFirstName("John");
@@ -80,33 +81,28 @@ class TrainerServiceImplTest {
         trainer.setPassword("password");
         trainer.setActive(true);
         trainer.setTrainingType(trainingType);
-    
+
         registerTrainerRequest = new RegisterTrainerRequest(
-            "John", "Doe", 1L
-        );
-    
+                "John", "Doe", 1L);
+
         registerTrainerResponse = new RegisterTrainerResponse(
-            "johndoe", "generatedPassword"
-        );
-    
+                "johndoe", "generatedPassword");
+
         trainerProfileResponse = new TrainerProfileResponse(
-            "John", 
-            "Doe", 
-            1L, 
-            true, 
-            List.of() 
-        );
-    
+                "John",
+                "Doe",
+                1L,
+                true,
+                List.of());
+
         updateTrainerProfileRequest = new UpdateTrainerProfileRequest(
-            "John", "Doe", 1L, true
-        );
-    
+                "John", "Doe", 1L, true);
+
         unassignedTrainerResponse = new UnassignedTrainerResponse(
-            "johndoe", 
-            "John", 
-            "Doe", 
-            1L  
-        );
+                "johndoe",
+                "John",
+                "Doe",
+                1L);
     }
 
     @Test
@@ -145,7 +141,8 @@ class TrainerServiceImplTest {
     void save_ShouldThrowResourceAlreadyExistsException_WhenUsernameExists() {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerCreateMapper.toEntity(registerTrainerRequest, trainingType)).thenReturn(trainer);
-        when(trainerRepository.save(trainer)).thenThrow(new ConstraintViolationException("Username already exists", null));
+        when(trainerRepository.save(trainer))
+                .thenThrow(new ConstraintViolationException("Username already exists", null));
 
         assertThrows(ResourceAlreadyExistsException.class, () -> trainerService.save(registerTrainerRequest));
     }
@@ -179,9 +176,9 @@ class TrainerServiceImplTest {
     void findById_ShouldThrowResourceNotFoundException_WhenTrainerDoesNotExist() {
         when(trainerRepository.findById(1L)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
-            () -> trainerService.findById(1L));
-        
+        Exception exception = assertThrows(DatabaseOperationException.class,
+                () -> trainerService.findById(1L));
+
         assertTrue(exception.getCause() instanceof ResourceNotFoundException);
     }
 
@@ -216,7 +213,7 @@ class TrainerServiceImplTest {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainer));
         when(trainerUpdateMapper.toEntity(updateTrainerProfileRequest, trainer, trainingType))
-            .thenReturn(trainer);
+                .thenReturn(trainer);
         when(trainerRepository.save(trainer)).thenReturn(trainer);
         when(trainerResponseMapper.toTrainerProfileResponse(trainer)).thenReturn(trainerProfileResponse);
 
@@ -233,16 +230,16 @@ class TrainerServiceImplTest {
 
     @Test
     void update_ShouldThrowIllegalArgumentException_WhenUsernameIsNull() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.update(null, updateTrainerProfileRequest));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.update(null, updateTrainerProfileRequest));
     }
 
     @Test
     void update_ShouldThrowResourceNotFoundException_WhenTrainingTypeDoesNotExist() {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, 
-            () -> trainerService.update("johndoe", updateTrainerProfileRequest));
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.update("johndoe", updateTrainerProfileRequest));
     }
 
     @Test
@@ -250,8 +247,8 @@ class TrainerServiceImplTest {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, 
-            () -> trainerService.update("johndoe", updateTrainerProfileRequest));
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.update("johndoe", updateTrainerProfileRequest));
     }
 
     @Test
@@ -259,11 +256,11 @@ class TrainerServiceImplTest {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainer));
         when(trainerUpdateMapper.toEntity(updateTrainerProfileRequest, trainer, trainingType))
-            .thenReturn(trainer);
+                .thenReturn(trainer);
         when(trainerRepository.save(trainer)).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainerService.update("johndoe", updateTrainerProfileRequest));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainerService.update("johndoe", updateTrainerProfileRequest));
     }
 
     @Test
@@ -325,13 +322,12 @@ class TrainerServiceImplTest {
 
     @Test
     void findUnassignedTrainersByTraineeUsername_ShouldReturnList_WhenTrainersExist() {
-        when(trainerRepository.findAll(any(Specification.class)))
-            .thenReturn(List.of(trainer));
+        Specification<Trainer> anySpec = any();
+        when(trainerRepository.findAll(anySpec)).thenReturn(List.of(trainer));
         when(trainerResponseMapper.toUnassignedTrainerResponse(trainer))
-            .thenReturn(unassignedTrainerResponse);
+                .thenReturn(unassignedTrainerResponse);
 
-        List<UnassignedTrainerResponse> result = 
-            trainerService.findUnassignedTrainersByTraineeUsername("traineeUser");
+        List<UnassignedTrainerResponse> result = trainerService.findUnassignedTrainersByTraineeUsername("traineeUser");
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
@@ -340,17 +336,18 @@ class TrainerServiceImplTest {
 
     @Test
     void findUnassignedTrainersByTraineeUsername_ShouldThrowIllegalArgumentException_WhenUsernameIsNull() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.findUnassignedTrainersByTraineeUsername(null));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.findUnassignedTrainersByTraineeUsername(null));
     }
 
     @Test
     void findUnassignedTrainersByTraineeUsername_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainerRepository.findAll(any(Specification.class)))
-            .thenThrow(new RuntimeException("Database error"));
+        Specification<Trainer> anySpec = any();
+        when(trainerRepository.findAll(anySpec))
+                .thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainerService.findUnassignedTrainersByTraineeUsername("traineeUser"));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainerService.findUnassignedTrainersByTraineeUsername("traineeUser"));
     }
 
     @Test
@@ -363,24 +360,24 @@ class TrainerServiceImplTest {
 
     @Test
     void updateActivationStatus_ShouldThrowIllegalArgumentException_WhenUsernameIsNull() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.updateActivationStatus(null, true));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.updateActivationStatus(null, true));
     }
 
     @Test
     void updateActivationStatus_ShouldThrowResourceNotFoundException_WhenTrainerDoesNotExist() {
         when(trainerRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, 
-            () -> trainerService.updateActivationStatus("johndoe", true));
+        assertThrows(ResourceNotFoundException.class,
+                () -> trainerService.updateActivationStatus("johndoe", true));
     }
 
     @Test
     void updateActivationStatus_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(trainerRepository.findByUsername("johndoe")).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainerService.updateActivationStatus("johndoe", true));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainerService.updateActivationStatus("johndoe", true));
     }
 
     @Test
@@ -392,20 +389,20 @@ class TrainerServiceImplTest {
 
     @Test
     void updateTrainerPassword_ShouldThrowIllegalArgumentException_WhenInputIsInvalid() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.updateTrainerPassword(null, "newPassword"));
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.updateTrainerPassword(1L, null));
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.updateTrainerPassword(1L, ""));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.updateTrainerPassword(null, "newPassword"));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.updateTrainerPassword(1L, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.updateTrainerPassword(1L, ""));
     }
 
     @Test
     void updateTrainerPassword_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         doThrow(new RuntimeException("Database error")).when(trainerRepository).updatePassword(1L, "newPassword");
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainerService.updateTrainerPassword(1L, "newPassword"));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainerService.updateTrainerPassword(1L, "newPassword"));
     }
 
     @Test
@@ -422,15 +419,15 @@ class TrainerServiceImplTest {
 
     @Test
     void findTrainersByTraineeId_ShouldThrowIllegalArgumentException_WhenIdIsNull() {
-        assertThrows(IllegalArgumentException.class, 
-            () -> trainerService.findTrainersByTraineeId(null));
+        assertThrows(IllegalArgumentException.class,
+                () -> trainerService.findTrainersByTraineeId(null));
     }
 
     @Test
     void findTrainersByTraineeId_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(trainerRepository.findTrainersByTraineeId(1L)).thenThrow(new RuntimeException("Database error"));
 
-        assertThrows(DatabaseOperationException.class, 
-            () -> trainerService.findTrainersByTraineeId(1L));
+        assertThrows(DatabaseOperationException.class,
+                () -> trainerService.findTrainersByTraineeId(1L));
     }
 }
