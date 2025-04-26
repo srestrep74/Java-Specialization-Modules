@@ -35,7 +35,7 @@ class TrainingControllerWebTestClientTest {
             @Autowired TraineeService traineeService,
             @Autowired TrainerService trainerService) {
         
-        TrainingTypeRequestDTO typeRequest = new TrainingTypeRequestDTO("Strength Training");
+        TrainingTypeRequestDTO typeRequest = new TrainingTypeRequestDTO("Zumba");
         trainingTypeService.save(typeRequest);
 
         RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
@@ -54,7 +54,7 @@ class TrainingControllerWebTestClientTest {
         CreateTrainingRequest request = new CreateTrainingRequest(
                 traineeUsername,
                 trainerUsername,
-                "Strength Training",
+                "Zumba",
                 LocalDate.now(),
                 60
         );
