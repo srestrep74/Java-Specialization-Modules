@@ -295,6 +295,11 @@ The `local` profile is optimized for development on a local machine:
 mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 ```
 
+Alternatively, you can set the active profile directly in the base `application.properties` file:
+```properties
+spring.profiles.active=local
+```
+
 ### Development Profile (Staging Environment)
 
 The `dev` profile is designed for shared development or staging environments:
@@ -312,6 +317,11 @@ The `dev` profile is designed for shared development or staging environments:
 **Running with Development Profile**:
 ```sh
 mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
+```
+
+Alternatively, you can set the active profile directly in the base `application.properties` file:
+```properties
+spring.profiles.active=dev
 ```
 
 ### Production Profile
@@ -343,6 +353,13 @@ $env:DB_PROD_USER="postgres"
 $env:DB_PROD_PASSWORD="postgres"
 mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
 ```
+
+Alternatively, you can set the active profile directly in the base `application.properties` file:
+```properties
+spring.profiles.active=prod
+```
+
+Remember to still set the required environment variables when using this method.
 
 **Linux/macOS**:
 ```bash
