@@ -77,7 +77,7 @@ class TrainerControllerWebTestClientTest {
                     assertNotNull(profile);
                     assertEquals("Sergio", profile.firstName());
                     assertEquals("Rodriguez", profile.lastName());
-                    assertEquals(1L, profile.specialization());
+                    assertEquals(3L, profile.specialization());
                 });
     }
 

@@ -2,10 +2,12 @@ package com.sro.SpringCoreTask1.controller;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.service.TraineeService;
+import com.sro.SpringCoreTask1.service.TrainingTypeService;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +29,15 @@ class TrainingTypeControllerWebTestClientTest {
 
     @BeforeAll
     static void setupAll(
-            @Autowired TraineeService traineeService) {
+            @Autowired TraineeService traineeService,
+            @Autowired TrainingTypeService trainingTypeService) {
         RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
                 "Test", "Trainee2", LocalDate.of(1990, 1, 1), "Test Address");
         trainee = traineeService.save(traineeRequest);
+
+        TrainingTypeRequestDTO trainingTypeRequest = new TrainingTypeRequestDTO(
+                "Test Training Type");
+        trainingTypeService.save(trainingTypeRequest);
     }
 
     @Test
