@@ -7,9 +7,11 @@ import javax.sql.DataSource;
 
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!local")
 public class DatabaseHealthIndicator implements HealthIndicator {
 
     private final DataSource dataSource;
