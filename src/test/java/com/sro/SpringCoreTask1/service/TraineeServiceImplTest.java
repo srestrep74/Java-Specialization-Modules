@@ -211,7 +211,7 @@ class TraineeServiceImplTest {
     void update_ShouldReturnUpdatedTraineeProfileResponse_WhenTraineeExists() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(traineeUpdateMapper.toEntity(updateTraineeProfileRequest, trainee)).thenReturn(trainee);
-        when(traineeRepository.update(trainee)).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(trainee)).thenReturn(trainee);
         when(traineeResponseMapper.toProfileResponse(trainee)).thenReturn(traineeProfileResponse);
 
         TraineeProfileResponse result = traineeService.update("johndoe", updateTraineeProfileRequest);
@@ -237,7 +237,7 @@ class TraineeServiceImplTest {
     void update_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.of(trainee));
         when(traineeUpdateMapper.toEntity(updateTraineeProfileRequest, trainee)).thenReturn(trainee);
-        when(traineeRepository.update(trainee)).thenThrow(new RuntimeException("Database error"));
+        when(traineeRepository.save(trainee)).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, 
             () -> traineeService.update("johndoe", updateTraineeProfileRequest));
@@ -245,7 +245,7 @@ class TraineeServiceImplTest {
 
     @Test
     void deleteById_ShouldDeleteTrainee_WhenTraineeExists() {
-        when(traineeRepository.deleteById(1L)).thenReturn(true);
+        when(traineeRepository.existsById(1L)).thenReturn(true);
 
         assertDoesNotThrow(() -> traineeService.deleteById(1L));
     }
@@ -257,14 +257,15 @@ class TraineeServiceImplTest {
 
     @Test
     void deleteById_ShouldThrowResourceNotFoundException_WhenTraineeDoesNotExist() {
-        when(traineeRepository.deleteById(1L)).thenReturn(false);
+        when(traineeRepository.existsById(1L)).thenReturn(false);
 
         assertThrows(ResourceNotFoundException.class, () -> traineeService.deleteById(1L));
     }
 
     @Test
     void deleteById_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(traineeRepository.deleteById(1L)).thenThrow(new RuntimeException("Database error"));
+        when(traineeRepository.existsById(1L)).thenReturn(true);
+        doThrow(new RuntimeException("Database error")).when(traineeRepository).deleteById(1L);
 
         assertThrows(DatabaseOperationException.class, () -> traineeService.deleteById(1L));
     }
@@ -301,7 +302,7 @@ class TraineeServiceImplTest {
 
     @Test
     void deleteByUsername_ShouldDeleteTrainee_WhenTraineeExists() {
-        when(traineeRepository.deleteByUsername("johndoe")).thenReturn(true);
+        when(traineeRepository.existsByUsername("johndoe")).thenReturn(true);
 
         assertDoesNotThrow(() -> traineeService.deleteByUsername("johndoe"));
     }
@@ -313,13 +314,14 @@ class TraineeServiceImplTest {
 
     @Test
     void deleteByUsername_ShouldThrowResourceNotFoundException_WhenTraineeDoesNotExist() {
-        when(traineeRepository.deleteByUsername("johndoe")).thenReturn(false);
+        when(traineeRepository.existsByUsername("johndoe")).thenReturn(false);
 
         assertThrows(ResourceNotFoundException.class, () -> traineeService.deleteByUsername("johndoe"));
     }
 
     @Test
     void deleteByUsername_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
+        when(traineeRepository.existsByUsername("johndoe")).thenReturn(true);
         when(traineeRepository.deleteByUsername("johndoe")).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, () -> traineeService.deleteByUsername("johndoe"));
@@ -467,7 +469,7 @@ class TraineeServiceImplTest {
 
     @Test
     void updateTraineePassword_ShouldUpdatePassword_WhenValidInput() {
-        when(traineeRepository.updatePassword(1L, "newPassword")).thenReturn(true);
+        when(traineeRepository.updatePassword(1L, "newPassword")).thenReturn(1);
 
         assertTrue(traineeService.updateTraineePassword(1L, "newPassword"));
     }

@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
                 if (!trainee.isActive()) {
                     throw new AuthenticationFailedException("User is not active");
                 }
-                
+
                 if (trainee.getPassword().equals(password)) {
                     this.authenticatedUser = trainee;
                     this.isTrainee = true;
@@ -53,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
                 if (!trainer.isActive()) {
                     throw new AuthenticationFailedException("User is not active");
                 }
-                
+
                 if (trainer.getPassword().equals(password)) {
                     this.authenticatedUser = trainer;
                     this.isTrainee = false;
@@ -72,19 +72,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void changePassword(String username, String oldPassword, String newPassword) {
-        if (username == null || username.isEmpty() || 
-            oldPassword == null || oldPassword.isEmpty() ||
-            newPassword == null || newPassword.isEmpty()) {
+        if (username == null || username.isEmpty() ||
+                oldPassword == null || oldPassword.isEmpty() ||
+                newPassword == null || newPassword.isEmpty()) {
             throw new IllegalArgumentException("Username, old password and new password cannot be null or empty");
         }
 
         try {
             LoginResponse loginResponse = authenticate(username, oldPassword);
-            
+
             if (!loginResponse.success()) {
                 throw new AuthenticationFailedException("Current password is incorrect");
             }
-            
+
             if (isCurrentUserTrainee()) {
                 Trainee trainee = (Trainee) authenticatedUser;
                 trainee.setPassword(newPassword);

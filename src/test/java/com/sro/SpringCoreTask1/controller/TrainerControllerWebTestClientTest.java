@@ -3,8 +3,12 @@ package com.sro.SpringCoreTask1.controller;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TrainerTrainingResponse;
+import com.sro.SpringCoreTask1.dtos.v1.request.trainingType.TrainingTypeRequestDTO;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.*;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
+import com.sro.SpringCoreTask1.service.TrainingTypeService;
+
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,9 +24,19 @@ class TrainerControllerWebTestClientTest {
     private static final String BASE_URL = "/api/v1/trainers";
     private static String createdTrainerUsername;
     private static String createdTrainerPassword;
+    private static Long trainingTypeId;
 
     @Autowired
     private WebTestClient webTestClient;
+
+    @BeforeAll
+    static void setupAll(
+            @Autowired TrainingTypeService trainingTypeService) {
+        
+        TrainingTypeRequestDTO typeRequest = new TrainingTypeRequestDTO("Strength Training");
+        TrainingTypeResponse typeResponse = trainingTypeService.save(typeRequest);
+        trainingTypeId = typeResponse.trainingTypeId();
+    }
 
     @Test
     @Order(1)
@@ -30,7 +44,7 @@ class TrainerControllerWebTestClientTest {
         RegisterTrainerRequest request = new RegisterTrainerRequest(
                 "Sergio",
                 "Rodriguez",
-                1L
+                trainingTypeId
         );
 
         webTestClient.post()
@@ -139,7 +153,7 @@ class TrainerControllerWebTestClientTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(deactivateRequest)
                 .exchange()
-                .expectStatus().isNoContent()
+                .expectStatus().isOk()
                 .expectHeader().exists(HttpHeaders.LOCATION);
     }
 

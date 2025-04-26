@@ -13,16 +13,29 @@ import com.sro.SpringCoreTask1.entity.Trainer;
 
 public interface TraineeService {
     RegisterTraineeResponse save(RegisterTraineeRequest traineeRegistrationRequestDTO);
+
     TraineeProfileResponse findById(Long id);
+
     List<TraineeProfileResponse> findAll();
+
     TraineeProfileResponse update(String username, UpdateTraineeProfileRequest traineeUpdateRequestDTO);
+
     void deleteById(Long id);
+
     TraineeProfileResponse findByUsername(String username);
+
     void deleteByUsername(String username);
+
     void addTrainerToTrainee(Long traineeId, Long trainerId);
+
     void removeTrainerFromTrainee(Long traineeId, Long trainerId);
+
     void updateActivationStatus(String username, boolean active);
+
     boolean updateTraineePassword(Long traineeId, String newPassword);
+
     Set<Trainer> findTrainersByTraineeId(Long traineeId);
-    List<TrainerSummaryResponse> updateTraineeTrainers(String username, UpdateTraineeTrainerListRequest updateTrainersRequest);
+
+    List<TrainerSummaryResponse> updateTraineeTrainers(String username,
+            UpdateTraineeTrainerListRequest updateTrainersRequest);
 }

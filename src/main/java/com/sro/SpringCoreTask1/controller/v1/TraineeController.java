@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import com.sro.SpringCoreTask1.util.response.ResponseBuilder;
 
+import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,6 +39,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping(value = "/api/v1/trainees", produces = "application/json")
 @Tag(name = "Trainee Management", description = "Operations pertaining to trainees in the system")
+@Timed(value = "trainee.controller", description = "Time taken for trainee controller operations", extraTags = {"version", "v1"})
 public class TraineeController {
 
     private final TraineeService traineeService;
@@ -89,6 +92,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.create", 
+           description = "Time taken to create a trainee",
+           extraTags = {"version", "v1"})
     @PostMapping
     public ResponseEntity<ApiStandardResponse<RegisterTraineeResponse>> registerTrainee(
             @Valid @RequestBody RegisterTraineeRequest traineeRequest) {
@@ -128,6 +134,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.get.profile", 
+           description = "Time taken to retrieve trainee profile",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @GetMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getProfile(
@@ -177,6 +186,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.update.profile", 
+           description = "Time taken to update trainee profile",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @PutMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> updateProfile(
@@ -195,7 +207,7 @@ public class TraineeController {
     )
     @ApiResponses(value = {
         @ApiResponse(
-            responseCode = "204",
+            responseCode = "200",
             description = "Profile deleted successfully",
             content = @Content
         ),
@@ -216,13 +228,16 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.delete", 
+           description = "Time taken to delete trainee",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @DeleteMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true) 
             @PathVariable String username) {
         traineeService.deleteByUsername(username);
-        return ResponseBuilder.noContent();
+        return ResponseBuilder.success(HttpStatus.OK, "Profile deleted successfully", null);
     }
 
     @Operation(
@@ -267,6 +282,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.get.trainings", 
+           description = "Time taken to retrieve trainee training sessions",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @GetMapping("/{username}/trainings")
     public ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> getTraineeTrainings(
@@ -315,7 +333,7 @@ public class TraineeController {
     )
     @ApiResponses(value = {
         @ApiResponse(
-            responseCode = "204",
+            responseCode = "200",
             description = "Activation status updated successfully",
             content = @Content
         ),
@@ -344,6 +362,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.update.activation", 
+           description = "Time taken to update trainee activation status",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @PatchMapping("/{username}/activation")
     public ResponseEntity<ApiStandardResponse<Void>> updateActivationStatus(
@@ -352,7 +373,7 @@ public class TraineeController {
             @Parameter(description = "Activation status payload") 
             @RequestBody UpdateTraineeActivation updateTraineeActivation) {
         traineeService.updateActivationStatus(username, updateTraineeActivation.active());
-        return ResponseBuilder.noContent();
+        return ResponseBuilder.success(HttpStatus.OK, "Activation status updated successfully", null);
     }
 
     @Operation(
@@ -395,6 +416,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.update.trainers", 
+           description = "Time taken to update trainee's trainers list",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @PutMapping("/{username}/trainers")
     public ResponseEntity<ApiStandardResponse<List<TrainerSummaryResponse>>> updateTrainersList(
@@ -448,6 +472,9 @@ public class TraineeController {
             )
         )
     })
+    @Timed(value = "trainee.get.unassigned.trainers", 
+           description = "Time taken to retrieve unassigned trainers",
+           extraTags = {"version", "v1"})
     @Authenticated(requireTrainee = true)
     @GetMapping("/{username}/unassigned-trainers")
     public ResponseEntity<ApiStandardResponse<List<UnassignedTrainerResponse>>> getUnassignedTrainers(

@@ -144,7 +144,7 @@ class TrainingTypeServiceImplTest {
     @Test
     void update_ShouldReturnUpdatedTrainingTypeResponse_WhenTrainingTypeExists() {
         when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
-        when(trainingTypeRepository.update(trainingType)).thenReturn(Optional.of(trainingType));
+        when(trainingTypeRepository.save(trainingType)).thenReturn(trainingType);
         when(trainingTypeResponseMapper.mapToResponse(trainingType)).thenReturn(trainingTypeResponse);
 
         TrainingTypeResponse result = trainingTypeService.update(trainingTypeRequestDTO);
@@ -161,26 +161,24 @@ class TrainingTypeServiceImplTest {
     @Test
     void update_ShouldThrowResourceNotFoundException_WhenTrainingTypeDoesNotExist() {
         when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
-        when(trainingTypeRepository.update(trainingType)).thenReturn(Optional.empty());
+        when(trainingTypeRepository.save(trainingType)).thenThrow(new ResourceNotFoundException("Training Type not found"));
 
-        Exception exception = assertThrows(DatabaseOperationException.class, 
+        Exception exception = assertThrows(ResourceNotFoundException.class, 
             () -> trainingTypeService.update(trainingTypeRequestDTO));
         
-        assertTrue(exception.getCause() instanceof ResourceNotFoundException);
+        assertTrue(exception instanceof ResourceNotFoundException);
     }
 
     @Test
     void update_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(trainingTypeCreateMapper.toEntity(trainingTypeRequestDTO)).thenReturn(trainingType);
-        when(trainingTypeRepository.update(trainingType)).thenThrow(new RuntimeException("Database error"));
+        when(trainingTypeRepository.save(trainingType)).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, () -> trainingTypeService.update(trainingTypeRequestDTO));
     }
 
     @Test
     void deleteById_ShouldDeleteTrainingType_WhenTrainingTypeExists() {
-        when(trainingTypeRepository.deleteById(1L)).thenReturn(true);
-
         assertDoesNotThrow(() -> trainingTypeService.deleteById(1L));
     }
 
@@ -191,7 +189,7 @@ class TrainingTypeServiceImplTest {
 
     @Test
     void deleteById_ShouldThrowResourceNotFoundException_WhenTrainingTypeDoesNotExist() {
-        when(trainingTypeRepository.deleteById(1L)).thenReturn(false);
+        doThrow(new ResourceNotFoundException("Training Type not found")).when(trainingTypeRepository).deleteById(1L);
 
         Exception exception = assertThrows(DatabaseOperationException.class, 
             () -> trainingTypeService.deleteById(1L));
@@ -201,7 +199,7 @@ class TrainingTypeServiceImplTest {
 
     @Test
     void deleteById_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
-        when(trainingTypeRepository.deleteById(1L)).thenThrow(new RuntimeException("Database error"));
+        doThrow(new RuntimeException("Database error")).when(trainingTypeRepository).deleteById(1L);
 
         assertThrows(DatabaseOperationException.class, () -> trainingTypeService.deleteById(1L));
     }

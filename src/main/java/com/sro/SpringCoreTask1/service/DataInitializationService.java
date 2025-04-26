@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import com.sro.SpringCoreTask1.util.storage.JsonFileReader;
 import jakarta.annotation.PostConstruct;
 
 @Service
+@Profile("local")
 public class DataInitializationService {
 
     private final DataSeedService dataSeedService;

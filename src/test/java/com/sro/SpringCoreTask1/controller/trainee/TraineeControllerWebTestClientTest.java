@@ -143,7 +143,7 @@ class TraineeControllerWebTestClientTest {
         webTestClient.delete()
                 .uri(BASE_URL + "/{username}", createdTraineeUsername)
                 .exchange()
-                .expectStatus().isNoContent();
+                .expectStatus().isOk();
 
         webTestClient.get()
                 .uri(BASE_URL + "/{username}", createdTraineeUsername)

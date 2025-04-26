@@ -12,11 +12,17 @@ import java.util.List;
 
 public interface TrainingService {
     void save(CreateTrainingRequest createTrainingRequest);
+
     TrainingSummaryResponse findById(Long id);
+
     List<TrainingSummaryResponse> findAll();
+
     void deleteById(Long id);
+
     TrainingSummaryResponse update(UpdateTrainingRequest updateTrainingRequest);
-    
-    List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField, String sortDirection);
+
+    List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField,
+            String sortDirection);
+
     List<TrainerTrainingResponse> findTrainingsByTrainerWithFilters(TrainerTrainingFilter filterDTO);
 }

@@ -67,12 +67,13 @@ public class TraineeServiceImpl implements TraineeService {
         }
 
         if (traineeRequestDTO.firstName() == null || traineeRequestDTO.firstName().isEmpty() ||
-            traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() ||
-            traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
+                traineeRequestDTO.lastName() == null || traineeRequestDTO.lastName().isEmpty() ||
+                traineeRequestDTO.address() == null || traineeRequestDTO.address().isEmpty()) {
             throw new IllegalArgumentException("Trainee first name, last name, and address cannot be null or empty");
         }
-        
-        String generatedUsername = ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName());
+
+        String generatedUsername = ProfileUtil.generateUsername(traineeRequestDTO.firstName(),
+                traineeRequestDTO.lastName(), username -> traineeRepository.existsByUsername(username));
         String generatedPassword = ProfileUtil.generatePassword();
 
         try {
@@ -100,7 +101,7 @@ public class TraineeServiceImpl implements TraineeService {
             return traineeRepository.findById(id)
                     .map(traineeResponseMapper::toProfileResponse)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + id));
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by id", e);
@@ -137,10 +138,9 @@ public class TraineeServiceImpl implements TraineeService {
             trainee.setId(existingTrainee.getId());
             trainee.setPassword(existingTrainee.getPassword());
             trainee.setTrainers(existingTrainee.getTrainers());
-            Trainee updatedTrainee = traineeRepository.update(trainee)
-                    .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with id: " + trainee.getId()));
+            Trainee updatedTrainee = traineeRepository.save(trainee);
             return traineeResponseMapper.toProfileResponse(updatedTrainee);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee", e);
@@ -155,10 +155,11 @@ public class TraineeServiceImpl implements TraineeService {
         }
 
         try {
-            if (!traineeRepository.deleteById(id)) {
+            if (!traineeRepository.existsById(id)) {
                 throw new ResourceNotFoundException("Trainee not found with id: " + id);
             }
-        } catch(ResourceNotFoundException e) {
+            traineeRepository.deleteById(id);
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainee by id", e);
@@ -176,7 +177,7 @@ public class TraineeServiceImpl implements TraineeService {
             Trainee trainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
             return traineeResponseMapper.toProfileResponse(trainee);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainee by username", e);
@@ -191,10 +192,11 @@ public class TraineeServiceImpl implements TraineeService {
         }
 
         try {
-            if (!traineeRepository.deleteByUsername(username)) {
+            if (!traineeRepository.existsByUsername(username)) {
                 throw new ResourceNotFoundException("Trainee not found with username: " + username);
             }
-        } catch(ResourceNotFoundException e) {
+            traineeRepository.deleteByUsername(username);
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Trainee by username", e);
@@ -225,9 +227,9 @@ public class TraineeServiceImpl implements TraineeService {
 
             trainee.addTrainer(trainer);
             traineeRepository.save(trainee);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
-        } catch(ResourceAlreadyExistsException e) {
+        } catch (ResourceAlreadyExistsException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error adding Trainer to Trainee", e);
@@ -258,7 +260,7 @@ public class TraineeServiceImpl implements TraineeService {
 
             trainer.removeTrainee(trainee);
             trainerRepository.save(trainer);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error removing Trainer from Trainee", e);
@@ -266,11 +268,12 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Transactional
-    public List<TrainerSummaryResponse> updateTraineeTrainers(String username, UpdateTraineeTrainerListRequest updateTrainersRequest) {
+    public List<TrainerSummaryResponse> updateTraineeTrainers(String username,
+            UpdateTraineeTrainerListRequest updateTrainersRequest) {
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Trainee username cannot be null or empty");
         }
-        
+
         try {
             Trainee trainee = traineeRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Trainee not found with username: " + username));
@@ -278,38 +281,37 @@ public class TraineeServiceImpl implements TraineeService {
             List<String> requestedUsernames = updateTrainersRequest.trainers();
 
             Map<String, Optional<Trainer>> trainerLookup = requestedUsernames.stream()
-                .collect(Collectors.toMap(
-                    trainerUsername -> trainerUsername,
-                    trainerUsername -> trainerRepository.findByUsername(trainerUsername)
-                ));
+                    .collect(Collectors.toMap(
+                            trainerUsername -> trainerUsername,
+                            trainerUsername -> trainerRepository.findByUsername(trainerUsername)));
 
             List<String> notFound = trainerLookup.entrySet().stream()
-                .filter(entry -> entry.getValue().isEmpty())
-                .map(Map.Entry::getKey)
-                .toList();
+                    .filter(entry -> entry.getValue().isEmpty())
+                    .map(Map.Entry::getKey)
+                    .toList();
 
             if (!notFound.isEmpty()) {
                 throw new ResourceNotFoundException("Trainers not found: " + String.join(", ", notFound));
             }
-            
+
             Set<Trainer> currentTrainers = trainee.getTrainers();
             currentTrainers.stream()
-                .filter(trainer -> !requestedUsernames.contains(trainer.getUsername()))
-                .forEach(trainer -> removeTrainerFromTrainee(trainee.getId(), trainer.getId()));
-            
+                    .filter(trainer -> !requestedUsernames.contains(trainer.getUsername()))
+                    .forEach(trainer -> removeTrainerFromTrainee(trainee.getId(), trainer.getId()));
+
             Set<Trainer> newTrainers = trainerLookup.values().stream()
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+                    .map(Optional::get)
+                    .collect(Collectors.toSet());
 
             newTrainers.stream()
-                .filter(trainer -> !currentTrainers.contains(trainer))
-                .forEach(trainer -> addTrainerToTrainee(trainee.getId(), trainer.getId()));
-            
+                    .filter(trainer -> !currentTrainers.contains(trainer))
+                    .forEach(trainer -> addTrainerToTrainee(trainee.getId(), trainer.getId()));
+
             return trainee.getTrainers().stream()
-                .map(trainerResponseMapper::toSummaryResponseDTO)
-                .toList();
-                
-        } catch(ResourceNotFoundException e) {
+                    .map(trainerResponseMapper::toSummaryResponseDTO)
+                    .toList();
+
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee trainers", e);
@@ -331,7 +333,7 @@ public class TraineeServiceImpl implements TraineeService {
             traineeRepository.save(trainee);
 
             authService.setCurrentUser(trainee);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee activation status", e);
@@ -341,8 +343,9 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public boolean updateTraineePassword(Long traineeId, String newPassword) {
         try {
-            return traineeRepository.updatePassword(traineeId, newPassword);
-        } catch(ResourceNotFoundException e) {
+            int updated = traineeRepository.updatePassword(traineeId, newPassword);
+            return updated > 0;
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Trainee password", e);
@@ -358,7 +361,7 @@ public class TraineeServiceImpl implements TraineeService {
 
         try {
             return traineeRepository.findTrainersByTraineeId(traineeId);
-        } catch(ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainers by Trainee ID", e);
