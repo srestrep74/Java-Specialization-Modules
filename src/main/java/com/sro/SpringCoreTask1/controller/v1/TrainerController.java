@@ -17,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerActivation;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
@@ -140,7 +139,6 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
     @GetMapping("/{username}")
     public ResponseEntity<EntityModel<TrainerProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -199,7 +197,6 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
     @PutMapping("/{username}")
     public ResponseEntity<EntityModel<TrainerProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -257,7 +254,6 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
     @GetMapping("/{username}/trainings")
     public ResponseEntity<CollectionModel<EntityModel<TrainerTrainingResponse>>> getTrainerTrainings(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -328,7 +324,6 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
     @PatchMapping("/{username}/activation")
     public ResponseEntity<Void> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 

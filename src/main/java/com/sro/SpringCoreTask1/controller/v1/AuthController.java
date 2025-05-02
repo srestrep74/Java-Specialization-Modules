@@ -7,12 +7,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.ChangePasswordRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.util.response.ApiStandardError;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
+import com.sro.SpringCoreTask1.util.response.ResponseBuilder;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -33,7 +34,7 @@ public class AuthController {
     
     @Operation(
         summary = "User login",
-        description = "Authenticates a user based on provided credentials.",
+        description = "Authenticates a user based on provided credentials and returns a JWT token.",
         operationId = "login"
     )
     @ApiResponses(value = {
@@ -63,9 +64,9 @@ public class AuthController {
         )
     })
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiStandardResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         LoginResponse loginResponse = authService.authenticate(loginRequest.username(), loginRequest.password());
-        return ResponseEntity.ok(loginResponse);
+        return ResponseBuilder.success(loginResponse);
     }
 
     @Operation(
@@ -94,11 +95,10 @@ public class AuthController {
             content = @Content(schema = @Schema(implementation = ApiStandardError.class))
         )
     })
-    @Authenticated
     @PutMapping("/change-password")
-    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+    public ResponseEntity<ApiStandardResponse<Void>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         authService.changePassword(changePasswordRequest.username(), changePasswordRequest.oldPassword(), changePasswordRequest.newPassword());
-        return ResponseEntity.ok().build();
+        return ResponseBuilder.success(null);
     }
 
     @Operation(
@@ -123,9 +123,9 @@ public class AuthController {
         )
     })
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<ApiStandardResponse<Void>> logout() {
         authService.logout();
-        return ResponseEntity.noContent().build();
+        return ResponseBuilder.success(null);
     }
 
 }

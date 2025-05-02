@@ -1,4 +1,4 @@
-package com.sro.SpringCoreTask1.service.impl;
+package com.sro.SpringCoreTask1.service.impl.auth;
 
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
@@ -8,8 +8,12 @@ import com.sro.SpringCoreTask1.exception.AuthenticationFailedException;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
+import com.sro.SpringCoreTask1.security.CustomUserDetails;
 import com.sro.SpringCoreTask1.service.AuthService;
+import com.sro.SpringCoreTask1.util.jwt.JwtUtil;
 
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,13 +22,21 @@ public class AuthServiceImpl implements AuthService {
 
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
+    private final JwtUtil jwtUtil;
+    private final CustomUserDetailsService userDetailsService;
 
     private User authenticatedUser;
     private boolean isTrainee;
 
-    public AuthServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository) {
+    public AuthServiceImpl(
+            TraineeRepository traineeRepository, 
+            TrainerRepository trainerRepository,
+            JwtUtil jwtUtil,
+            CustomUserDetailsService userDetailsService) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -35,35 +47,19 @@ public class AuthServiceImpl implements AuthService {
         }
 
         try {
-            Trainee trainee = traineeRepository.findByUsername(username).orElse(null);
-            if (trainee != null) {
-                if (!trainee.isActive()) {
-                    throw new AuthenticationFailedException("User is not active");
-                }
-
-                if (trainee.getPassword().equals(password)) {
-                    this.authenticatedUser = trainee;
-                    this.isTrainee = true;
-                    return new LoginResponse(username, true);
-                }
+            UserDetails userDetails = userDetailsService.loadUserByUsernameAndPassword(username, password);
+            
+            // If we get here, authentication was successful
+            String token = jwtUtil.generateToken(userDetails);
+            
+            if (userDetails instanceof CustomUserDetails) {
+                this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
+                this.isTrainee = ((CustomUserDetails) userDetails).getRole().equals("TRAINEE");
             }
-
-            Trainer trainer = trainerRepository.findByUsername(username).orElse(null);
-            if (trainer != null) {
-                if (!trainer.isActive()) {
-                    throw new AuthenticationFailedException("User is not active");
-                }
-
-                if (trainer.getPassword().equals(password)) {
-                    this.authenticatedUser = trainer;
-                    this.isTrainee = false;
-                    return new LoginResponse(username, true);
-                }
-            }
-
+            
+            return new LoginResponse(username, true, token);
+        } catch (UsernameNotFoundException e) {
             throw new AuthenticationFailedException("Invalid username or password");
-        } catch (AuthenticationFailedException e) {
-            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error during authentication", e);
         }

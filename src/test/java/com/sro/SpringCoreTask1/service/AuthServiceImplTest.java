@@ -7,7 +7,7 @@ import com.sro.SpringCoreTask1.exception.AuthenticationFailedException;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
-import com.sro.SpringCoreTask1.service.impl.AuthServiceImpl;
+import com.sro.SpringCoreTask1.service.impl.auth.AuthServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
