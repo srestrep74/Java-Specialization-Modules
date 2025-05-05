@@ -21,7 +21,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final TrainerRepository trainerRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public CustomUserDetailsService(TraineeRepository traineeRepository, TrainerRepository trainerRepository, PasswordEncoder passwordEncoder) {
+    public CustomUserDetailsService(TraineeRepository traineeRepository, TrainerRepository trainerRepository,
+            PasswordEncoder passwordEncoder) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.passwordEncoder = passwordEncoder;
@@ -32,12 +33,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Ver si se puede mejorar con un solo repository global user
         Optional<Trainee> trainee = traineeRepository.findByUsername(username);
         if (trainee.isPresent()) {
-            return new CustomUserDetails(trainee.get(), "TRAINEE");
+            return new CustomUserDetails(trainee.get());
         }
 
         Optional<Trainer> trainer = trainerRepository.findByUsername(username);
         if (trainer.isPresent()) {
-            return new CustomUserDetails(trainer.get(), "TRAINER");
+            return new CustomUserDetails(trainer.get());
         }
 
         throw new UsernameNotFoundException("User not found with username: " + username);
@@ -47,12 +48,12 @@ public class CustomUserDetailsService implements UserDetailsService {
             throws UsernameNotFoundException {
         Optional<Trainee> trainee = traineeRepository.findByUsername(username);
         if (trainee.isPresent() && passwordEncoder.matches(password, trainee.get().getPassword())) {
-            return new CustomUserDetails(trainee.get(), "TRAINEE");
+            return new CustomUserDetails(trainee.get());
         }
 
         Optional<Trainer> trainer = trainerRepository.findByUsername(username);
         if (trainer.isPresent() && passwordEncoder.matches(password, trainer.get().getPassword())) {
-            return new CustomUserDetails(trainer.get(), "TRAINER");
+            return new CustomUserDetails(trainer.get());
         }
 
         throw new UsernameNotFoundException("Invalid username or password");

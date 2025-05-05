@@ -96,7 +96,8 @@ class TraineeServiceImplTest {
 
         registerTraineeResponse = new RegisterTraineeResponse(
             "johndoe", 
-            "generatedPassword"
+            "generatedPassword",
+            "TRAINEE"
         );
 
         traineeProfileResponse = new TraineeProfileResponse(
@@ -130,7 +131,7 @@ class TraineeServiceImplTest {
     void save_ShouldReturnRegisterTraineeResponse_WhenValidInput() {
         when(traineeCreateMapper.toEntity(registerTraineeRequest)).thenReturn(trainee);
         when(traineeRepository.save(trainee)).thenReturn(trainee);
-        when(traineeCreateMapper.toRegisterResponse(trainee)).thenReturn(registerTraineeResponse);
+        when(traineeCreateMapper.toRegisterResponse(trainee, "TRAINEE")).thenReturn(registerTraineeResponse);
 
         RegisterTraineeResponse result = traineeService.save(registerTraineeRequest);
 

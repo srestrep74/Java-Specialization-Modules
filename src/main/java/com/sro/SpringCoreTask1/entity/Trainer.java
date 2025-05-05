@@ -21,11 +21,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "trainers")
 public class Trainer extends User{
+
+    public Trainer() {
+        super();
+        this.setRole(RoleType.TRAINER);
+    }
 
     @ManyToOne
     @JoinColumn(name = "training_type_id")

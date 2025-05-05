@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,6 +62,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiStandardError> handleGenericException(
             Exception ex, HttpServletRequest request) {
+        if (ex instanceof AccessDeniedException) {
+            throw (AccessDeniedException) ex;
+        }
         return ErrorResponseBuilder.internalServerError(ex.getMessage(), request);
     }
 

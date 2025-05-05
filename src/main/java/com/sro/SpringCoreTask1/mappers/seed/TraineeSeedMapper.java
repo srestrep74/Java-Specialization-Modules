@@ -12,6 +12,7 @@ public interface TraineeSeedMapper {
     @Mapping(target = "trainings", ignore = true)
     @Mapping(target = "trainers", ignore = true)
     @Mapping(target = "id", ignore = true)
+    @Mapping(source = "role", target = "role")
     Trainee toEntity(TraineeSeedRequest traineeSeedRequest);
     
 }

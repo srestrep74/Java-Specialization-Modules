@@ -15,6 +15,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
@@ -34,9 +35,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping(value = "/api/v1/trainers", produces = {"application/json", "application/hal+json"})
 @Tag(name = "Trainer Management", description = "Operations pertaining to trainers in the system")
@@ -139,6 +142,7 @@ public class TrainerController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINER')")
     @GetMapping("/{username}")
     public ResponseEntity<EntityModel<TrainerProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 

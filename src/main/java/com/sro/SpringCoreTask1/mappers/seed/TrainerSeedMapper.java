@@ -14,6 +14,7 @@ public interface TrainerSeedMapper {
     @Mapping(target = "trainings", ignore = true)
     @Mapping(target = "trainees", ignore = true)
     @Mapping(target = "trainingType", source = "trainingType")
+    @Mapping(source = "trainerSeedRequest.role", target = "role")
     Trainer toEntity(TrainerSeedRequest trainerSeedRequest, TrainingType trainingType);
     
 }

@@ -82,7 +82,7 @@ public class TrainerServiceImpl implements TrainerService {
             trainer.setPassword(passwordEncoder.encode(generatedPassword));
             Trainer savedTrainer = trainerRepository.save(trainer);
 
-            return trainerCreateMapper.toRegisterResponse(savedTrainer);
+            return trainerCreateMapper.toRegisterResponse(savedTrainer, generatedPassword);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (ConstraintViolationException e) {

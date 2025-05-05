@@ -11,16 +11,14 @@ import java.util.Collections;
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
-    private final String role;
 
-    public CustomUserDetails(User user, String role) {
+    public CustomUserDetails(User user) {
         this.user = user;
-        this.role = role;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRoleName()));
     }
 
     @Override
@@ -58,6 +56,6 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public String getRole() {
-        return role;
+        return user.getRoleName();
     }
 }

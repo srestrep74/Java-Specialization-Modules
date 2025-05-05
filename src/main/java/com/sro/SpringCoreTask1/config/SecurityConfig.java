@@ -19,19 +19,22 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.sro.SpringCoreTask1.exception.security.CustomAccessDeniedHandler;
 import com.sro.SpringCoreTask1.exception.security.CustomAuthenticationEntryPoint;
 import com.sro.SpringCoreTask1.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    // private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomAuthenticationEntryPoint authEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(CustomAuthenticationEntryPoint authEntryPoint) {
+    public SecurityConfig(CustomAuthenticationEntryPoint authEntryPoint,
+            CustomAccessDeniedHandler accessDeniedHandler) {
         this.authEntryPoint = authEntryPoint;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -50,7 +53,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authEntryPoint))
+                        .authenticationEntryPoint(authEntryPoint)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            accessDeniedHandler.handle(request, response, accessDeniedException);
+                        }))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

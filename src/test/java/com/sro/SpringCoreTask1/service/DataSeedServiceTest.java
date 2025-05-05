@@ -131,7 +131,8 @@ class DataSeedServiceTest {
                 true,
                 "123 Street",
                 LocalDate.of(2000, 1, 1),
-                List.of(1L));
+                List.of(1L),
+                "TRAINEE");
 
         trainerSeedRequest = new TrainerSeedRequest(
                 "Trainer",
@@ -139,7 +140,8 @@ class DataSeedServiceTest {
                 "trainer1",
                 "password",
                 true,
-                1L);
+                1L,
+                "TRAINER");
 
         trainingSeedRequest = new TrainingSeedRequest(
                 "Strength Training",

@@ -24,11 +24,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "trainees")
 public class Trainee extends User {
+
+    public Trainee() {
+        super();
+        this.setRole(RoleType.TRAINEE);
+    }
 
     @Column(name = "address")
     private String address;
