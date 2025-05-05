@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (loginAttemptService.isBlocked(username)) {
-            long remainingMinutes = loginAttemptService.getBlockDuration();
+            int remainingMinutes = loginAttemptService.getBlockDuration();
             throw new AuthenticationFailedException("Account is locked. Try again in " + remainingMinutes + " minutes");
         }
 
