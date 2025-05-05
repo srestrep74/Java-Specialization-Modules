@@ -14,6 +14,7 @@ import com.sro.SpringCoreTask1.util.jwt.JwtUtil;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,19 +25,22 @@ public class AuthServiceImpl implements AuthService {
     private final TrainerRepository trainerRepository;
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     private User authenticatedUser;
     private boolean isTrainee;
 
     public AuthServiceImpl(
-            TraineeRepository traineeRepository, 
+            TraineeRepository traineeRepository,
             TrainerRepository trainerRepository,
             JwtUtil jwtUtil,
-            CustomUserDetailsService userDetailsService) {
+            CustomUserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -48,15 +52,15 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsernameAndPassword(username, password);
-            
+
             // If we get here, authentication was successful
             String token = jwtUtil.generateToken(userDetails);
-            
+
             if (userDetails instanceof CustomUserDetails) {
                 this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
                 this.isTrainee = ((CustomUserDetails) userDetails).getRole().equals("TRAINEE");
             }
-            
+
             return new LoginResponse(username, true, token);
         } catch (UsernameNotFoundException e) {
             throw new AuthenticationFailedException("Invalid username or password");
@@ -83,11 +87,17 @@ public class AuthServiceImpl implements AuthService {
 
             if (isCurrentUserTrainee()) {
                 Trainee trainee = (Trainee) authenticatedUser;
-                trainee.setPassword(newPassword);
+                if (!passwordEncoder.matches(oldPassword, trainee.getPassword())) {
+                    throw new AuthenticationFailedException("Current password is incorrect");
+                }
+                trainee.setPassword(passwordEncoder.encode(newPassword));
                 traineeRepository.save(trainee);
             } else {
                 Trainer trainer = (Trainer) authenticatedUser;
-                trainer.setPassword(newPassword);
+                if (!passwordEncoder.matches(oldPassword, trainer.getPassword())) {
+                    throw new AuthenticationFailedException("Current password is incorrect");
+                }
+                trainer.setPassword(passwordEncoder.encode(newPassword));
                 trainerRepository.save(trainer);
             }
         } catch (AuthenticationFailedException e) {

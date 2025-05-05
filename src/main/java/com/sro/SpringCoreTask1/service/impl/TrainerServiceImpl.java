@@ -23,6 +23,7 @@ import com.sro.SpringCoreTask1.util.ProfileUtil;
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,16 +41,18 @@ public class TrainerServiceImpl implements TrainerService {
     private final TrainerCreateMapper trainerCreateMapper;
     private final TrainerUpdateMapper trainerUpdateMapper;
     private final TrainerResponseMapper trainerResponseMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public TrainerServiceImpl(TrainerRepository trainerRepository, TrainingTypeRepository trainingTypeRepository,
             AuthService authService, TrainerCreateMapper trainerCreateMapper, TrainerUpdateMapper trainerUpdateMapper,
-            TrainerResponseMapper trainerResponseMapper) {
+            TrainerResponseMapper trainerResponseMapper, PasswordEncoder passwordEncoder) {
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
         this.authService = authService;
         this.trainerCreateMapper = trainerCreateMapper;
         this.trainerUpdateMapper = trainerUpdateMapper;
         this.trainerResponseMapper = trainerResponseMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class TrainerServiceImpl implements TrainerService {
                             "TrainingType not found with id: " + trainerRequestDTO.specialization()));
             Trainer trainer = trainerCreateMapper.toEntity(trainerRequestDTO, trainingType);
             trainer.setUsername(generatedUsername);
-            trainer.setPassword(generatedPassword);
+            trainer.setPassword(passwordEncoder.encode(generatedPassword));
             Trainer savedTrainer = trainerRepository.save(trainer);
 
             return trainerCreateMapper.toRegisterResponse(savedTrainer);

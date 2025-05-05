@@ -12,7 +12,7 @@ import com.sro.SpringCoreTask1.util.storage.JsonFileReader;
 import jakarta.annotation.PostConstruct;
 
 @Service
-@Profile("local")
+@Profile({ "local", "dev" })
 public class DataInitializationService {
 
     private final DataSeedService dataSeedService;
