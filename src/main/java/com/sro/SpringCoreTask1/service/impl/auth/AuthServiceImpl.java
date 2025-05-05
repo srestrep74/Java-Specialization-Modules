@@ -10,6 +10,7 @@ import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.security.CustomUserDetails;
 import com.sro.SpringCoreTask1.service.AuthService;
+import com.sro.SpringCoreTask1.service.LoginAttemptService;
 import com.sro.SpringCoreTask1.util.jwt.JwtUtil;
 
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
     private User authenticatedUser;
     private boolean isTrainee;
@@ -35,12 +37,14 @@ public class AuthServiceImpl implements AuthService {
             TrainerRepository trainerRepository,
             JwtUtil jwtUtil,
             CustomUserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            LoginAttemptService loginAttemptService) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Override
@@ -50,10 +54,13 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Username and password cannot be null or empty");
         }
 
+        if (loginAttemptService.isBlocked(username)) {
+            long remainingMinutes = loginAttemptService.getBlockDuration();
+            throw new AuthenticationFailedException("Account is locked. Try again in " + remainingMinutes + " minutes");
+        }
+
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsernameAndPassword(username, password);
-
-            // If we get here, authentication was successful
             String token = jwtUtil.generateToken(userDetails);
 
             if (userDetails instanceof CustomUserDetails) {
@@ -61,9 +68,20 @@ public class AuthServiceImpl implements AuthService {
                 this.isTrainee = ((CustomUserDetails) userDetails).getRole().equals("TRAINEE");
             }
 
+            loginAttemptService.resetAttempts(username);
+
             return new LoginResponse(username, true, token);
         } catch (UsernameNotFoundException e) {
-            throw new AuthenticationFailedException("Invalid username or password");
+            loginAttemptService.registerFailedAttempt(username);
+            int remainingAttempts = loginAttemptService.getRemainingAttempts(username);
+            String errorMsg = "Invalid username or password";
+            if (remainingAttempts <= 0) {
+                errorMsg += String.format(". Account locked for %d minutes",
+                        loginAttemptService.getBlockDuration());
+            } else {
+                errorMsg += String.format(". %d attempts remaining", remainingAttempts);
+            }
+            throw new AuthenticationFailedException(errorMsg);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error during authentication", e);
         }

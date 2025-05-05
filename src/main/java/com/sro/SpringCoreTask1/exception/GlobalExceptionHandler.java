@@ -3,6 +3,7 @@ package com.sro.SpringCoreTask1.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -72,5 +73,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiStandardError> handleUnauthorizedException(
             UnauthorizedException ex, HttpServletRequest request) {
         return ErrorResponseBuilder.unauthorized(ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<ApiStandardError> handleAuthenticationFailedException(
+            AuthenticationFailedException ex, HttpServletRequest request) {
+        HttpStatus status = ex.getMessage().contains("Account locked") ? 
+            HttpStatus.TOO_MANY_REQUESTS : HttpStatus.UNAUTHORIZED;
+        
+        return ErrorResponseBuilder.buildErrorResponse(status, "Authentication Failed", ex.getMessage(), request.getRequestURI());
     }
 }

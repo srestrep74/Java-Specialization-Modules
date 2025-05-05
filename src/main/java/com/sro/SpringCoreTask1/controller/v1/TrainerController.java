@@ -201,6 +201,7 @@ public class TrainerController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINER')")
     @PutMapping("/{username}")
     public ResponseEntity<EntityModel<TrainerProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -258,6 +259,7 @@ public class TrainerController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINER')")
     @GetMapping("/{username}/trainings")
     public ResponseEntity<CollectionModel<EntityModel<TrainerTrainingResponse>>> getTrainerTrainings(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -328,6 +330,7 @@ public class TrainerController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINER')")
     @PatchMapping("/{username}/activation")
     public ResponseEntity<Void> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 

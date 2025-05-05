@@ -86,7 +86,7 @@ class TrainerServiceImplTest {
                 "John", "Doe", 1L);
 
         registerTrainerResponse = new RegisterTrainerResponse(
-                "johndoe", "generatedPassword");
+                "johndoe", "generatedPassword", "johndoe");
 
         trainerProfileResponse = new TrainerProfileResponse(
                 "John",
@@ -110,7 +110,7 @@ class TrainerServiceImplTest {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerCreateMapper.toEntity(registerTrainerRequest, trainingType)).thenReturn(trainer);
         when(trainerRepository.save(trainer)).thenReturn(trainer);
-        when(trainerCreateMapper.toRegisterResponse(trainer)).thenReturn(registerTrainerResponse);
+        when(trainerCreateMapper.toRegisterResponse(trainer, "johndoe")).thenReturn(registerTrainerResponse);
 
         RegisterTrainerResponse result = trainerService.save(registerTrainerRequest);
 

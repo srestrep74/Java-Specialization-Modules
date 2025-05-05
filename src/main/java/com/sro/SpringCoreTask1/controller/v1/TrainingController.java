@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.controller.v1;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,6 +76,7 @@ public class TrainingController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('TRAINER')")
     @PostMapping
     public ResponseEntity<Void> createTraining(
             @Parameter(description = "Details of the training session to create") 

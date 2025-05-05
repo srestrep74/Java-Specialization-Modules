@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
@@ -130,6 +131,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @GetMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -178,6 +180,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @PutMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -216,6 +219,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @DeleteMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true) 
@@ -266,6 +270,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @GetMapping("/{username}/trainings")
     public ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> getTraineeTrainings(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -342,6 +347,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @PatchMapping("/{username}/activation")
     public ResponseEntity<ApiStandardResponse<Void>> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -392,6 +398,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @PutMapping("/{username}/trainers")
     public ResponseEntity<ApiStandardResponse<List<TrainerSummaryResponse>>> updateTrainersList(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -444,6 +451,7 @@ public class TraineeController {
             )
         )
     })
+    @PreAuthorize("hasRole('TRAINEE')")
     @GetMapping("/{username}/unassigned-trainers")
     public ResponseEntity<ApiStandardResponse<List<UnassignedTrainerResponse>>> getUnassignedTrainers(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
