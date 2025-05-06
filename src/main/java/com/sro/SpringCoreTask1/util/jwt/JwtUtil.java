@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Base64;
+import java.util.UUID;
 
 @Component
 public class JwtUtil {
@@ -29,6 +30,9 @@ public class JwtUtil {
 
     @Value("${jwt.expiration}")
     private long expiration;
+
+    @Value("${jwt.refresh-expiration:604800000}") // 7 días por defecto
+    private long refreshExpiration;
 
     private Key signingKey;
 
@@ -51,6 +55,10 @@ public class JwtUtil {
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public String extractTokenId(String token) {
+        return extractClaim(token, claims -> claims.getId());
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -89,7 +97,12 @@ public class JwtUtil {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
-        return createToken(claims, userDetails.getUsername());
+        return createToken(claims, userDetails.getUsername(), expiration);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        return createRefreshToken(claims, userDetails.getUsername(), refreshExpiration);
     }
 
     public List<String> extractRoles(String token) {
@@ -105,16 +118,37 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails, Map<String, Object> claims) {
-        return createToken(claims, userDetails.getUsername());
+        return createToken(claims, userDetails.getUsername(), expiration);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims, String subject, long expiration) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setId(UUID.randomUUID().toString())
                 .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
+    }
+
+    private String createRefreshToken(Map<String, Object> claims, String subject, long expiration) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setId(UUID.randomUUID().toString())
+                .signWith(signingKey, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public boolean isRefreshToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return !claims.containsKey("roles");
+        } catch (JwtException e) {
+            return false;
+        }
     }
 }

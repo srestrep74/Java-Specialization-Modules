@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.ChangePasswordRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
+import com.sro.SpringCoreTask1.dtos.v1.request.auth.RefreshTokenRequest;
 import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.util.response.ApiStandardError;
@@ -17,6 +18,8 @@ import com.sro.SpringCoreTask1.util.response.ResponseBuilder;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -95,6 +98,7 @@ public class AuthController {
             content = @Content(schema = @Schema(implementation = ApiStandardError.class))
         )
     })
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/change-password")
     public ResponseEntity<ApiStandardResponse<Void>> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         authService.changePassword(changePasswordRequest.username(), changePasswordRequest.oldPassword(), changePasswordRequest.newPassword());
@@ -122,10 +126,35 @@ public class AuthController {
             content = @Content(schema = @Schema(implementation = ApiStandardError.class))
         )
     })
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
-    public ResponseEntity<ApiStandardResponse<Void>> logout() {
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        // Extraer el token del encabezado Authorization
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String jwt = authHeader.substring(7);
+            // Invalida explícitamente el token
+            authService.invalidateToken(jwt);
+            // Log para depuración
+            System.out.println("Token invalidated: " + jwt);
+        } else {
+            System.out.println("No valid token found in request for logout");
+        }
+        // Eliminar la sesión actual del usuario
         authService.logout();
-        return ResponseBuilder.success(null);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/refresh")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Refresh access token using refresh token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully refreshed token"),
+            @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    })
+    public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
+        LoginResponse response = authService.refreshToken(refreshRequest.refreshToken());
+        return ResponseEntity.ok(response);
     }
 
 }

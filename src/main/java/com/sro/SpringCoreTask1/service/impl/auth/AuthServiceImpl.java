@@ -12,12 +12,15 @@ import com.sro.SpringCoreTask1.security.CustomUserDetails;
 import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.service.LoginAttemptService;
 import com.sro.SpringCoreTask1.util.jwt.JwtUtil;
+import com.sro.SpringCoreTask1.util.jwt.TokenBlacklist;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -28,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
+    private final TokenBlacklist tokenBlacklist;
 
     private User authenticatedUser;
     private boolean isTrainee;
@@ -38,13 +42,15 @@ public class AuthServiceImpl implements AuthService {
             JwtUtil jwtUtil,
             CustomUserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder,
-            LoginAttemptService loginAttemptService) {
+            LoginAttemptService loginAttemptService,
+            TokenBlacklist tokenBlacklist) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
+        this.tokenBlacklist = tokenBlacklist;
     }
 
     @Override
@@ -61,7 +67,8 @@ public class AuthServiceImpl implements AuthService {
 
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsernameAndPassword(username, password);
-            String token = jwtUtil.generateToken(userDetails);
+            String accessToken = jwtUtil.generateToken(userDetails);
+            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
             if (userDetails instanceof CustomUserDetails) {
                 this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
@@ -70,20 +77,89 @@ public class AuthServiceImpl implements AuthService {
 
             loginAttemptService.resetAttempts(username);
 
-            return new LoginResponse(username, true, token);
+            return new LoginResponse(username, true, accessToken, refreshToken);
         } catch (UsernameNotFoundException e) {
             loginAttemptService.registerFailedAttempt(username);
             int remainingAttempts = loginAttemptService.getRemainingAttempts(username);
             String errorMsg = "Invalid username or password";
             if (remainingAttempts <= 0) {
-                errorMsg += String.format(". Account locked for %d minutes",
-                        loginAttemptService.getBlockDuration());
+                errorMsg += String.format(". Account locked for %d minutes", loginAttemptService.getBlockDuration());
             } else {
                 errorMsg += String.format(". %d attempts remaining", remainingAttempts);
             }
             throw new AuthenticationFailedException(errorMsg);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error during authentication", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LoginResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new IllegalArgumentException("Refresh token cannot be null or empty");
+        }
+
+        try {
+            if (!jwtUtil.isRefreshToken(refreshToken)) {
+                throw new AuthenticationFailedException("Invalid refresh token");
+            }
+
+            String tokenId = jwtUtil.extractTokenId(refreshToken);
+            if (tokenBlacklist.isBlacklisted(tokenId)) {
+                throw new AuthenticationFailedException("Refresh token has been revoked");
+            }
+
+            if (jwtUtil.isTokenExpired(refreshToken)) {
+                throw new AuthenticationFailedException("Refresh token has expired");
+            }
+
+            String username = jwtUtil.extractUsername(refreshToken);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            String newAccessToken = jwtUtil.generateToken(userDetails);
+            String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+
+            invalidateToken(refreshToken);
+
+            if (this.authenticatedUser == null && userDetails instanceof CustomUserDetails) {
+                this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
+                this.isTrainee = ((CustomUserDetails) userDetails).getRole().equals("TRAINEE");
+            }
+
+            return new LoginResponse(username, true, newAccessToken, newRefreshToken);
+
+        } catch (AuthenticationFailedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error refreshing token", e);
+        }
+    }
+
+    @Override
+    public void invalidateToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return;
+        }
+
+        try {
+            String tokenId = jwtUtil.extractTokenId(token);
+            if (tokenId == null || tokenId.isEmpty()) {
+                return;
+            }
+
+            Date expiryDate = jwtUtil.extractExpiration(token);
+            if (expiryDate == null) {
+                return;
+            }
+
+            if (tokenBlacklist.isBlacklisted(tokenId)) {
+                return;
+            }
+
+            tokenBlacklist.blacklistToken(tokenId, expiryDate.toInstant());
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error invalidating token", e);
         }
     }
 
@@ -154,5 +230,4 @@ public class AuthServiceImpl implements AuthService {
     public boolean isCurrentUserTrainer() {
         return isAuthenticated() && !this.isTrainee;
     }
-
 }
