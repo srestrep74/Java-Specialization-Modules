@@ -31,7 +31,7 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    @Value("${jwt.refresh-expiration:604800000}") // 7 días por defecto
+    @Value("${jwt.refresh-expiration:604800000}") 
     private long refreshExpiration;
 
     private Key signingKey;

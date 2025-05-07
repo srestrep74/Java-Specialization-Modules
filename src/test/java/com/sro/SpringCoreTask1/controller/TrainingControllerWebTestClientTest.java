@@ -10,14 +10,17 @@ import com.sro.SpringCoreTask1.dtos.v1.response.trainee.RegisterTraineeResponse;
 import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.service.TrainerService;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
+
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import java.time.LocalDate;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.profiles.active=local")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TrainingControllerWebTestClientTest {
 
@@ -25,6 +28,7 @@ class TrainingControllerWebTestClientTest {
     private static RegisterTraineeResponse trainee;
     private static String traineeUsername;
     private static String trainerUsername;
+    private static String accessToken;
 
     @Autowired
     private WebTestClient webTestClient;
@@ -59,11 +63,13 @@ class TrainingControllerWebTestClientTest {
                 60
         );
 
-        authenticate(trainee.username(), trainee.password());
+        LoginResponse loginResponse = authenticate(trainee.username(), trainee.plainPassword());
+        accessToken = loginResponse.token();
 
         webTestClient.post()
                 .uri(BASE_URL)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken)
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isOk();
@@ -78,6 +84,7 @@ class TrainingControllerWebTestClientTest {
         webTestClient.post()
                 .uri(BASE_URL)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken)
                 .bodyValue(invalidRequest)
                 .exchange()
                 .expectStatus().isBadRequest();
@@ -97,6 +104,7 @@ class TrainingControllerWebTestClientTest {
         webTestClient.post()
                 .uri(BASE_URL)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken)
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isNotFound();
@@ -104,14 +112,20 @@ class TrainingControllerWebTestClientTest {
 
     private LoginResponse authenticate(String username, String password) {
         LoginRequest loginRequest = new LoginRequest(username, password);
-        return webTestClient.post()
+        
+        ParameterizedTypeReference<ApiStandardResponse<LoginResponse>> responseType = 
+            new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {};
+            
+        ApiStandardResponse<LoginResponse> response = webTestClient.post()
                 .uri("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(loginRequest)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(LoginResponse.class)
+                .expectBody(responseType)
                 .returnResult()
                 .getResponseBody();
+                
+        return response != null ? response.data() : null;
     }
 }

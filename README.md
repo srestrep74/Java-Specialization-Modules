@@ -551,9 +551,9 @@ This project uses Docker Compose to easily set up all the required database serv
 
 To start all database services (PostgreSQL, pgAdmin, and Redis) with a single command:
 
-```sh
-docker-compose up -d
-```
+     ```sh
+     docker-compose up -d
+     ```
 
 This command launches all services in detached mode, allowing you to continue using the terminal.
 
@@ -563,9 +563,9 @@ The PostgreSQL database is configured with the following details:
 
 - **Container Name**: `postgres_db`
 - **Port**: `5432` (mapped to host port `5432`)
-- **Database Name**: `jpa_epam`
-- **Username**: `postgres`
-- **Password**: `postgres`
+     - **Database Name**: `jpa_epam`
+     - **Username**: `postgres`
+     - **Password**: `postgres`
 - **Data Volume**: `postgres_data` (data persists across container restarts)
 
 #### Accessing PostgreSQL
@@ -595,7 +595,7 @@ Redis is used for token storage in development and production environments:
 
 You can connect to the Redis CLI for inspection and debugging:
 
-```sh
+     ```sh
 docker exec -it redis-jwt redis-cli
 ```
 
@@ -613,13 +613,13 @@ SMEMBERS user:refresh_tokens:<username>
 
 #### Stopping Services
 
-```sh
+     ```sh
 # Stop but preserve volumes and data
 docker-compose down
 
 # Stop and remove volumes (erases all data)
-docker-compose down -v
-```
+     docker-compose down -v
+     ```
 
 #### Restarting Services
 

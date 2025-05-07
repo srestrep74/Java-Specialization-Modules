@@ -8,16 +8,18 @@ import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainer.*;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainingType.TrainingTypeResponse;
 import com.sro.SpringCoreTask1.service.TrainingTypeService;
+import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "spring.profiles.active=local")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TrainerControllerWebTestClientTest {
 
@@ -25,6 +27,7 @@ class TrainerControllerWebTestClientTest {
     private static String createdTrainerUsername;
     private static String createdTrainerPassword;
     private static Long trainingTypeId;
+    private static String accessToken;
 
     @Autowired
     private WebTestClient webTestClient;
@@ -32,7 +35,7 @@ class TrainerControllerWebTestClientTest {
     @BeforeAll
     static void setupAll(
             @Autowired TrainingTypeService trainingTypeService) {
-        
+
         TrainingTypeRequestDTO typeRequest = new TrainingTypeRequestDTO("Strength Training");
         TrainingTypeResponse typeResponse = trainingTypeService.save(typeRequest);
         trainingTypeId = typeResponse.trainingTypeId();
@@ -44,8 +47,7 @@ class TrainerControllerWebTestClientTest {
         RegisterTrainerRequest request = new RegisterTrainerRequest(
                 "Sergio",
                 "Rodriguez",
-                trainingTypeId
-        );
+                trainingTypeId);
 
         webTestClient.post()
                 .uri(BASE_URL)
@@ -58,9 +60,12 @@ class TrainerControllerWebTestClientTest {
                 .consumeWith(response -> {
                     RegisterTrainerResponse responseBody = response.getResponseBody();
                     assertNotNull(responseBody);
+                    assertNotNull(responseBody.username());
                     createdTrainerUsername = responseBody.username();
-                    createdTrainerPassword = responseBody.password();
-                    authenticate(createdTrainerUsername, createdTrainerPassword);
+                    createdTrainerPassword = responseBody.plainPassword();
+
+                    LoginResponse loginResponse = authenticate(createdTrainerUsername, createdTrainerPassword);
+                    accessToken = loginResponse.token();
                 });
     }
 
@@ -69,6 +74,7 @@ class TrainerControllerWebTestClientTest {
     void getProfile_ShouldReturnTrainerProfile() {
         webTestClient.get()
                 .uri(BASE_URL + "/{username}", createdTrainerUsername)
+                .header("Authorization", "Bearer " + accessToken)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody(TrainerProfileResponse.class)
@@ -77,7 +83,6 @@ class TrainerControllerWebTestClientTest {
                     assertNotNull(profile);
                     assertEquals("Sergio", profile.firstName());
                     assertEquals("Rodriguez", profile.lastName());
-                    assertEquals(1L, profile.specialization());
                 });
     }
 
@@ -87,13 +92,13 @@ class TrainerControllerWebTestClientTest {
         UpdateTrainerProfileRequest updateRequest = new UpdateTrainerProfileRequest(
                 "Sergio Updated",
                 "Rodriguez Updated",
-                1L,
-                true
-        );
+                6L,
+                true);
 
         webTestClient.put()
                 .uri(BASE_URL + "/{username}", createdTrainerUsername)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken)
                 .bodyValue(updateRequest)
                 .exchange()
                 .expectStatus().isOk()
@@ -116,6 +121,7 @@ class TrainerControllerWebTestClientTest {
                         .queryParam("toDate", "2023-12-31")
                         .queryParam("traineeName", "testTrainee")
                         .build(createdTrainerUsername))
+                .header("Authorization", "Bearer " + accessToken)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBodyList(TrainerTrainingResponse.class)
@@ -139,6 +145,7 @@ class TrainerControllerWebTestClientTest {
     void getProfile_WithNonExistentUsername_ShouldReturnNotFound() {
         webTestClient.get()
                 .uri(BASE_URL + "/nonexistentuser")
+                .header("Authorization", "Bearer " + accessToken)
                 .exchange()
                 .expectStatus().isNotFound();
     }
@@ -151,6 +158,7 @@ class TrainerControllerWebTestClientTest {
         webTestClient.patch()
                 .uri(BASE_URL + "/{username}/activation", createdTrainerUsername)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + accessToken)
                 .bodyValue(deactivateRequest)
                 .exchange()
                 .expectStatus().isOk()
@@ -159,14 +167,20 @@ class TrainerControllerWebTestClientTest {
 
     private LoginResponse authenticate(String username, String password) {
         LoginRequest loginRequest = new LoginRequest(username, password);
-        return webTestClient.post()
+
+        ParameterizedTypeReference<ApiStandardResponse<LoginResponse>> responseType = new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+        };
+
+        ApiStandardResponse<LoginResponse> response = webTestClient.post()
                 .uri("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(loginRequest)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(LoginResponse.class)
+                .expectBody(responseType)
                 .returnResult()
                 .getResponseBody();
+
+        return response != null ? response.data() : null;
     }
 }

@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sro.SpringCoreTask1.dtos.v1.request.auth.LoginRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.*;
 import com.sro.SpringCoreTask1.dtos.v1.request.training.TraineeTrainingResponse;
+import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.dtos.v1.response.trainee.*;
+import com.sro.SpringCoreTask1.dtos.v1.response.trainer.UnassignedTrainerResponse;
 import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,150 +25,182 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.profiles.active=local")
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TraineeControllerMockMvcTest {
 
-    private static final String BASE_URL = "/api/v1/trainees";
-    private static String createdTraineeUsername;
-    private static String createdTraineePassword;
+        private static final String BASE_URL = "/api/v1/trainees";
+        private static String createdTraineeUsername;
+        private static String createdTraineePassword;
+        private static String accessToken;
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+        @Autowired
+        private MockMvc mockMvc;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Test
-    @Order(1)
-    void registerTrainee_ShouldCreateNewTrainee() throws Exception {
-        RegisterTraineeRequest request = new RegisterTraineeRequest(
-            "Sebas", "Rpo", LocalDate.of(1990, 5, 15), "123 Main St, New York");
+        @Test
+        @Order(1)
+        void registerTrainee_ShouldCreateNewTrainee() throws Exception {
+                RegisterTraineeRequest request = new RegisterTraineeRequest(
+                                "Sebas", "Rpo", LocalDate.of(1990, 5, 15), "123 Main St, New York");
 
-        MvcResult result = mockMvc.perform(post(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isCreated())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status", is(201)))
-            .andReturn();
+                MvcResult result = mockMvc.perform(post(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isCreated())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.status", is(201)))
+                                .andReturn();
 
-        ApiStandardResponse<RegisterTraineeResponse> response = objectMapper.readValue(
-            result.getResponse().getContentAsString(), 
-            new TypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {});
-        
-        assertNotNull(response);
-        assertNotNull(response.data());
-        assertNotNull(response.data().username());
-        assertNotNull(response.data().password());
-        
-        createdTraineeUsername = response.data().username();
-        createdTraineePassword = response.data().password();
-        authenticate(createdTraineeUsername, createdTraineePassword);
-    }
+                ApiStandardResponse<RegisterTraineeResponse> response = objectMapper.readValue(
+                                result.getResponse().getContentAsString(),
+                                new TypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                                });
 
-    @Test
-    @Order(2)
-    void getProfile_ShouldReturnTraineeProfile() throws Exception {
-        MvcResult result = mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status", is(200)))
-            .andReturn();
+                assertNotNull(response);
+                assertNotNull(response.data());
+                assertNotNull(response.data().username());
+                assertNotNull(response.data().password());
 
-        ApiStandardResponse<TraineeProfileResponse> apiResponse = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            new TypeReference<ApiStandardResponse<TraineeProfileResponse>>() {});
-        
-        TraineeProfileResponse profile = apiResponse.data();
-        assertEquals("Sebas", profile.firstName());
-        assertEquals("Rpo", profile.lastName());
-        assertEquals(LocalDate.of(1990, 5, 15), profile.dateOfBirth());
-        assertEquals("123 Main St, New York", profile.address());
-        assertTrue(profile.active());
-        assertNotNull(profile.trainers());
-    }
+                createdTraineeUsername = response.data().username();
+                createdTraineePassword = response.data().plainPassword();
+                accessToken = authenticate(createdTraineeUsername, createdTraineePassword);
+        }
 
-    @Test
-    @Order(3)
-    void updateProfile_ShouldUpdateTraineeDetails() throws Exception {
-        UpdateTraineeProfileRequest updateRequest = new UpdateTraineeProfileRequest(
-            "Sebas Updated", "Rpo Updated", 
-            LocalDate.of(1991, 6, 16), "456 Updated St, Boston", true);
+        @Test
+        @Order(2)
+        void getProfile_ShouldReturnTraineeProfile() throws Exception {
+                MvcResult result = mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername)
+                                .header("Authorization", "Bearer " + accessToken))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.status", is(200)))
+                                .andReturn();
 
-        MvcResult result = mockMvc.perform(put(BASE_URL + "/{username}", createdTraineeUsername)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status", is(200)))
-            .andReturn();
+                ApiStandardResponse<TraineeProfileResponse> apiResponse = objectMapper.readValue(
+                                result.getResponse().getContentAsString(),
+                                new TypeReference<ApiStandardResponse<TraineeProfileResponse>>() {
+                                });
 
-        ApiStandardResponse<TraineeProfileResponse> apiResponse = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            new TypeReference<ApiStandardResponse<TraineeProfileResponse>>() {});
-        
-        TraineeProfileResponse updatedProfile = apiResponse.data();
-        assertEquals("Sebas Updated", updatedProfile.firstName());
-        assertEquals("Rpo Updated", updatedProfile.lastName());
-        assertEquals(LocalDate.of(1991, 6, 16), updatedProfile.dateOfBirth());
-        assertEquals("456 Updated St, Boston", updatedProfile.address());
-    }
+                TraineeProfileResponse profile = apiResponse.data();
+                assertEquals("Sebas", profile.firstName());
+                assertEquals("Rpo", profile.lastName());
+                assertEquals(LocalDate.of(1990, 5, 15), profile.dateOfBirth());
+                assertEquals("123 Main St, New York", profile.address());
+                assertTrue(profile.active());
+                assertNotNull(profile.trainers());
+        }
 
-    @Test
-    @Order(4)
-    void getTraineeTrainings_ShouldReturnTrainingList() throws Exception {
-        MvcResult result = mockMvc.perform(get(BASE_URL + "/{username}/trainings", createdTraineeUsername)
-                .param("fromDate", "2023-01-01")
-                .param("toDate", "2023-12-31")
-                .param("sortField", "trainingDate")
-                .param("sortDirection", "DESC"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.status", is(200)))
-            .andReturn();
+        @Test
+        @Order(3)
+        void updateProfile_ShouldUpdateTraineeDetails() throws Exception {
+                UpdateTraineeProfileRequest updateRequest = new UpdateTraineeProfileRequest(
+                                "Sebas Updated", "Rpo Updated",
+                                LocalDate.of(1991, 6, 16), "456 Updated St, Boston", true);
 
-        ApiStandardResponse<List<TraineeTrainingResponse>> response = objectMapper.readValue(
-            result.getResponse().getContentAsString(),
-            new TypeReference<ApiStandardResponse<List<TraineeTrainingResponse>>>() {});
-        
-        assertNotNull(response.data());
-    }
+                MvcResult result = mockMvc.perform(put(BASE_URL + "/{username}", createdTraineeUsername)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .content(objectMapper.writeValueAsString(updateRequest)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status", is(200)))
+                                .andReturn();
 
-    @Test
-    @Order(5)
-    void deleteProfile_ShouldRemoveTrainee() throws Exception {
-        mockMvc.perform(delete(BASE_URL + "/{username}", createdTraineeUsername))
-            .andExpect(status().isOk());
+                ApiStandardResponse<TraineeProfileResponse> apiResponse = objectMapper.readValue(
+                                result.getResponse().getContentAsString(),
+                                new TypeReference<ApiStandardResponse<TraineeProfileResponse>>() {
+                                });
 
-        mockMvc.perform(get(BASE_URL + "/{username}", createdTraineeUsername))
-            .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status", is(404)));
-    }
+                TraineeProfileResponse updatedProfile = apiResponse.data();
+                assertEquals("Sebas Updated", updatedProfile.firstName());
+                assertEquals("Rpo Updated", updatedProfile.lastName());
+                assertEquals(LocalDate.of(1991, 6, 16), updatedProfile.dateOfBirth());
+                assertEquals("456 Updated St, Boston", updatedProfile.address());
+        }
 
-    @Test
-    @Order(6)
-    void registerTrainee_WithInvalidData_ShouldReturnBadRequest() throws Exception {
-        mockMvc.perform(post(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                    new RegisterTraineeRequest("", "", null, ""))))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status", is(400)));
-    }
+        @Test
+        @Order(4)
+        void getTraineeTrainings_ShouldReturnTrainingList() throws Exception {
+                MvcResult result = mockMvc.perform(get(BASE_URL + "/{username}/trainings", createdTraineeUsername)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .param("fromDate", "2023-01-01")
+                                .param("toDate", "2023-12-31")
+                                .param("sortField", "trainingDate")
+                                .param("sortDirection", "DESC"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status", is(200)))
+                                .andReturn();
 
-    @Test
-    @Order(7)
-    void getProfile_WithNonExistentUsername_ShouldReturnNotFound() throws Exception {
-        mockMvc.perform(get(BASE_URL + "/nonexistentuser"))
-            .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status", is(404)));
-    }
+                ApiStandardResponse<List<TraineeTrainingResponse>> response = objectMapper.readValue(
+                                result.getResponse().getContentAsString(),
+                                new TypeReference<ApiStandardResponse<List<TraineeTrainingResponse>>>() {
+                                });
 
-    private void authenticate(String username, String password) throws Exception {
-        mockMvc.perform(post("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(
-                    new LoginRequest(username, password))))
-            .andExpect(status().isOk());
-    }
+                assertNotNull(response.data());
+        }
+
+        @Test
+        @Order(5)
+        void getUnassignedTrainers_ShouldReturnTrainerList() throws Exception {
+                MvcResult result = mockMvc
+                                .perform(get(BASE_URL + "/{username}/unassigned-trainers", createdTraineeUsername)
+                                                .header("Authorization", "Bearer " + accessToken))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status", is(200)))
+                                .andReturn();
+
+                ApiStandardResponse<List<UnassignedTrainerResponse>> response = objectMapper.readValue(
+                                result.getResponse().getContentAsString(),
+                                new TypeReference<ApiStandardResponse<List<UnassignedTrainerResponse>>>() {
+                                });
+
+                assertNotNull(response.data());
+        }
+
+        @Test
+        @Order(6)
+        void registerTrainee_WithInvalidData_ShouldReturnBadRequest() throws Exception {
+                mockMvc.perform(post(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                new RegisterTraineeRequest("", "", null, ""))))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(jsonPath("$.status", is(400)));
+        }
+
+        @Test
+        @Order(7)
+        void getProfile_WithNonExistentUsername_ShouldReturnNotFound() throws Exception {
+                mockMvc.perform(get(BASE_URL + "/nonexistentuser")
+                                .header("Authorization", "Bearer " + accessToken))
+                                .andExpect(status().isNotFound())
+                                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        }
+
+        @Test
+        @Order(8)
+        void deleteProfile_ShouldRemoveTrainee() throws Exception {
+                mockMvc.perform(delete(BASE_URL + "/{username}", createdTraineeUsername)
+                                .header("Authorization", "Bearer " + accessToken))
+                                .andExpect(status().isOk());
+        }
+
+        private String authenticate(String username, String password) throws Exception {
+                MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(
+                                                new LoginRequest(username, password))))
+                                .andExpect(status().isOk())
+                                .andReturn();
+
+                ApiStandardResponse<LoginResponse> response = objectMapper.readValue(
+                                result.getResponse().getContentAsString(),
+                                new TypeReference<ApiStandardResponse<LoginResponse>>() {
+                                });
+
+                return response.data().token();
+        }
 }

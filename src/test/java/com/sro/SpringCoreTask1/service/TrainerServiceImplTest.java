@@ -3,6 +3,7 @@ package com.sro.SpringCoreTask1.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
@@ -30,6 +31,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +57,9 @@ class TrainerServiceImplTest {
 
     @Mock
     private AuthService authService;
+    
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
@@ -109,14 +114,16 @@ class TrainerServiceImplTest {
     void save_ShouldReturnRegisterTrainerResponse_WhenValidInput() {
         when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
         when(trainerCreateMapper.toEntity(registerTrainerRequest, trainingType)).thenReturn(trainer);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(trainerRepository.save(trainer)).thenReturn(trainer);
-        when(trainerCreateMapper.toRegisterResponse(trainer, "johndoe")).thenReturn(registerTrainerResponse);
+        when(trainerCreateMapper.toRegisterResponse(eq(trainer), anyString())).thenReturn(registerTrainerResponse);
 
         RegisterTrainerResponse result = trainerService.save(registerTrainerRequest);
 
         assertNotNull(result);
         assertEquals(registerTrainerResponse, result);
         verify(trainerRepository).save(trainer);
+        verify(passwordEncoder).encode(anyString());
     }
 
     @Test
