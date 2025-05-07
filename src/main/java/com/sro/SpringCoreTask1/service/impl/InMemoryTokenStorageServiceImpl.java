@@ -3,33 +3,29 @@ package com.sro.SpringCoreTask1.service.impl;
 import com.sro.SpringCoreTask1.service.TokenStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@Profile("dev")
-public class RedisTokenStorageServiceImpl implements TokenStorageService {
+@Profile("local")
+public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> userRefreshTokens = new ConcurrentHashMap<>();
 
     @Value("${jwt.blacklist.prefix:blacklisted_token:}")
     private String blacklistKeyPrefix;
-    
+
     @Value("${jwt.refresh.prefix:user:refresh_tokens:}")
     private String refreshTokensKeyPrefix;
-    
+
     @Value("${jwt.refresh.expiry:30}")
     private int refreshTokenExpiryDays;
-
-    public RedisTokenStorageServiceImpl(RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
 
     @Override
     public void blacklistToken(String tokenId, Instant expiryDate) {
@@ -37,14 +33,13 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = blacklistKeyPrefix + tokenId;
-
         Duration timeToExpiry = Duration.between(Instant.now(), expiryDate);
         if (timeToExpiry.isNegative() || timeToExpiry.isZero()) {
             return;
         }
 
-        redisTemplate.opsForValue().set(key, "1", timeToExpiry.toMillis(), TimeUnit.MILLISECONDS);
+        String key = blacklistKeyPrefix + tokenId;
+        blacklistedTokens.put(key, expiryDate);
     }
 
     @Override
@@ -54,7 +49,18 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
         }
 
         String key = blacklistKeyPrefix + tokenId;
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        Instant expiryDate = blacklistedTokens.get(key);
+
+        if (expiryDate == null) {
+            return false;
+        }
+
+        if (expiryDate.isBefore(Instant.now())) {
+            blacklistedTokens.remove(key);
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -62,13 +68,9 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
         if (username == null || username.isEmpty() || tokenId == null || tokenId.isEmpty()) {
             return;
         }
-        
+
         String key = refreshTokensKeyPrefix + username;
-        redisTemplate.opsForSet().add(key, tokenId);
-        
-        if (redisTemplate.getExpire(key) < 0) {
-            redisTemplate.expire(key, refreshTokenExpiryDays, TimeUnit.DAYS);
-        }
+        userRefreshTokens.computeIfAbsent(key, k -> new HashSet<>()).add(tokenId);
     }
 
     @Override
@@ -76,10 +78,10 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
         if (username == null || username.isEmpty()) {
             return Collections.emptySet();
         }
-        
+
         String key = refreshTokensKeyPrefix + username;
-        Set<String> tokens = redisTemplate.opsForSet().members(key);
-        return tokens != null ? tokens : Collections.emptySet();
+        Set<String> tokens = userRefreshTokens.get(key);
+        return tokens != null ? new HashSet<>(tokens) : Collections.emptySet();
     }
 
     @Override
@@ -87,9 +89,12 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
         if (username == null || username.isEmpty() || tokenId == null || tokenId.isEmpty()) {
             return;
         }
-        
+
         String key = refreshTokensKeyPrefix + username;
-        redisTemplate.opsForSet().remove(key, tokenId);
+        Set<String> tokens = userRefreshTokens.get(key);
+        if (tokens != null) {
+            tokens.remove(tokenId);
+        }
     }
 
     @Override
@@ -97,8 +102,14 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
         if (username == null || username.isEmpty()) {
             return;
         }
-        
+
         String key = refreshTokensKeyPrefix + username;
-        redisTemplate.delete(key);
+        userRefreshTokens.remove(key);
     }
-} 
+
+    @Scheduled(fixedDelayString = "${jwt.blacklist.cleanup-interval:600000}")
+    public void cleanupExpiredTokens() {
+        Instant now = Instant.now();
+        blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));
+    }
+}
