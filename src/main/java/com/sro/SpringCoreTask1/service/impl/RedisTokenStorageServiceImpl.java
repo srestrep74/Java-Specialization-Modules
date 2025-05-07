@@ -18,13 +18,13 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-    @Value("${jwt.blacklist.prefix:blacklisted_token:}")
+    @Value("${jwt.blacklist.prefix}")
     private String blacklistKeyPrefix;
     
-    @Value("${jwt.refresh.prefix:user:refresh_tokens:}")
+    @Value("${jwt.refresh.prefix}")
     private String refreshTokensKeyPrefix;
     
-    @Value("${jwt.refresh.expiry:30}")
+    @Value("${jwt.refresh.expiry}")
     private int refreshTokenExpiryDays;
 
     public RedisTokenStorageServiceImpl(RedisTemplate<String, String> redisTemplate) {

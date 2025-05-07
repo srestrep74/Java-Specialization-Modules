@@ -18,13 +18,13 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
     private final Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> userRefreshTokens = new ConcurrentHashMap<>();
 
-    @Value("${jwt.blacklist.prefix:blacklisted_token:}")
+    @Value("${jwt.blacklist.prefix}")
     private String blacklistKeyPrefix;
 
-    @Value("${jwt.refresh.prefix:user:refresh_tokens:}")
+    @Value("${jwt.refresh.prefix}")
     private String refreshTokensKeyPrefix;
 
-    @Value("${jwt.refresh.expiry:30}")
+    @Value("${jwt.refresh.expiry}")
     private int refreshTokenExpiryDays;
 
     @Override
@@ -107,7 +107,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
         userRefreshTokens.remove(key);
     }
 
-    @Scheduled(fixedDelayString = "${jwt.blacklist.cleanup-interval:600000}")
+    @Scheduled(fixedDelayString = "${jwt.blacklist.cleanup-interval}")
     public void cleanupExpiredTokens() {
         Instant now = Instant.now();
         blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));
