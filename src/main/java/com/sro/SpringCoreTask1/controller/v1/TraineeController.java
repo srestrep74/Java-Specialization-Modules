@@ -55,8 +55,10 @@ public class TraineeController {
     @Operation(
         summary = "Register a new trainee",
         description = "Endpoint to create a new trainee profile with basic information. "
-            + "The system will automatically generate credentials.",
-        operationId = "registerTrainee"
+            + "The system will automatically generate credentials. "
+            + "This endpoint does not require authentication.",
+        operationId = "registerTrainee",
+        security = { }  // Empty security indicates this endpoint doesn't require authentication
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -102,8 +104,10 @@ public class TraineeController {
     @Operation(
         summary = "Get trainee profile",
         description = "Retrieves complete profile information for a trainee including "
-            + "personal details and assigned trainers.",
-        operationId = "getTraineeProfile"
+            + "personal details and assigned trainers. "
+            + "Requires authentication with TRAINEE role. A trainee can only access their own profile.",
+        operationId = "getTraineeProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -112,6 +116,22 @@ public class TraineeController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardResponse.class, oneOf  = TraineeProfileResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -143,8 +163,10 @@ public class TraineeController {
     @Operation(
         summary = "Update trainee profile",
         description = "Updates the profile information for an existing trainee. "
-            + "All required fields must be provided.",
-        operationId = "updateTraineeProfile"
+            + "All required fields must be provided. "
+            + "Requires authentication with TRAINEE role. A trainee can only update their own profile.",
+        operationId = "updateTraineeProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -158,6 +180,22 @@ public class TraineeController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid input data",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -193,14 +231,32 @@ public class TraineeController {
     @Operation(
         summary = "Delete trainee profile",
         description = "Permanently removes a trainee profile from the system. "
-            + "This action cannot be undone.",
-        operationId = "deleteTraineeProfile"
+            + "This action cannot be undone. "
+            + "Requires authentication with TRAINEE role. A trainee can only delete their own profile.",
+        operationId = "deleteTraineeProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
             description = "Profile deleted successfully",
             content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
         ),
         @ApiResponse(
             responseCode = "404",
@@ -232,8 +288,10 @@ public class TraineeController {
         summary = "Get trainee's training sessions",
         description = "Retrieves a list of training sessions for the specified trainee with optional filtering and sorting capabilities. "
         + "Results can be filtered by date range, trainer name, and training type. "
-        + "The response can be sorted by any training duration or date in ascending or descending order.",
-        operationId = "getTraineeTrainings"
+        + "The response can be sorted by any training duration or date in ascending or descending order. "
+        + "Requires authentication with TRAINEE role. A trainee can only view their own training sessions.",
+        operationId = "getTraineeTrainings",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -242,6 +300,22 @@ public class TraineeController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeTrainingResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -313,14 +387,32 @@ public class TraineeController {
     @Operation(
         summary = "Update trainee activation status",
         description = "Activates or deactivates a trainee account. "
-            + "Deactivated accounts cannot access the system.",
-        operationId = "updateTraineeActivation"
+            + "Deactivated accounts cannot access the system. "
+            + "Requires authentication with TRAINEE role. A trainee can only update their own activation status.",
+        operationId = "updateTraineeActivation",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
             description = "Activation status updated successfully",
             content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
         ),
         @ApiResponse(
             responseCode = "404",
@@ -361,8 +453,10 @@ public class TraineeController {
     @Operation(
         summary = "Update trainee's trainers list",
         description = "Updates the list of trainers assigned to a trainee. "
-            + "This replaces the entire list of assigned trainers.",
-        operationId = "updateTraineeTrainers"
+            + "This replaces the entire list of assigned trainers. "
+            + "Requires authentication with TRAINEE role. A trainee can only update their own trainers list.",
+        operationId = "updateTraineeTrainers",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -371,6 +465,22 @@ public class TraineeController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TrainerSummaryResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -414,8 +524,10 @@ public class TraineeController {
             + "to the specified trainee. Returns HAL+JSON response with _links containing:"
             + "\n- self: Link to this resource"
             + "\n- profile: Link to each trainer's profile"
-            + "\n- trainings: Link to each trainer's training sessions",
-        operationId = "getUnassignedTrainers"
+            + "\n- trainings: Link to each trainer's training sessions. "
+            + "Requires authentication with TRAINEE role. A trainee can only view unassigned trainers for their own account.",
+        operationId = "getUnassignedTrainers",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -424,6 +536,22 @@ public class TraineeController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = UnassignedTrainerResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(

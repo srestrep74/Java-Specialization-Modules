@@ -1,27 +1,38 @@
 package com.sro.SpringCoreTask1.util.jwt;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class TokenBlacklist {
 
-    private final Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
+    private final RedisTemplate<String, String> redisTemplate;
 
-    @Value("${jwt.blacklist.cleanup-interval:600000}")
-    private long cleanupInterval;
+    @Value("${jwt.blacklist.prefix:blacklisted_token:}")
+    private String keyPrefix;
+
+    public TokenBlacklist(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
 
     public void blacklistToken(String tokenId, Instant expiryDate) {
         if (tokenId == null || tokenId.isEmpty()) {
             return;
         }
 
-        blacklistedTokens.put(tokenId, expiryDate);
+        String key = keyPrefix + tokenId;
+
+        Duration timeToExpiry = Duration.between(Instant.now(), expiryDate);
+        if (timeToExpiry.isNegative() || timeToExpiry.isZero()) {
+            return;
+        }
+
+        redisTemplate.opsForValue().set(key, "1", timeToExpiry.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     public boolean isBlacklisted(String tokenId) {
@@ -29,12 +40,7 @@ public class TokenBlacklist {
             return false;
         }
 
-        return blacklistedTokens.containsKey(tokenId);
-    }
-
-    @Scheduled(fixedRateString = "${jwt.blacklist.cleanup-interval:600000}")
-    public void cleanupExpiredTokens() {
-        Instant now = Instant.now();
-        blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));
+        String key = keyPrefix + tokenId;
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 }

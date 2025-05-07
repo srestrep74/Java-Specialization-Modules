@@ -24,9 +24,11 @@ import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping(value = "/api/v1/auth", produces = "application/json")
+@Tag(name = "Authentication", description = "Authentication operations for users including login, logout, refresh token and password management")
 public class AuthController {
     
     private final AuthService authService;
@@ -37,7 +39,9 @@ public class AuthController {
     
     @Operation(
         summary = "User login",
-        description = "Authenticates a user based on provided credentials and returns a JWT token.",
+        description = "Authenticates a user based on provided credentials and returns JWT tokens. " +
+                     "The response includes both access token (short-lived) and refresh token (long-lived) " +
+                     "that can be used to obtain a new access token when it expires.",
         operationId = "login"
     )
     @ApiResponses(value = {
@@ -51,7 +55,7 @@ public class AuthController {
         ),
         @ApiResponse(
             responseCode = "401",
-            description = "Invalid credentials",
+            description = "Invalid credentials. Response includes remaining attempts before account lockout.",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -74,8 +78,10 @@ public class AuthController {
 
     @Operation(
         summary = "Change password",
-        description = "Allows authenticated users to change their password by providing the current and new passwords.",
-        operationId = "changePassword"
+        description = "Allows authenticated users to change their password by providing the current and new passwords. " +
+                     "This endpoint requires a valid JWT token.",
+        operationId = "changePassword",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -107,13 +113,16 @@ public class AuthController {
 
     @Operation(
         summary = "Logout user",
-        description = "Logs out the currently authenticated user by invalidating the session.",
-        operationId = "logout"
+        description = "Logs out the currently authenticated user by invalidating all their tokens. " +
+                     "This endpoint invalidates both the current access token and all refresh tokens " +
+                     "associated with the user, preventing token reuse after logout.",
+        operationId = "logout",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "204",
-            description = "Logout successful"
+            description = "Logout successful. All user tokens have been invalidated."
         ),
         @ApiResponse(
             responseCode = "401",
@@ -129,32 +138,49 @@ public class AuthController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        // Extraer el token del encabezado Authorization
+        // Extract token from Authorization header
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwt = authHeader.substring(7);
-            // Invalida explícitamente el token
-            authService.invalidateToken(jwt);
-            // Log para depuración
-            System.out.println("Token invalidated: " + jwt);
-        } else {
-            System.out.println("No valid token found in request for logout");
+            try {
+                // Explicitly invalidate the access token
+                authService.invalidateToken(jwt);
+            } catch (Exception e) {
+                // Continue with logout even if token invalidation fails
+            }
         }
-        // Eliminar la sesión actual del usuario
+        // Invalidate all refresh tokens and clear user session
         authService.logout();
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/refresh")
-    @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Refresh access token using refresh token")
+    @Operation(
+        summary = "Refresh access token",
+        description = "Generates new access and refresh tokens using a valid refresh token. " +
+                     "The previous refresh token is invalidated as part of the rotation security mechanism, " +
+                     "preventing refresh token reuse.",
+        operationId = "refreshToken"
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully refreshed token"),
-            @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+        @ApiResponse(
+            responseCode = "200", 
+            description = "Successfully refreshed tokens. Returns new access and refresh tokens.",
+            content = @Content(schema = @Schema(implementation = LoginResponse.class))
+        ),
+        @ApiResponse(
+            responseCode = "401", 
+            description = "Invalid, expired, or blacklisted refresh token",
+            content = @Content(schema = @Schema(implementation = ApiStandardError.class))
+        ),
+        @ApiResponse(
+            responseCode = "500", 
+            description = "Internal server error",
+            content = @Content(schema = @Schema(implementation = ApiStandardError.class))
+        )
     })
+    @PostMapping("/refresh")
     public ResponseEntity<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshRequest) {
         LoginResponse response = authService.refreshToken(refreshRequest.refreshToken());
         return ResponseEntity.ok(response);
     }
-
 }
