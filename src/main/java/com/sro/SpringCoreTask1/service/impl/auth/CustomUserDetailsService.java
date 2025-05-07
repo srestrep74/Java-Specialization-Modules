@@ -30,7 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Ver si se puede mejorar con un solo repository global user
         Optional<Trainee> trainee = traineeRepository.findByUsername(username);
         if (trainee.isPresent()) {
             return new CustomUserDetails(trainee.get());
