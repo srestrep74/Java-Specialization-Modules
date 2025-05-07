@@ -138,19 +138,7 @@ public class AuthController {
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
-        // Extract token from Authorization header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String jwt = authHeader.substring(7);
-            try {
-                // Explicitly invalidate the access token
-                authService.invalidateToken(jwt);
-            } catch (Exception e) {
-                // Continue with logout even if token invalidation fails
-            }
-        }
-        // Invalidate all refresh tokens and clear user session
-        authService.logout();
+        authService.logoutWithToken(request.getHeader("Authorization"));
         return ResponseEntity.noContent().build();
     }
 

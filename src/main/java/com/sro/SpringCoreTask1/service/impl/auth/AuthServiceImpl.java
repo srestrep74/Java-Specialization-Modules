@@ -230,6 +230,23 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public void logoutWithToken(String authorizationHeader) {
+        try {
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String jwt = authorizationHeader.substring(7);
+                try {
+                    invalidateToken(jwt);
+                } catch (Exception e) {
+                }
+            }
+            
+            logout();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error during logout", e);
+        }
+    }
+
+    @Override
     public void logout() {
         if (this.authenticatedUser != null) {
             String username = this.authenticatedUser.getUsername();

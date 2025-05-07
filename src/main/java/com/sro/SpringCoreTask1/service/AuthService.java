@@ -19,6 +19,8 @@ public interface AuthService {
     User getCurrentUser();
 
     void changePassword(String username, String oldPassword, String newPassword);
+    
+    void logoutWithToken(String authorizationHeader);
 
     void logout();
 
