@@ -11,11 +11,11 @@ import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.security.CustomUserDetails;
 import com.sro.SpringCoreTask1.service.AuthService;
 import com.sro.SpringCoreTask1.service.LoginAttemptService;
+import com.sro.SpringCoreTask1.service.TokenStorageService;
 import com.sro.SpringCoreTask1.util.jwt.JwtUtil;
 import com.sro.SpringCoreTask1.util.jwt.TokenBlacklist;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final TokenBlacklist tokenBlacklist;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final TokenStorageService tokenStorageService;
 
     private User authenticatedUser;
     private boolean isTrainee;
@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
             PasswordEncoder passwordEncoder,
             LoginAttemptService loginAttemptService,
             TokenBlacklist tokenBlacklist,
-            RedisTemplate<String, String> redisTemplate) {
+            TokenStorageService tokenStorageService) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.jwtUtil = jwtUtil;
@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.tokenBlacklist = tokenBlacklist;
-        this.redisTemplate = redisTemplate;
+        this.tokenStorageService = tokenStorageService;
     }
 
     @Override
@@ -79,12 +79,7 @@ public class AuthServiceImpl implements AuthService {
             String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
             String refreshTokenId = jwtUtil.extractTokenId(refreshToken);
-            String userRefreshTokensKey = "user:refresh_tokens:" + username;
-            redisTemplate.opsForSet().add(userRefreshTokensKey, refreshTokenId);
-
-            if (redisTemplate.getExpire(userRefreshTokensKey) < 0) {
-                redisTemplate.expire(userRefreshTokensKey, Duration.ofDays(30));
-            }
+            tokenStorageService.storeRefreshToken(username, refreshTokenId);
 
             if (userDetails instanceof CustomUserDetails) {
                 this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
@@ -139,8 +134,7 @@ public class AuthServiceImpl implements AuthService {
             invalidateToken(refreshToken);
 
             String newRefreshTokenId = jwtUtil.extractTokenId(newRefreshToken);
-            String userRefreshTokensKey = "user:refresh_tokens:" + username;
-            redisTemplate.opsForSet().add(userRefreshTokensKey, newRefreshTokenId);
+            tokenStorageService.storeRefreshToken(username, newRefreshTokenId);
 
             if (this.authenticatedUser == null && userDetails instanceof CustomUserDetails) {
                 this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
@@ -181,8 +175,7 @@ public class AuthServiceImpl implements AuthService {
 
             String username = jwtUtil.extractUsername(token);
             if (jwtUtil.isRefreshToken(token)) {
-                String userRefreshTokensKey = "user:refresh_tokens:" + username;
-                redisTemplate.opsForSet().remove(userRefreshTokensKey, tokenId);
+                tokenStorageService.removeRefreshToken(username, tokenId);
             }
 
         } catch (ExpiredJwtException e) {
@@ -192,9 +185,8 @@ public class AuthServiceImpl implements AuthService {
             if (tokenId != null && !tokenId.isEmpty()) {
                 tokenBlacklist.blacklistToken(tokenId, Instant.now().plusSeconds(60));
 
-                if (!e.getClaims().containsKey("roles")) { // Es un refresh token
-                    String userRefreshTokensKey = "user:refresh_tokens:" + username;
-                    redisTemplate.opsForSet().remove(userRefreshTokensKey, tokenId);
+                if (!e.getClaims().containsKey("roles")) { // It's a refresh token
+                    tokenStorageService.removeRefreshToken(username, tokenId);
                 }
             }
         } catch (Exception e) {
@@ -244,16 +236,14 @@ public class AuthServiceImpl implements AuthService {
     public void logout() {
         if (this.authenticatedUser != null) {
             String username = this.authenticatedUser.getUsername();
-
-            String userRefreshTokensKey = "user:refresh_tokens:" + username;
-            Set<String> refreshTokenIds = redisTemplate.opsForSet().members(userRefreshTokensKey);
+            Set<String> refreshTokenIds = tokenStorageService.getUserRefreshTokens(username);
 
             if (refreshTokenIds != null) {
                 for (String tokenId : refreshTokenIds) {
                     tokenBlacklist.blacklistToken(tokenId, Instant.now().plus(Duration.ofDays(7)));
                 }
 
-                redisTemplate.delete(userRefreshTokensKey);
+                tokenStorageService.clearUserRefreshTokens(username);
             }
         }
 
