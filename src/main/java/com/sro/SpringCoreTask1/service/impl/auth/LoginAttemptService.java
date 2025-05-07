@@ -1,4 +1,4 @@
-package com.sro.SpringCoreTask1.service;
+package com.sro.SpringCoreTask1.service.impl.auth;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

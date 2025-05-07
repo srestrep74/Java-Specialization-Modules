@@ -4,13 +4,13 @@ import com.sro.SpringCoreTask1.dtos.v1.response.auth.LoginResponse;
 import com.sro.SpringCoreTask1.entity.Trainee;
 import com.sro.SpringCoreTask1.entity.Trainer;
 import com.sro.SpringCoreTask1.entity.User;
+import com.sro.SpringCoreTask1.entity.RoleType;
 import com.sro.SpringCoreTask1.exception.AuthenticationFailedException;
 import com.sro.SpringCoreTask1.exception.DatabaseOperationException;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.security.CustomUserDetails;
 import com.sro.SpringCoreTask1.service.AuthService;
-import com.sro.SpringCoreTask1.service.LoginAttemptService;
 import com.sro.SpringCoreTask1.service.TokenStorageService;
 import com.sro.SpringCoreTask1.util.jwt.JwtUtil;
 import com.sro.SpringCoreTask1.util.jwt.TokenBlacklist;
@@ -40,7 +40,6 @@ public class AuthServiceImpl implements AuthService {
     private final TokenStorageService tokenStorageService;
 
     private User authenticatedUser;
-    private boolean isTrainee;
 
     public AuthServiceImpl(
             TraineeRepository traineeRepository,
@@ -83,7 +82,6 @@ public class AuthServiceImpl implements AuthService {
 
             if (userDetails instanceof CustomUserDetails) {
                 this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
-                this.isTrainee = ((CustomUserDetails) userDetails).getRole().equals("TRAINEE");
             }
 
             loginAttemptService.resetAttempts(username);
@@ -138,7 +136,6 @@ public class AuthServiceImpl implements AuthService {
 
             if (this.authenticatedUser == null && userDetails instanceof CustomUserDetails) {
                 this.authenticatedUser = ((CustomUserDetails) userDetails).getUser();
-                this.isTrainee = ((CustomUserDetails) userDetails).getRole().equals("TRAINEE");
             }
 
             return new LoginResponse(username, true, newAccessToken, newRefreshToken);
@@ -267,11 +264,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean isCurrentUserTrainee() {
-        return isAuthenticated() && this.isTrainee;
+        return isAuthenticated() && this.authenticatedUser.getRole() == RoleType.TRAINEE;
     }
 
     @Override
     public boolean isCurrentUserTrainer() {
-        return isAuthenticated() && !this.isTrainee;
+        return isAuthenticated() && this.authenticatedUser.getRole() == RoleType.TRAINER;
     }
 }
