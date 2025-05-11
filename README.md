@@ -88,18 +88,32 @@ First, set the required environment variables:
 
 **Windows (PowerShell)**:
 ```powershell
+# PostgreSQL variables
 $env:DB_PROD_HOST="localhost"
 $env:DB_PROD_PORT="5432"
 $env:DB_PROD_USER="postgres"
 $env:DB_PROD_PASSWORD="postgres"
+
+# Redis variables
+$env:REDIS_PROD_HOST="localhost"
+$env:REDIS_PROD_PORT="6379"
+$env:REDIS_PROD_PASSWORD=""
+$env:REDIS_PROD_TIMEOUT="5000"
 ```
 
 **Linux/macOS**:
 ```bash
+# PostgreSQL variables
 export DB_PROD_HOST=localhost
 export DB_PROD_PORT=5432
 export DB_PROD_USER=postgres
 export DB_PROD_PASSWORD=postgres
+
+# Redis variables
+export REDIS_PROD_HOST=localhost
+export REDIS_PROD_PORT=6379
+export REDIS_PROD_PASSWORD=""
+export REDIS_PROD_TIMEOUT=5000
 ```
 
 Features:
@@ -694,6 +708,15 @@ The `prod` profile implements stricter settings suitable for production deployme
   spring.datasource.username=${DB_PROD_USER}
   spring.datasource.password=${DB_PROD_PASSWORD}
   ```
+  
+- **Redis**: Uses Redis with environment variables for sensitive credentials
+  ```
+  spring.data.redis.host=${REDIS_PROD_HOST}
+  spring.data.redis.port=${REDIS_PROD_PORT}
+  spring.data.redis.timeout=${REDIS_PROD_TIMEOUT:5000}
+  spring.data.redis.password=${REDIS_PROD_PASSWORD:}
+  ```
+  
 - **Connection Pooling**: Configures Hikari connection pool with optimized settings
 - **Hibernate**: Uses `validate` strategy to verify schema without making changes
 - **Logging**: Minimal `WARN` and `ERROR` levels to reduce overhead
@@ -707,10 +730,18 @@ First, set the required environment variables:
 
 **Windows (PowerShell)**:
 ```powershell
+# PostgreSQL variables
 $env:DB_PROD_HOST="localhost"
 $env:DB_PROD_PORT="5432"
 $env:DB_PROD_USER="postgres"
 $env:DB_PROD_PASSWORD="postgres"
+
+# Redis variables
+$env:REDIS_PROD_HOST="localhost"
+$env:REDIS_PROD_PORT="6379"
+$env:REDIS_PROD_PASSWORD=""
+$env:REDIS_PROD_TIMEOUT="5000"
+
 mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
 ```
 
@@ -723,10 +754,18 @@ Remember to still set the required environment variables when using this method.
 
 **Linux/macOS**:
 ```bash
+# PostgreSQL variables
 export DB_PROD_HOST=localhost
 export DB_PROD_PORT=5432
 export DB_PROD_USER=postgres
 export DB_PROD_PASSWORD=postgres
+
+# Redis variables
+export REDIS_PROD_HOST=localhost
+export REDIS_PROD_PORT=6379
+export REDIS_PROD_PASSWORD=""
+export REDIS_PROD_TIMEOUT=5000
+
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
