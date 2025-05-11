@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@Profile("dev")
+@Profile({"dev", "prod"})
 public class RedisTokenStorageServiceImpl implements TokenStorageService {
 
     private final RedisTemplate<String, String> redisTemplate;

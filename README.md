@@ -18,21 +18,217 @@ The application leverages core Spring Boot capabilities and follows modern micro
 
 The project adheres to software engineering best practices including SOLID principles, dependency injection, AOP for cross-cutting concerns, comprehensive exception handling, and standardized response formats.
 
+## Getting Started
 
-## API Documentation
-To document the APIs effectively and adhere to best practices and conventions, we used the `springdoc-openapi` library. This library helps in generating OpenAPI documentation for Spring Boot applications, making it easier to visualize and interact with the API endpoints.
+### Requirements
+- Java 17 or higher
+- Maven 3.8 or higher
+- Docker and Docker Compose (for dev and prod profiles)
+- Git
 
-### Library Used
-We utilized the `springdoc-openapi-starter-webmvc-ui` library, which integrates seamlessly with Spring Boot to generate OpenAPI 3 documentation. This library provides a user-friendly interface to explore and test the API endpoints.
+### Installation & Setup
 
-### Accessing the API Documentation
-Once the application is running, you can access the API documentation by navigating to the following URL in your web browser:
+1. Clone the repository:
+   ```sh
+   git clone [repository-url]
+   cd [project-directory]
+   ```
+
+2. Build the project:
+   ```sh
+   mvn clean install
+   ```
+
+3. Start the required services with Docker (for dev and prod profiles):
+   ```sh
+   docker-compose up -d
+   ```
+
+### Running the Application
+
+The application supports three environment profiles: local, dev, and production.
+
+#### Local Profile
+For quick local development with H2 in-memory database and minimal setup:
+
+```sh
+mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+```
+
+Features:
+- H2 in-memory database (accessible at `/h2-console`)
+- Automatic schema creation and sample data loading
+- In-memory token storage (no Redis required)
+- Enhanced logging and debug information
+
+#### Development Profile
+For a production-like environment with persistent data:
+
+```sh
+mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
+```
+
+Features:
+- PostgreSQL database connection
+- Redis for token storage
+- Schema updates preserved between restarts
+- Balanced logging levels
+
+Requirements:
+- Docker with PostgreSQL and Redis containers running
+
+#### Production Profile
+For deployment to production environments:
+
+```sh
+mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
+```
+
+First, set the required environment variables:
+
+**Windows (PowerShell)**:
+```powershell
+$env:DB_PROD_HOST="localhost"
+$env:DB_PROD_PORT="5432"
+$env:DB_PROD_USER="postgres"
+$env:DB_PROD_PASSWORD="postgres"
+```
+
+**Linux/macOS**:
+```bash
+export DB_PROD_HOST=localhost
+export DB_PROD_PORT=5432
+export DB_PROD_USER=postgres
+export DB_PROD_PASSWORD=postgres
+```
+
+Features:
+- Enhanced security settings
+- Strict schema validation
+- Minimal logging
+- Optimized connection pooling
+- Redis for distributed token storage
+
+## Using the API
+
+### API Documentation with Swagger
+
+Once the application is running, you can access the API documentation at:
 ```
 http://localhost:8080/swagger-ui.html
 ```
-This URL will open the Swagger UI, a web-based interface that allows you to view the API documentation, explore the available endpoints, and test them directly from the browser.
 
-## Spring Security Implementation
+The Swagger UI provides a comprehensive interface to:
+- View all available endpoints
+- Try out API calls directly in the browser
+- See request and response formats
+- Understand authentication requirements
+
+### Authentication with JWT
+
+The API uses JWT tokens for authentication. To use protected endpoints:
+
+1. Obtain a JWT token by sending a POST request to `/api/v1/auth/login` with your credentials:
+   ```json
+   {
+     "username": "your_username",
+     "password": "your_password"
+   }
+   ```
+
+2. The response will contain access and refresh tokens:
+   ```json
+   {
+     "accessToken": "eyJhbGciOi...",
+     "refreshToken": "eyJhbGciOi...",
+   }
+   ```
+
+3. Include the access token in subsequent requests using the Authorization header:
+   ```
+   Authorization: Bearer eyJhbGciOi...
+   ```
+
+4. To use Bearer Auth in Swagger:
+   - Click the "Authorize" button in the Swagger UI
+   - Enter your token in the format: `Bearer eyJhbGciOi...`
+   - Click "Authorize" to apply the token to all API requests
+
+
+5. When your token expires, use the refresh token at `/api/v1/auth/refresh` to get a new access token.
+
+## Docker Configuration
+
+This project uses Docker Compose to set up all the required services for development and production environments.
+
+### Starting Docker Services
+
+Start all services with a single command:
+```sh
+docker-compose up -d
+```
+
+### PostgreSQL Database
+
+PostgreSQL serves as the main database for dev and prod profiles:
+
+- **Connection Details**:
+  - Host: `localhost` (or `postgres` from containers)
+  - Port: `5432`
+  - Database: `jpa_epam`
+  - Username: `postgres`
+  - Password: `postgres`
+
+### pgAdmin Interface
+
+The project includes pgAdmin for managing PostgreSQL:
+
+- **Access URL**: http://localhost:5050
+- **Login**: 
+  - Email: `admin@example.com`
+  - Password: `admin`
+
+- **Connecting to the Database**:
+  - The connection is pre-configured through `pgadmin-servers.json`
+  - If you need to add it manually, use the connection details above with hostname `postgres`
+
+### Redis Database and Interface
+
+Redis is used for token storage in dev and prod profiles:
+
+- **Connection Details**:
+  - Host: `localhost` (or `redis` from containers)
+  - Port: `6379`
+  - No password required by default
+
+- **RedisInsight Interface**:
+  - Access URL: http://localhost:5540
+  - When first connecting, set up a connection with:
+    - Host: `redis`
+    - Port: `6379`
+    - Name: `Redis Server`
+
+- **Manual Redis CLI Access**:
+  ```sh
+  docker exec -it redis-jwt redis-cli
+  ```
+
+### Stopping and Managing Docker Services
+
+```sh
+# Stop services but preserve data
+docker-compose down
+
+# Stop and remove all data volumes
+docker-compose down -v
+
+# Restart services
+docker-compose restart
+```
+
+## Technical Features and Implementation
+
+### Spring Security Implementation
 
 This project implements a comprehensive security solution using Spring Security framework combined with JWT (JSON Web Tokens) for authentication and authorization. The implementation provides stateless security, role-based access control, token blacklisting, and protection against common security threats.
 
@@ -415,7 +611,6 @@ This system balances security needs with performance considerations, ensuring th
      - **Parameter Binding**: Using named parameters with `@Param` annotation for safer and more readable queries.
    - **Example Implementation**: The `TrainingRepository` showcases these advanced features by implementing the `JpaSpecificationExecutor` interface to support complex filtering in training searches, combined with custom queries for metrics calculations.
 
-
 ## Spring Profiles Implementation
 
 The application implements a robust profile-based configuration strategy to seamlessly adapt to different environments: local development, development server, and production. This approach allows for environment-specific configurations without code changes.
@@ -536,102 +731,3 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 3. **Performance Tuning**: Each environment is optimized for its use case
 4. **Developer Experience**: Local development is streamlined with appropriate tools
 5. **Operational Control**: Production has stricter settings for stability and security
-
-
-## Setting Up Database Services with Docker
-
-This project uses Docker Compose to easily set up all the required database services: PostgreSQL for the main application data and Redis for token storage. The setup is configured in the `docker-compose.yml` file.
-
-### Prerequisites
-
-- Docker and Docker Compose installed on your system
-- Basic understanding of Docker commands
-
-### Starting All Services
-
-To start all database services (PostgreSQL, pgAdmin, and Redis) with a single command:
-
-     ```sh
-     docker-compose up -d
-     ```
-
-This command launches all services in detached mode, allowing you to continue using the terminal.
-
-### PostgreSQL Setup
-
-The PostgreSQL database is configured with the following details:
-
-- **Container Name**: `postgres_db`
-- **Port**: `5432` (mapped to host port `5432`)
-     - **Database Name**: `jpa_epam`
-     - **Username**: `postgres`
-     - **Password**: `postgres`
-- **Data Volume**: `postgres_data` (data persists across container restarts)
-
-#### Accessing PostgreSQL
-
-You can connect to PostgreSQL directly using any database client with the connection details above, or use the included pgAdmin web interface.
-
-#### pgAdmin Access
-
-pgAdmin provides a web interface to manage your PostgreSQL database:
-
-- **URL**: `http://localhost:5050`
-- **Login Email**: `admin@example.com`
-- **Login Password**: `admin`
-
-The server connection to PostgreSQL is pre-configured through the mounted `pgadmin-servers.json` file.
-
-### Redis Setup
-
-Redis is used for token storage in development and production environments:
-
-- **Container Name**: `redis-jwt`
-- **Port**: `6379` (mapped to host port `6379`)
-- **Persistence**: Enabled with append-only file mode
-- **Data Volume**: `redis_data` (data persists across container restarts)
-
-#### Accessing Redis
-
-You can connect to the Redis CLI for inspection and debugging:
-
-     ```sh
-docker exec -it redis-jwt redis-cli
-```
-
-Common Redis commands for working with the application:
-
-```sh
-# List all blacklisted tokens
-KEYS blacklisted_token:*
-
-# Check if a token is blacklisted
-KEYS blacklisted_token:<token_id>
-
-# List all refresh tokens for a user
-SMEMBERS user:refresh_tokens:<username>
-
-#### Stopping Services
-
-     ```sh
-# Stop but preserve volumes and data
-docker-compose down
-
-# Stop and remove volumes (erases all data)
-     docker-compose down -v
-     ```
-
-#### Restarting Services
-
-```sh
-docker-compose restart
-```
-
-### Container Network
-
-All services are connected via the `app_network` bridge network, allowing them to communicate with each other using their service names as hostnames.
-
-When configuring your application to connect to these services, use the following connection details:
-
-- **PostgreSQL**: `postgres:5432` (from other containers) or `localhost:5432` (from host)
-- **Redis**: `redis:6379` (from other containers) or `localhost:6379` (from host)
