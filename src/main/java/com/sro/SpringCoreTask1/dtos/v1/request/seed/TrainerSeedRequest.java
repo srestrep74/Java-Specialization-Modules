@@ -6,5 +6,6 @@ public record TrainerSeedRequest(
     String username,
     String password,
     boolean active,
-    Long trainingTypeId
+    Long trainingTypeId,
+    String role
 ) {}

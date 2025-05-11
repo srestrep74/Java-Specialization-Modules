@@ -2,6 +2,8 @@ package com.sro.SpringCoreTask1.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.seed.TraineeSeedRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.seed.TrainerSeedRequest;
@@ -26,6 +28,7 @@ import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.repository.TrainingRepository;
 import com.sro.SpringCoreTask1.repository.TrainingTypeRepository;
 import com.sro.SpringCoreTask1.util.ProfileUtil;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,6 +78,9 @@ class DataSeedServiceTest {
 
     @Mock
     private TrainerTrainingMetrics trainerTrainingMetrics;
+    
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private DataSeedService dataSeedService;
@@ -131,7 +137,8 @@ class DataSeedServiceTest {
                 true,
                 "123 Street",
                 LocalDate.of(2000, 1, 1),
-                List.of(1L));
+                List.of(1L),
+                "TRAINEE");
 
         trainerSeedRequest = new TrainerSeedRequest(
                 "Trainer",
@@ -139,7 +146,8 @@ class DataSeedServiceTest {
                 "trainer1",
                 "password",
                 true,
-                1L);
+                1L,
+                "TRAINER");
 
         trainingSeedRequest = new TrainingSeedRequest(
                 "Strength Training",
@@ -159,7 +167,8 @@ class DataSeedServiceTest {
             profileUtilMock.when(() -> ProfileUtil.generateUsername(anyString(), anyString(), any()))
                     .thenReturn("johndoe");
             profileUtilMock.when(ProfileUtil::generatePassword).thenReturn("password");
-
+            
+            when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(traineeSeedMapper.toEntity(traineeSeedRequest)).thenReturn(trainee);
             when(traineeRepository.save(trainee)).thenReturn(trainee);
             when(traineeRepository.findById(1L)).thenReturn(Optional.of(trainee));
@@ -168,6 +177,7 @@ class DataSeedServiceTest {
             assertDoesNotThrow(() -> dataSeedService.seedTrainee(traineeSeedRequest));
 
             verify(traineeRepository, times(2)).save(trainee);
+            verify(passwordEncoder).encode(anyString());
         }
     }
 
@@ -205,7 +215,8 @@ class DataSeedServiceTest {
             profileUtilMock.when(() -> ProfileUtil.generateUsername(anyString(), anyString(), any()))
                     .thenReturn("trainer1");
             profileUtilMock.when(ProfileUtil::generatePassword).thenReturn("password");
-
+            
+            when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
             when(trainerSeedMapper.toEntity(trainerSeedRequest, trainingType)).thenReturn(trainer);
             when(trainerRepository.save(trainer)).thenReturn(trainer);
@@ -213,6 +224,7 @@ class DataSeedServiceTest {
             assertDoesNotThrow(() -> dataSeedService.seedTrainer(trainerSeedRequest));
 
             verify(trainerRepository).save(trainer);
+            verify(passwordEncoder).encode(anyString());
         }
     }
 

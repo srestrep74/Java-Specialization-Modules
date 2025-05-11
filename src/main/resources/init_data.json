@@ -6,7 +6,8 @@
       "active": true,
       "address": "123 Main St",
       "dateOfBirth": "1990-01-01",
-      "trainerIds": [1]
+      "trainerIds": [1],
+      "role": "TRAINEE"
     },
     {
       "firstName": "Jane",
@@ -14,7 +15,8 @@
       "active": true,
       "address": "456 Elm St",
       "dateOfBirth": "1995-05-05",
-      "trainerIds": [2]
+      "trainerIds": [2],
+      "role": "TRAINEE"
     },
     {
       "firstName": "Alice",
@@ -22,7 +24,8 @@
       "active": true,
       "address": "789 Oak St",
       "dateOfBirth": "1985-03-15",
-      "trainerIds": [3]
+      "trainerIds": [3],
+      "role": "TRAINEE"
     },
     {
       "firstName": "Bob",
@@ -30,7 +33,8 @@
       "active": true,
       "address": "321 Pine St",
       "dateOfBirth": "1988-07-20",
-      "trainerIds": [4]
+      "trainerIds": [4],
+      "role": "TRAINEE"
     },
     {
       "firstName": "Charlie",
@@ -38,7 +42,8 @@
       "active": true,
       "address": "654 Maple St",
       "dateOfBirth": "1992-11-30",
-      "trainerIds": [5]
+      "trainerIds": [5],
+      "role": "TRAINEE"
     }
   ],
   "trainers": [
@@ -46,31 +51,36 @@
       "firstName": "Mike",
       "lastName": "Taylor",
       "active": true,
-      "trainingTypeId": 1
+      "trainingTypeId": 1,
+      "role": "TRAINER"
     },
     {
       "firstName": "Sarah",
       "lastName": "Wilson",
       "active": true,
-      "trainingTypeId": 2
+      "trainingTypeId": 2,
+      "role": "TRAINER"
     },
     {
       "firstName": "David",
       "lastName": "Moore",
       "active": true,
-      "trainingTypeId": 3
+      "trainingTypeId": 3,
+      "role": "TRAINER"
     },
     {
       "firstName": "Laura",
       "lastName": "Anderson",
       "active": true,
-      "trainingTypeId": 4
+      "trainingTypeId": 4,
+      "role": "TRAINER"
     },
     {
       "firstName": "Kevin",
       "lastName": "Thomas",
       "active": true,
-      "trainingTypeId": 5
+      "trainingTypeId": 5,
+      "role": "TRAINER"
     }
   ],
   "trainingTypes": [

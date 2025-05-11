@@ -11,5 +11,6 @@ public record TraineeSeedRequest(
     boolean active,
     String address,
     LocalDate dateOfBirth,
-    List<Long> trainerIds
+    List<Long> trainerIds,
+    String role
 ) {}

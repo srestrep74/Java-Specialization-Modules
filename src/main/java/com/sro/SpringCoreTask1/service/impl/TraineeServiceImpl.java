@@ -22,6 +22,7 @@ import com.sro.SpringCoreTask1.service.TraineeService;
 import com.sro.SpringCoreTask1.util.ProfileUtil;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ public class TraineeServiceImpl implements TraineeService {
     private final TraineeUpdateMapper traineeUpdateMapper;
     private final TraineeResponseMapper traineeResponseMapper;
     private final TrainerResponseMapper trainerResponseMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public TraineeServiceImpl(
             AuthService authService,
@@ -49,7 +51,8 @@ public class TraineeServiceImpl implements TraineeService {
             TraineeCreateMapper traineeCreateMapper,
             TraineeUpdateMapper traineeUpdateMapper,
             TraineeResponseMapper traineeResponseMapper,
-            TrainerResponseMapper trainerResponseMapper) {
+            TrainerResponseMapper trainerResponseMapper,
+            PasswordEncoder passwordEncoder) {
         this.authService = authService;
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
@@ -57,6 +60,7 @@ public class TraineeServiceImpl implements TraineeService {
         this.traineeUpdateMapper = traineeUpdateMapper;
         this.traineeResponseMapper = traineeResponseMapper;
         this.trainerResponseMapper = trainerResponseMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -79,10 +83,10 @@ public class TraineeServiceImpl implements TraineeService {
         try {
             Trainee trainee = traineeCreateMapper.toEntity(traineeRequestDTO);
             trainee.setUsername(generatedUsername);
-            trainee.setPassword(generatedPassword);
+            trainee.setPassword(passwordEncoder.encode(generatedPassword));
             Trainee savedTrainee = traineeRepository.save(trainee);
 
-            return traineeCreateMapper.toRegisterResponse(savedTrainee);
+            return traineeCreateMapper.toRegisterResponse(savedTrainee, generatedPassword);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException("Trainee with username " + generatedUsername + " already exists");
         } catch (Exception e) {

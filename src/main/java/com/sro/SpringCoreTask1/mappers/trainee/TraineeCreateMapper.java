@@ -16,9 +16,11 @@ public interface TraineeCreateMapper {
     @Mapping(target = "username", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "active", constant = "true")
+    @Mapping(target = "role", ignore = true)
     Trainee toEntity(RegisterTraineeRequest dto);
 
-    @Mapping(source = "username", target = "username")
-    @Mapping(source = "password", target = "password")
-    RegisterTraineeResponse toRegisterResponse(Trainee trainee);
+    @Mapping(source = "trainee.username", target = "username")
+    @Mapping(source = "trainee.password", target = "password")
+    @Mapping(source = "plainPassword", target = "plainPassword")
+    RegisterTraineeResponse toRegisterResponse(Trainee trainee, String plainPassword);
 }

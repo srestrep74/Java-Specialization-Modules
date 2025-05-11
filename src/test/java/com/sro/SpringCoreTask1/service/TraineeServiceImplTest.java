@@ -2,6 +2,8 @@ package com.sro.SpringCoreTask1.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
@@ -20,6 +22,7 @@ import com.sro.SpringCoreTask1.mappers.trainer.TrainerResponseMapper;
 import com.sro.SpringCoreTask1.repository.TraineeRepository;
 import com.sro.SpringCoreTask1.repository.TrainerRepository;
 import com.sro.SpringCoreTask1.service.impl.TraineeServiceImpl;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,6 +59,9 @@ class TraineeServiceImplTest {
 
     @Mock
     private AuthService authService;
+    
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private TraineeServiceImpl traineeService;
@@ -96,7 +102,8 @@ class TraineeServiceImplTest {
 
         registerTraineeResponse = new RegisterTraineeResponse(
             "johndoe", 
-            "generatedPassword"
+            "generatedPassword",
+            "TRAINEE"
         );
 
         traineeProfileResponse = new TraineeProfileResponse(
@@ -129,14 +136,16 @@ class TraineeServiceImplTest {
     @Test
     void save_ShouldReturnRegisterTraineeResponse_WhenValidInput() {
         when(traineeCreateMapper.toEntity(registerTraineeRequest)).thenReturn(trainee);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(traineeRepository.save(trainee)).thenReturn(trainee);
-        when(traineeCreateMapper.toRegisterResponse(trainee)).thenReturn(registerTraineeResponse);
+        when(traineeCreateMapper.toRegisterResponse(eq(trainee), anyString())).thenReturn(registerTraineeResponse);
 
         RegisterTraineeResponse result = traineeService.save(registerTraineeRequest);
 
         assertNotNull(result);
         assertEquals(registerTraineeResponse, result);
         verify(traineeRepository).save(trainee);
+        verify(passwordEncoder).encode(anyString());
     }
 
     @Test

@@ -16,16 +16,19 @@ import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "trainers")
 public class Trainer extends User{
+
+    public Trainer() {
+        super();
+        this.setRole(RoleType.TRAINER);
+    }
 
     @ManyToOne
     @JoinColumn(name = "training_type_id")

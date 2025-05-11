@@ -19,9 +19,11 @@ public interface TrainerCreateMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "active", constant = "true")
     @Mapping(source = "trainingType", target = "trainingType")
+    @Mapping(target = "role", ignore = true)
     Trainer toEntity(RegisterTrainerRequest dto, TrainingType trainingType);
 
-    @Mapping(source = "username", target = "username")
-    @Mapping(source = "password", target = "password")
-    RegisterTrainerResponse toRegisterResponse(Trainer trainer);
+    @Mapping(source = "trainer.username", target = "username")
+    @Mapping(source = "trainer.password", target = "password")
+    @Mapping(source = "plainPassword", target = "plainPassword")
+    RegisterTrainerResponse toRegisterResponse(Trainer trainer, String plainPassword);
 }

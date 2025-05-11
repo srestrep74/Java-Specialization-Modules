@@ -23,5 +23,6 @@ public interface TraineeUpdateMapper {
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "trainers", ignore = true)
     @Mapping(target = "trainings", ignore = true)
+    @Mapping(target = "role", ignore = true)
     Trainee toEntity(UpdateTraineeProfileRequest request, @MappingTarget Trainee existingTrainee);
 }

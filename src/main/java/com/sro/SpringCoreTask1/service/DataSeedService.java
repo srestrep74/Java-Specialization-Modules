@@ -1,6 +1,7 @@
 package com.sro.SpringCoreTask1.service;
 
 import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,8 @@ public class DataSeedService {
     private final TrainingSeedMapper trainingSeedMapper;
     private final TrainingTypeSeedMapper trainingTypeSeedMapper;
 
+    private final PasswordEncoder passwordEncoder;
+
     private final TrainingMetrics trainingMetrics;
     private final TraineeTrainingMetrics traineeTrainingMetrics;
     private final TrainerTrainingMetrics trainerTrainingMetrics;
@@ -50,7 +53,7 @@ public class DataSeedService {
             TraineeSeedMapper traineeSeedMapper, TrainerSeedMapper trainerSeedMapper,
             TrainingSeedMapper trainingSeedMapper, TrainingTypeSeedMapper trainingTypeSeedMapper,
             TrainingMetrics trainingMetrics, TraineeTrainingMetrics traineeTrainingMetrics,
-            TrainerTrainingMetrics trainerTrainingMetrics) {
+            TrainerTrainingMetrics trainerTrainingMetrics, PasswordEncoder passwordEncoder) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
         this.trainingTypeRepository = trainingTypeRepository;
@@ -59,6 +62,7 @@ public class DataSeedService {
         this.trainerSeedMapper = trainerSeedMapper;
         this.trainingSeedMapper = trainingSeedMapper;
         this.trainingTypeSeedMapper = trainingTypeSeedMapper;
+        this.passwordEncoder = passwordEncoder;
         this.trainingMetrics = trainingMetrics;
         this.traineeTrainingMetrics = traineeTrainingMetrics;
         this.trainerTrainingMetrics = trainerTrainingMetrics;
@@ -71,7 +75,7 @@ public class DataSeedService {
             trainee.setUsername(
                     ProfileUtil.generateUsername(traineeRequestDTO.firstName(), traineeRequestDTO.lastName(),
                             username -> traineeRepository.existsByUsername(username)));
-            trainee.setPassword(ProfileUtil.generatePassword());
+            trainee.setPassword(passwordEncoder.encode(ProfileUtil.generatePassword()));
             Trainee savedTrainee = traineeRepository.save(trainee);
 
             if (traineeRequestDTO.trainerIds() != null && !traineeRequestDTO.trainerIds().isEmpty()) {
@@ -101,7 +105,7 @@ public class DataSeedService {
             trainer.setUsername(
                     ProfileUtil.generateUsername(trainerRequestDTO.firstName(), trainerRequestDTO.lastName(),
                             username -> trainerRepository.existsByUsername(username)));
-            trainer.setPassword(ProfileUtil.generatePassword());
+            trainer.setPassword(passwordEncoder.encode(ProfileUtil.generatePassword()));
             trainerRepository.save(trainer);
         } catch (ConstraintViolationException e) {
             throw new ResourceAlreadyExistsException(

@@ -19,16 +19,19 @@ import jakarta.validation.constraints.Past;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "trainees")
 public class Trainee extends User {
+
+    public Trainee() {
+        super();
+        this.setRole(RoleType.TRAINEE);
+    }
 
     @Column(name = "address")
     private String address;

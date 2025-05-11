@@ -1,4 +1,4 @@
-# Spring Boot Project - EPAM Training
+# Spring Security Project - EPAM Training
 
 ### Developed By : Sebastián Restrepo Ortiz
 
@@ -9,6 +9,8 @@ The application leverages core Spring Boot capabilities and follows modern micro
 
 - **Spring Data JPA**: For simplified, efficient database access with minimal boilerplate code
 - **Spring Boot Actuator**: For production-ready monitoring and metrics collection
+- **Spring Security with JWT**: Implementation of secure authentication and authorization using JWT tokens
+- **Token Management**: Redis-based token storage for production environments and in-memory storage for local development
 - **Environment Profiles**: Configured profiles (local, dev, production) for seamless deployment across environments
 - **RESTful API Design**: Following best practices including versioning, consistent response structures, and proper HTTP method usage
 - **Advanced Repository Patterns**: Using Specifications and custom queries for complex data operations
@@ -16,137 +18,597 @@ The application leverages core Spring Boot capabilities and follows modern micro
 
 The project adheres to software engineering best practices including SOLID principles, dependency injection, AOP for cross-cutting concerns, comprehensive exception handling, and standardized response formats.
 
-## Features Implemented
+## Getting Started
 
-1. **Trainee Registration (POST method)**
-   - **Request**: First Name (required), Last Name (required), Date of Birth (optional), Address (optional)
-   - **Response**: Username, Password
+### Requirements
+- Java 17 or higher
+- Maven 3.8 or higher
+- Docker and Docker Compose (for dev and prod profiles)
+- Git
 
-2. **Trainer Registration (POST method)**
-   - **Request**: First Name (required), Last Name (required), Specialization (required)
-   - **Response**: Username, Password
+### Installation & Setup
 
-3. **Login (GET method)**
-   - **Request**: Username (required), Password (required)
-   - **Response**: 200 OK
+1. Clone the repository:
+   ```sh
+   git clone [repository-url]
+   cd [project-directory]
+   ```
 
-4. **Change Password (PUT method)**
-   - **Request**: Username (required), Old Password (required), New Password (required)
-   - **Response**: 200 OK
+2. Build the project:
+   ```sh
+   mvn clean install
+   ```
 
-5. **Get Trainee Profile (GET method)**
-   - **Request**: Username (required)
-   - **Response**: First Name, Last Name, Date of Birth, Address, Is Active, Trainers List
+3. Start the required services with Docker (for dev and prod profiles):
+   ```sh
+   docker-compose up -d
+   ```
 
-6. **Update Trainee Profile (PUT method)**
-   - **Request**: Username (required), First Name (required), Last Name (required), Date of Birth (optional), Address (optional), Is Active (required)
-   - **Response**: Username, First Name, Last Name, Date of Birth, Address, Is Active, Trainers List
+### Running the Application
 
-7. **Delete Trainee Profile (DELETE method)**
-   - **Request**: Username (required)
-   - **Response**: 200 OK
+The application supports three environment profiles: local, dev, and production.
 
-8. **Get Trainer Profile (GET method)**
-   - **Request**: Username (required)
-   - **Response**: First Name, Last Name, Specialization, Is Active, Trainees List
+#### Local Profile
+For quick local development with H2 in-memory database and minimal setup:
 
-9. **Update Trainer Profile (PUT method)**
-   - **Request**: Username (required), First Name (required), Last Name (required), Specialization (read only), Is Active (required)
-   - **Response**: Username, First Name, Last Name, Specialization, Is Active, Trainees List
+```sh
+mvn spring-boot:run "-Dspring-boot.run.profiles=local"
+```
 
-10. **Get not assigned on trainee active trainers (GET method)**
-    - **Request**: Username (required)
-    - **Response**: Trainer Username, Trainer First Name, Trainer Last Name, Trainer Specialization
+Features:
+- H2 in-memory database (accessible at `/h2-console`)
+- Automatic schema creation and sample data loading
+- In-memory token storage (no Redis required)
+- Enhanced logging and debug information
 
-11. **Update Trainee's Trainer List (PUT method)**
-    - **Request**: Trainee Username, Trainers List (required)
-    - **Response**: Trainers List
+#### Development Profile
+For a production-like environment with persistent data:
 
-12. **Get Trainee Trainings List (GET method)**
-    - **Request**: Username (required), Period From (optional), Period To (optional), Trainer Name (optional), Training Type (optional)
-    - **Response**: Training Name, Training Date, Training Type, Training Duration, Trainer Name
+```sh
+mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
+```
 
-13. **Get Trainer Trainings List (GET method)**
-    - **Request**: Username (required), Period From (optional), Period To (optional), Trainee Name (optional)
-    - **Response**: Training Name, Training Date, Training Type, Training Duration, Trainee Name
+Features:
+- PostgreSQL database connection
+- Redis for token storage
+- Schema updates preserved between restarts
+- Balanced logging levels
 
-14. **Add Training (POST method)**
-    - **Request**: Trainee username (required), Trainer username (required), Training Name (required), Training Date (required), Training Duration (required)
-    - **Response**: 200 OK
+Requirements:
+- Docker with PostgreSQL and Redis containers running
 
-15. **Activate/De-Activate Trainee (PATCH method)**
-    - **Request**: Username (required), Is Active (required)
-    - **Response**: 200 OK
+#### Production Profile
+For deployment to production environments:
 
-16. **Activate/De-Activate Trainer (PATCH method)**
-    - **Request**: Username (required), Is Active (required)
-    - **Response**: 200 OK
+```sh
+mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
+```
 
-17. **Get Training types (GET method)**
-    - **Request**: No data
-    - **Response**: Training types
+First, set the required environment variables:
 
-## API Documentation
-To document the APIs effectively and adhere to best practices and conventions, we used the `springdoc-openapi` library. This library helps in generating OpenAPI documentation for Spring Boot applications, making it easier to visualize and interact with the API endpoints.
+**Windows (PowerShell)**:
+```powershell
+# PostgreSQL variables
+$env:DB_PROD_HOST="localhost"
+$env:DB_PROD_PORT="5432"
+$env:DB_PROD_USER="postgres"
+$env:DB_PROD_PASSWORD="postgres"
 
-### Library Used
-We utilized the `springdoc-openapi-starter-webmvc-ui` library, which integrates seamlessly with Spring Boot to generate OpenAPI 3 documentation. This library provides a user-friendly interface to explore and test the API endpoints.
+# Redis variables
+$env:REDIS_PROD_HOST="localhost"
+$env:REDIS_PROD_PORT="6379"
+$env:REDIS_PROD_PASSWORD=""
+$env:REDIS_PROD_TIMEOUT="5000"
+```
 
-### Accessing the API Documentation
-Once the application is running, you can access the API documentation by navigating to the following URL in your web browser:
+**Linux/macOS**:
+```bash
+# PostgreSQL variables
+export DB_PROD_HOST=localhost
+export DB_PROD_PORT=5432
+export DB_PROD_USER=postgres
+export DB_PROD_PASSWORD=postgres
+
+# Redis variables
+export REDIS_PROD_HOST=localhost
+export REDIS_PROD_PORT=6379
+export REDIS_PROD_PASSWORD=""
+export REDIS_PROD_TIMEOUT=5000
+```
+
+Features:
+- Enhanced security settings
+- Strict schema validation
+- Minimal logging
+- Optimized connection pooling
+- Redis for distributed token storage
+
+## Using the API
+
+### API Documentation with Swagger
+
+Once the application is running, you can access the API documentation at:
 ```
 http://localhost:8080/swagger-ui.html
 ```
-This URL will open the Swagger UI, a web-based interface that allows you to view the API documentation, explore the available endpoints, and test them directly from the browser.
 
-## Additional Features Implemented
+The Swagger UI provides a comprehensive interface to:
+- View all available endpoints
+- Try out API calls directly in the browser
+- See request and response formats
+- Understand authentication requirements
 
-1. **HATEOAS Implementation**:
-   - **Library Used**: We utilized the `spring-boot-starter-hateoas` library to implement HATEOAS (Hypermedia as the Engine of Application State) in our REST API. This approach enhances the RESTful services by providing links to related resources, making the API more navigable and self-descriptive.
-   - **Usage in TrainerController**: In the `TrainerController`, HATEOAS is used to add links to the responses, such as links to the trainer's profile, update operations, and related training sessions. This allows clients to discover and interact with the API more intuitively.
+### Authentication with JWT
 
-2. **Global Exception Handling**:
-   - **Handler Used**: The `GlobalExceptionHandler` is implemented to manage exceptions across the application. It ensures that all exceptions are caught and handled in a consistent manner.
-   - **Standard Error Response**: The handler uses the `ApiStandardError` Java record to provide a standardized error response structure. This includes details such as the timestamp, HTTP status code, error type, detailed message, and the request path that generated the error. This approach improves error transparency and debugging efficiency.
+The API uses JWT tokens for authentication. To use protected endpoints:
 
-3. **Standardized Response Format**:
-   - **Purpose**: To ensure consistency and clarity in API responses, both for successful operations and error handling.
-   - **Successful Responses**: The `ApiStandardResponse` record is used to standardize successful responses. It includes:
-     - **Timestamp**: When the response was generated.
-     - **HTTP Status Code**: Indicates the result of the HTTP request.
-     - **Message**: Describes the outcome of the operation.
-     - **Request Path**: The endpoint that was accessed.
-     - **Data Payload**: Contains the actual data returned by the API.
-   - **Error Responses**: Managed using the `ApiStandardError` record, which provides a structured format for error details, including:
-     - **Timestamp**: When the error occurred.
-     - **HTTP Status Code**: Indicates the type of error.
-     - **Error Type**: A brief description of the error category.
-     - **Detailed Message**: Provides more context about the error.
-     - **Request Path**: The endpoint that triggered the error.
-   - **Response Builders**: 
-     - **ErrorResponseBuilder**: Used by the `GlobalExceptionHandler` to create `ApiStandardError` responses. It provides methods for common HTTP error statuses like 404 (Not Found), 409 (Conflict), 400 (Bad Request), 401 (Unauthorized), and 500 (Internal Server Error).
-     - **ResponseBuilder**: Used to create `ApiStandardResponse` for successful operations. It offers methods for standard responses like 200 (OK), 201 (Created), and 204 (No Content).
-   - **Application in Controllers**: 
-     - **TraineeController**: Utilizes `ResponseBuilder` to ensure all responses are consistent and follow the standardized format.
-     - **Other Controllers**: Return `ResponseEntity` directly, but can be adapted to use `ResponseBuilder` for uniformity.
-   - **Location**: All these utilities are located in the `util/response` package, centralizing response handling logic and promoting reuse across the application.
+1. Obtain a JWT token by sending a POST request to `/api/v1/auth/login` with your credentials:
+   ```json
+   {
+     "username": "your_username",
+     "password": "your_password"
+   }
+   ```
 
-4. **Custom Authentication and Authorization**:
-   - **Aspect-Oriented Approach**: Instead of using Spring Security, a custom aspect (`AuthAspect`) is implemented to handle authentication and authorization. This aspect checks if a user is authenticated and whether they have the required role to access specific endpoints.
-   - **Custom Annotation**: The `@Authenticated` annotation is used to specify authentication and authorization requirements for each endpoint. It allows defining whether an endpoint requires authentication and if a specific user role (e.g., trainee or trainer) is needed.
-   - **Example Usage**: For instance, in the `TraineeController`, the `updateActivationStatus` endpoint is annotated with `@Authenticated(requireTrainee = true)`, indicating that only authenticated trainees can access this endpoint.
-   - **Implementation Details**: The `AuthAspect` uses the `AuthService` to verify user authentication and role. If the conditions are not met, an `UnauthorizedException` is thrown, denying access to the resource.
+2. The response will contain access and refresh tokens:
+   ```json
+   {
+     "accessToken": "eyJhbGciOi...",
+     "refreshToken": "eyJhbGciOi...",
+   }
+   ```
 
-5. **API Versioning**:
-   - **Purpose**: To follow REST best practices and ensure backward compatibility as the API evolves.
-   - **Versioning Strategy**: The API is versioned using a path-based approach, with the current version being `v1`. This is reflected in the URL structure, such as `/api/v1/trainers` and `/api/v1/trainees`.
-   - **Benefits**: Versioning allows for the introduction of new features and changes without disrupting existing clients. It provides a clear path for deprecating older versions while maintaining service continuity.
+3. Include the access token in subsequent requests using the Authorization header:
+   ```
+   Authorization: Bearer eyJhbGciOi...
+   ```
 
-6. **DTOs and Versioning**:
-   - **Purpose**: To create a clean, scalable codebase by ensuring that each request and response is handled with specific data transfer objects (DTOs).
-   - **Specific DTOs**: Each endpoint has its own request and response DTOs, such as `LoginRequest`, `LoginResponse`, `UpdateTraineePorfileRequest`, and `TraineeProfileResponse`. This specificity ensures that only the necessary data is included, making the code more maintainable and clear.
-   - **Versioning of DTOs**: DTOs are versioned alongside the API, allowing for changes and improvements without affecting existing clients. This ensures that as the API evolves, the DTOs can be updated to reflect new requirements while maintaining backward compatibility.
-   - **Benefits**: Using specific DTOs for each operation helps in maintaining a clean separation between different parts of the application, ensuring that changes in one area do not inadvertently affect others. It also aids in validating and documenting the data structure expected by each endpoint.
+4. To use Bearer Auth in Swagger:
+   - Click the "Authorize" button in the Swagger UI
+     ![image](https://github.com/user-attachments/assets/2741f3aa-8ba1-4a7d-b643-0a2eaeec9613)
+
+   - Enter your token in the format: `Bearer eyJhbGciOi...`
+     ![image](https://github.com/user-attachments/assets/4880779e-057b-4f4c-9aa2-b7ecdd685987)
+
+   - Click "Authorize" to apply the token to all API requests
+
+
+5. When your token expires, use the refresh token at `/api/v1/auth/refresh` to get a new access token.
+
+## Docker Configuration
+
+This project uses Docker Compose to set up all the required services for development and production environments.
+
+### Starting Docker Services
+
+Start all services with a single command:
+```sh
+docker-compose up -d
+```
+
+### PostgreSQL Database
+
+PostgreSQL serves as the main database for dev and prod profiles:
+
+- **Connection Details**:
+  - Host: `localhost` (or `postgres` from containers)
+  - Port: `5432`
+  - Database: `jpa_epam`
+  - Username: `postgres`
+  - Password: `postgres`
+
+### pgAdmin Interface
+
+The project includes pgAdmin for managing PostgreSQL:
+
+- **Access URL**: http://localhost:5050
+- **Login**: 
+  - Email: `admin@example.com`
+  - Password: `admin`
+
+- **Connecting to the Database**:
+  - The connection is pre-configured through `pgadmin-servers.json`
+  - If you need to add it manually, use the connection details above with hostname `postgres`
+
+### Redis Database and Interface
+
+Redis is used for token storage in dev and prod profiles:
+
+- **Connection Details**:
+  - Host: `localhost` (or `redis` from containers)
+  - Port: `6379`
+  - No password required by default
+
+- **RedisInsight Interface**:
+  - Access URL: http://localhost:5540
+  - When first connecting, set up a connection with:
+    - Host: `redis`
+    - Port: `6379`
+    - Name: `Redis Server`
+   ![image](https://github.com/user-attachments/assets/8402822e-f5f8-4854-8033-d6073ecce036)
+
+
+- **Manual Redis CLI Access**:
+  ```sh
+  docker exec -it redis-jwt redis-cli
+  ```
+
+### Stopping and Managing Docker Services
+
+```sh
+# Stop services but preserve data
+docker-compose down
+
+# Stop and remove all data volumes
+docker-compose down -v
+
+# Restart services
+docker-compose restart
+```
+
+## Technical Features and Implementation
+
+### Spring Security Implementation
+
+This project implements a comprehensive security solution using Spring Security framework combined with JWT (JSON Web Tokens) for authentication and authorization. The implementation provides stateless security, role-based access control, token blacklisting, and protection against common security threats.
+
+### 1. Security Configuration
+
+The `SecurityConfig` class is the central component that configures Spring Security:
+
+```java
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+public class SecurityConfig {
+    // Configuration implementation
+}
+```
+
+Key security features implemented:
+
+- **Stateless Authentication**: Using JWT tokens instead of session-based authentication
+- **CORS Configuration**: Configured for cross-origin requests
+- **CSRF Protection**: Disabled for stateless REST API (compensated by other security measures)
+- **Public Endpoints**: Registration and authentication endpoints are publicly accessible
+- **Protected Resources**: All other endpoints require authentication
+- **Custom Exception Handling**: Using `CustomAuthenticationEntryPoint` and `CustomAccessDeniedHandler`
+- **Method-Level Security**: Enabled with `@EnableMethodSecurity`
+
+### 2. User Entity with Role-Based Authorization
+
+The `User` abstract class includes role-based authorization capabilities:
+
+```java
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "users")
+public abstract class User {
+    // Other fields omitted for brevity
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private RoleType role;
+    
+    public String getRoleName() {
+        return role.name();
+    }
+}
+```
+
+This design enables:
+- Role-based access control using Spring Security's authorities
+- Hierarchical user structure with Trainer and Trainee entities extending the base User
+- Integration with Spring Security's authorization mechanism
+
+### 3. JWT Authentication Filter
+
+The `JwtAuthenticationFilter` intercepts all requests to validate JWT tokens:
+
+```java
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    // Implementation details
+}
+```
+
+The filter's responsibilities include:
+- Extracting the JWT token from the Authorization header
+- Validating the token and checking if it's blacklisted
+- Setting up the Spring Security context with user authentication
+- Handling various token validation exceptions
+
+This filter enables stateless authentication where each request must include a valid JWT token in the Authorization header.
+
+### 4. Custom User Details Service
+
+The `CustomUserDetailsService` bridges our application's user model with Spring Security:
+
+```java
+@Service
+public class CustomUserDetailsService implements UserDetailsService {
+    // Implementation details
+}
+```
+
+Key features:
+- Loads user details from our database using either `traineeRepository` or `trainerRepository`
+- Converts our domain `User` objects to Spring Security's `UserDetails`
+- Provides password validation during authentication
+- Creates `CustomUserDetails` objects with appropriate authorities based on user roles
+
+### 5. JWT Utility
+
+The `JwtUtil` class handles all JWT-related operations:
+
+```java
+@Component
+public class JwtUtil {
+    // Implementation details
+}
+```
+
+This utility provides:
+- Token generation for both access and refresh tokens
+- Token validation and parsing
+- Claims extraction (username, roles, expiration)
+- Token ID extraction for blacklisting purposes
+- Secure signing using HMAC-SHA512 algorithm with a Base64-encoded secret key
+
+The implementation uses the `jjwt` library and includes security checks such as:
+- Minimum key length verification
+- Token expiration validation
+- Exception handling for malformed tokens
+
+### 6. Login Attempt Service
+
+The `LoginAttemptService` implements protection against brute force attacks:
+
+```java
+@Service
+public class LoginAttemptService {
+    // Implementation details
+}
+```
+
+Features include:
+- Tracking failed login attempts per username
+- Configurable maximum attempts (default: 3)
+- Configurable lockout duration (default: 5 minutes)
+- Auto-expiration of lockouts after the specified duration
+- Attempt counter reset on successful authentication
+
+This service uses a thread-safe `ConcurrentHashMap` to track login attempts and provides methods to register failures, check if an account is blocked, and get remaining attempts.
+
+### 7. Token Blacklisting System
+
+The application implements token blacklisting to invalidate tokens before their natural expiration (e.g., during logout). This is implemented using the `TokenStorageService` interface with two implementations:
+
+#### In-Memory Implementation (Local Environment)
+
+```java
+@Service
+@Profile("local")
+public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
+    // Implementation details
+}
+```
+
+Features:
+- Uses `ConcurrentHashMap` for thread-safe token storage
+- Scheduled task to automatically clean up expired tokens
+- Separate storage for blacklisted tokens and refresh tokens
+- Efficient token validation with automatic cleanup of expired entries
+
+#### Redis Implementation (Development and Production)
+
+```java
+@Service
+@Profile0({"dev", "prod"})
+public class RedisTokenStorageServiceImpl implements TokenStorageService {
+    // Implementation details
+}
+```
+
+Features:
+- Uses Redis for distributed token storage
+- Automatic expiration handled by Redis TTL mechanism
+- Scales horizontally across multiple application instances
+- Persistent storage that survives application restarts
+- Efficient token blacklist checking using Redis key lookups
+
+### 8. Environment-Specific Token Storage
+
+The token storage system adapts to different environments through Spring profiles:
+
+1. **Local Development**:
+   - Uses in-memory implementation for simplicity
+   - Configures more frequent cleanup intervals
+   - Disables Redis dependencies
+
+2. **Development/Production**:
+   - Uses Redis-based implementation
+   - Configures Redis connection properties
+   - Enables distributed token storage
+
+This approach ensures that:
+- Developers can run the application locally without external dependencies
+- Production environments have robust, distributed token storage
+- The application can scale horizontally with proper token invalidation
+
+### 9. Security Best Practices Implemented
+
+The security implementation follows several best practices:
+
+- **Secure Password Storage**: Using BCrypt hashing
+- **Token-Based Authentication**: Stateless JWT tokens with proper signing
+- **Short-Lived Access Tokens**: 15-minute default expiration
+- **Refresh Token Rotation**: New refresh tokens issued when refreshing authentication
+- **Token Blacklisting**: Prevents use of logged-out tokens
+- **Brute Force Protection**: Account lockout after failed attempts
+- **Custom Error Responses**: Structured, informative but secure error messages
+- **Role-Based Access Control**: Different permissions for trainers and trainees
+- **Method-Level Security**: Fine-grained access control at method level
+
+This comprehensive security implementation provides robust protection for the application while maintaining usability and performance.
+
+## Token Management and Blacklisting System
+
+The application implements a sophisticated token management system to handle JWT authentication tokens securely across different environments. This system is crucial for maintaining security when using stateless JWT tokens, particularly for supporting logout functionality and token revocation.
+
+### Core Design Principles
+
+The token management system is built on these key principles:
+
+1. **Environment-Specific Implementation**: Different storage strategies based on the runtime environment
+2. **Interface-Based Abstraction**: Common interface with environment-specific implementations
+3. **Automatic Token Expiration**: Tokens automatically expire after their designated lifetime
+4. **Blacklisting Mechanism**: Ability to invalidate tokens before their natural expiration
+5. **Refresh Token Management**: Secure storage and rotation of refresh tokens
+
+### TokenStorageService Interface
+
+At the core of the system is the `TokenStorageService` interface that defines the contract for token management:
+
+```java
+public interface TokenStorageService {
+    void blacklistToken(String tokenId, Instant expiryDate);
+    boolean isTokenBlacklisted(String tokenId);
+    void storeRefreshToken(String username, String tokenId);
+    Set<String> getUserRefreshTokens(String username);
+    void removeRefreshToken(String username, String tokenId);
+    void clearUserRefreshTokens(String username);
+}
+```
+
+This interface provides methods to:
+- Blacklist tokens (for logout and token revocation)
+- Check if a token is blacklisted (during authentication)
+- Store and manage refresh tokens
+- Retrieve all refresh tokens for a user
+- Remove specific or all refresh tokens
+
+### Redis-Based Implementation for Production
+
+For development and production environments, the system uses Redis as a distributed token store. This implementation offers several advantages:
+
+```java
+@Service
+@Profile("dev")
+public class RedisTokenStorageServiceImpl implements TokenStorageService {
+    // Implementation using Redis
+}
+```
+
+#### Key Features of Redis Implementation
+
+1. **Distributed Token Storage**: Redis provides a centralized storage accessible by all application instances, essential for scaled deployments.
+
+2. **Automatic Expiration**: Redis time-to-live (TTL) mechanism is leveraged to automatically expire blacklisted tokens:
+   ```java
+   redisTemplate.opsForValue().set(key, "1", timeToExpiry.toMillis(), TimeUnit.MILLISECONDS);
+   ```
+   This ensures that the blacklist doesn't grow indefinitely, as Redis automatically removes expired keys.
+
+3. **Efficient Token Validation**: O(1) lookup time to check if a token is blacklisted:
+   ```java
+   return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+   ```
+
+4. **Set-Based Refresh Token Storage**: Uses Redis Sets to efficiently store and manage refresh tokens per user:
+   ```java
+   redisTemplate.opsForSet().add(key, tokenId);
+   redisTemplate.expire(key, refreshTokenExpiryDays, TimeUnit.DAYS);
+   ```
+
+5. **Persistence Across Restarts**: Token information persists even if the application restarts, crucial for production systems.
+
+### Redis Configuration
+
+The Redis connection is configured based on the environment:
+
+```properties
+# For development environment
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+spring.data.redis.timeout=5000
+spring.data.redis.password=
+spring.cache.type=redis
+```
+
+For production, these values are typically externalized using environment variables for security.
+
+### In-Memory Implementation for Local Development
+
+For local development, an in-memory implementation is provided to eliminate the need for a Redis server:
+
+```java
+@Service
+@Profile("local")
+public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
+    // Implementation using ConcurrentHashMap
+}
+```
+
+#### Key Features of In-Memory Implementation
+
+1. **ConcurrentHashMap Storage**: Thread-safe storage using Java's concurrent collections:
+   ```java
+   private final Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
+   private final Map<String, Set<String>> userRefreshTokens = new ConcurrentHashMap<>();
+   ```
+
+2. **Scheduled Cleanup**: Uses Spring's scheduled tasks to periodically remove expired tokens:
+   ```java
+   @Scheduled(fixedDelayString = "${jwt.blacklist.cleanup-interval}")
+   public void cleanupExpiredTokens() {
+       Instant now = Instant.now();
+       blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));
+   }
+   ```
+
+3. **On-Demand Cleanup**: Additionally performs cleanup during token validation:
+   ```java
+   if (expiryDate.isBefore(Instant.now())) {
+       blacklistedTokens.remove(key);
+       return false;
+   }
+   ```
+
+### Token Lifecycle Management
+
+The system handles the complete lifecycle of access and refresh tokens:
+
+1. **Token Creation**: When a user logs in, both access and refresh tokens are created.
+
+2. **Token Storage**: Refresh tokens are stored with user association for future validation.
+
+3. **Token Refresh**: When an access token expires, the user can request a new one using their refresh token.
+
+4. **Token Revocation**:
+   - When a user logs out, all their refresh tokens are invalidated
+   - Specific tokens can be invalidated (e.g., for security reasons)
+   - When refreshing tokens, the old refresh token is invalidated
+
+5. **Token Expiration**: Tokens have a natural expiration time:
+   - Access tokens: 15 minutes by default
+   - Refresh tokens: 7 days by default
+
+### Security Benefits
+
+This token management system provides several security benefits:
+
+1. **Effective Logout**: Even though JWT tokens are stateless, the system provides true logout functionality.
+
+2. **Session Revocation**: Ability to immediately revoke user sessions in case of security concerns.
+
+3. **Refresh Token Rotation**: New refresh tokens are issued when refreshing authentication, limiting the window of opportunity if a refresh token is compromised.
+
+4. **Scalability**: Works effectively in distributed environments with multiple application instances.
+
+5. **Defense in Depth**: Combines the advantages of stateless authentication with the security benefits of session management.
+
+This system balances security needs with performance considerations, ensuring that the application remains secure while maintaining the scalability benefits of JWT-based authentication.
 
 ## Implementation Details
 
@@ -168,94 +630,6 @@ This URL will open the Swagger UI, a web-based interface that allows you to view
      - **Custom Modifying Queries**: Using `@Modifying` and `@Query` for operations like password updates and username-based deletions.
      - **Parameter Binding**: Using named parameters with `@Param` annotation for safer and more readable queries.
    - **Example Implementation**: The `TrainingRepository` showcases these advanced features by implementing the `JpaSpecificationExecutor` interface to support complex filtering in training searches, combined with custom queries for metrics calculations.
-
-## Monitoring and Metrics with Spring Boot Actuator
-
-The application leverages Spring Boot Actuator to provide production-ready features for monitoring and managing the application. This includes health checks, metrics collection, and endpoint exposure.
-
-### Enabled Actuator Endpoints
-
-The following Actuator endpoints are enabled in the application:
-
-- **Health (`/actuator/health`)**: Provides basic application health information
-- **Metrics (`/actuator/metrics`)**: Exposes metrics collected from the application
-- **Prometheus (`/actuator/prometheus`)**: Exposes metrics in a format that can be scraped by Prometheus
-- **Info (`/actuator/info`)**: Displays application information
-
-### Accessing Actuator Endpoints
-
-Actuator endpoints can be accessed via HTTP at the base path `/actuator`:
-
-```
-http://localhost:8080/actuator
-```
-
-For specific endpoints:
-```
-http://localhost:8080/actuator/health
-http://localhost:8080/actuator/metrics
-http://localhost:8080/actuator/prometheus
-```
-
-### Custom Metrics Implementation
-
-The application includes three custom metrics components that collect and expose detailed statistics about trainings, trainees, and trainers. These metrics are automatically registered with Micrometer, which makes them available through the metrics endpoint and for scraping by Prometheus.
-
-#### 1. TrainingMetrics
-
-This component captures general training statistics:
-
-- **Counter: `training.creations`**: Tracks the total number of training sessions created in the system.
-- **Summary: `training.duration`**: Collects statistics about the duration of training sessions in minutes, including percentiles.
-- **Gauge: `training.total.count`**: Reports the current total number of training sessions.
-- **Gauge: `training.today.count`**: Shows the number of training sessions scheduled for the current day.
-- **Gauge: `training.weekly.count`**: Displays the number of training sessions scheduled for the current week.
-
-#### 2. TraineeTrainingMetrics
-
-This component focuses on trainee-specific training metrics:
-
-- **Counter: `trainee.training.sessions`**: Counts the total number of training sessions attended by trainees.
-- **Summary: `trainee.training.duration`**: Captures distribution statistics of training durations for trainees.
-- **Gauge: `trainee.active.count`**: Monitors the current number of active trainees.
-- **Gauge: `trainee.avg.training.count`**: Calculates the average number of trainings per trainee.
-
-#### 3. TrainerTrainingMetrics
-
-This component tracks trainer-related metrics:
-
-- **Counter: `trainer.training.sessions`**: Counts the total number of training sessions conducted by trainers.
-- **Summary: `trainer.training.duration`**: Records distribution of training durations for trainers.
-- **Gauge: `trainer.active.count`**: Shows the current number of active trainers.
-- **Gauge: `trainer.avg.training.count`**: Calculates the average number of trainings per trainer.
-
-### Accessing Custom Metrics
-
-All custom metrics can be viewed through the metrics endpoint. For example:
-
-1. To see all available metrics:
-   ```
-   http://localhost:8080/actuator/metrics
-   ```
-
-2. To view a specific metric, append the metric name to the URL:
-   ```
-   http://localhost:8080/actuator/metrics/trainee.training.sessions
-   http://localhost:8080/actuator/metrics/trainer.active.count
-   http://localhost:8080/actuator/metrics/training.duration
-   ```
-
-3. For Prometheus integration, all metrics are available in Prometheus format at:
-   ```
-   http://localhost:8080/actuator/prometheus
-   ```
-
-4. Custom health indicators are grouped under:
-   ```
-   http://localhost:8080/actuator/health/custom
-   ```
-
-These metrics provide valuable insights into the performance and usage patterns of the application, allowing for better monitoring, capacity planning, and issue detection.
 
 ## Spring Profiles Implementation
 
@@ -334,6 +708,15 @@ The `prod` profile implements stricter settings suitable for production deployme
   spring.datasource.username=${DB_PROD_USER}
   spring.datasource.password=${DB_PROD_PASSWORD}
   ```
+  
+- **Redis**: Uses Redis with environment variables for sensitive credentials
+  ```
+  spring.data.redis.host=${REDIS_PROD_HOST}
+  spring.data.redis.port=${REDIS_PROD_PORT}
+  spring.data.redis.timeout=${REDIS_PROD_TIMEOUT:5000}
+  spring.data.redis.password=${REDIS_PROD_PASSWORD:}
+  ```
+  
 - **Connection Pooling**: Configures Hikari connection pool with optimized settings
 - **Hibernate**: Uses `validate` strategy to verify schema without making changes
 - **Logging**: Minimal `WARN` and `ERROR` levels to reduce overhead
@@ -347,10 +730,18 @@ First, set the required environment variables:
 
 **Windows (PowerShell)**:
 ```powershell
+# PostgreSQL variables
 $env:DB_PROD_HOST="localhost"
 $env:DB_PROD_PORT="5432"
 $env:DB_PROD_USER="postgres"
 $env:DB_PROD_PASSWORD="postgres"
+
+# Redis variables
+$env:REDIS_PROD_HOST="localhost"
+$env:REDIS_PROD_PORT="6379"
+$env:REDIS_PROD_PASSWORD=""
+$env:REDIS_PROD_TIMEOUT="5000"
+
 mvn spring-boot:run "-Dspring-boot.run.profiles=prod"
 ```
 
@@ -363,10 +754,18 @@ Remember to still set the required environment variables when using this method.
 
 **Linux/macOS**:
 ```bash
+# PostgreSQL variables
 export DB_PROD_HOST=localhost
 export DB_PROD_PORT=5432
 export DB_PROD_USER=postgres
 export DB_PROD_PASSWORD=postgres
+
+# Redis variables
+export REDIS_PROD_HOST=localhost
+export REDIS_PROD_PORT=6379
+export REDIS_PROD_PASSWORD=""
+export REDIS_PROD_TIMEOUT=5000
+
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```
 
@@ -377,95 +776,3 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 3. **Performance Tuning**: Each environment is optimized for its use case
 4. **Developer Experience**: Local development is streamlined with appropriate tools
 5. **Operational Control**: Production has stricter settings for stability and security
-
-## Testing Strategy
-
-1. **Unit Testing**:
-   - **JUnit**: Used for writing unit tests for services and repositories. JUnit provides a robust framework for testing Java applications, ensuring that each unit of the application performs as expected.
-   - **Mockito**: Utilized for mocking dependencies in unit tests. This allows for isolated testing of components by simulating the behavior of complex dependencies, ensuring that tests are focused and reliable.
-
-2. **Repository Testing**:
-   - **Spring Data Testing Support**: The application leverages Spring Boot's testing capabilities for repository layer testing through the `@DataJpaTest` annotation.
-   - **Test Profile**: A dedicated test profile (`application-test.properties`) is created to ensure tests run against an in-memory H2 database rather than the actual production or development database.
-   - **TestEntityManager**: Used for test setup and data preparation without relying on repository methods being tested.
-   - **Isolated Database Operations**: Repository tests execute in isolated transactions that are rolled back after each test, ensuring test independence.
-   - **Comprehensive Test Coverage**: Tests cover both standard JpaRepository methods and custom query methods defined with `@Query` annotations.
-   
-   Example configuration from `application-test.properties`:
-   ```properties
-   # H2 In-Memory Database configuration for tests
-   spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-   spring.datasource.driver-class-name=org.h2.Driver
-   
-   # JPA settings for tests
-   spring.jpa.hibernate.ddl-auto=create-drop
-   spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
-   ```
-
-3. **Controller Testing**:
-   - **WebTestClient (WebFlux)**: Primarily used for testing controllers. It provides a fluent API for testing web applications, allowing for comprehensive testing of HTTP requests and responses.
-   - **Alternative Testing Approaches**:
-     - **RestTemplateTest**: Another approach used for the `TraineeController`, providing a synchronous way to test RESTful services in Spring Boot.
-     - **MockMvc**: Employed for the `TraineeController` to simulate HTTP requests and test the controller's behavior in a servlet environment. MockMvc allows for testing without starting the server, making it efficient for unit tests.
-
-4. **Best Practices**:
-   - **FIRST Principles**: Tests are designed to be Fast, Independent, Repeatable, Self-validating, and Timely. This ensures that tests are efficient, reliable, and maintainable.
-   - **AAA Pattern**: Tests follow the Arrange-Act-Assert pattern, which structures tests into three clear sections: setting up the test data and environment (Arrange), executing the code under test (Act), and verifying the results (Assert). This pattern promotes clarity and consistency in test design.
-   - **Test Isolation**: Each test runs in isolation, with its own test data setup and tear-down, preventing interference between tests.
-   - **Profile-Based Testing**: Using Spring profiles to switch between different test configurations, allowing for specialized test setups depending on the testing scenario.
-
-## Logging and Monitoring
-
-1. **Aspect-Oriented Logging**:
-   - **Logging Aspect**: A custom `LoggingAspect` is implemented to provide detailed logging across the application. This aspect logs method invocations, return values, and exceptions for services, repositories, and controllers.
-   - **Service Logging**: Logs the start and successful completion of service methods, including method arguments and return values. Exceptions are also logged with error details.
-   - **Repository Logging**: Logs the start of repository operations and any exceptions that occur, providing insights into data access issues.
-   - **Controller Logging**: Logs incoming REST requests, including HTTP method, URI, headers, and parameters. It also logs the response status and body, as well as any exceptions that occur during request handling.
-
-2. **Logging Levels**:
-   - **Configuration**: Logging levels are configured in `application.properties` to control the verbosity of logs. For example, `DEBUG` level is set for the application's package to capture detailed information, while `INFO` level is used for Spring and Hibernate to reduce noise.
-   - **Transaction Logging**: Enabled for Spring transactions to monitor transaction boundaries and any issues that may arise during transaction management.
-
-3. **Benefits**:
-   - **Enhanced Debugging**: Detailed logs provide valuable insights into the application's behavior, making it easier to diagnose and resolve issues.
-   - **Performance Monitoring**: By logging method execution times and transaction details, performance bottlenecks can be identified and addressed.
-   - **Security and Compliance**: Logging access to sensitive resources and operations helps in auditing and ensuring compliance with security policies.
-
-## Setting Up PostgreSQL with Docker
-
-1. **Docker Compose Setup**:
-   - The project uses Docker Compose to manage PostgreSQL and pgAdmin services. The `docker-compose.yml` file defines the configuration for these services.
-
-2. **Running the PostgreSQL and pgAdmin Containers**:
-   - To start the containers, run the following command in the terminal:
-     ```sh
-     docker-compose up -d
-     ```
-   - This command will start the PostgreSQL database and pgAdmin in detached mode, allowing you to continue using the terminal.
-
-3. **Accessing the Database**:
-   - **pgAdmin**: You can access pgAdmin by navigating to `http://localhost:5050` in your web browser. Log in with the following credentials:
-     - **Email**: `admin@example.com`
-     - **Password**: `admin`
-   - **PostgreSQL**: The database is accessible on port `5432`. Use the following connection details:
-     - **Host**: `postgres`
-     - **Port**: `5432`
-     - **Database Name**: `jpa_epam`
-     - **Username**: `postgres`
-     - **Password**: `postgres`
-
-4. **Managing Credentials**:
-   - The credentials for pgAdmin and PostgreSQL are defined in the `docker-compose.yml` file and the `pgadmin-servers.json` file. The `pgadmin-servers.json` file is mounted as a volume in the pgAdmin container to pre-configure the server connection.
-
-5. **Stopping and Removing Containers**:
-   - To stop the containers, use the following command:
-     ```sh
-     docker-compose down
-     ```
-   - To remove all containers, networks, and volumes, erasing PostgreSQL data, use:
-     ```sh
-     docker-compose down -v
-     ```
-
-6. **Volume Management**:
-   - The PostgreSQL data is stored in a Docker volume named `postgres_data`, ensuring that data persists across container restarts.

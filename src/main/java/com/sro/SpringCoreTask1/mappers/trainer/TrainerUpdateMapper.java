@@ -24,6 +24,7 @@ public interface TrainerUpdateMapper {
     @Mapping(target = "trainees", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "username", ignore = true)
+    @Mapping(target = "role", ignore = true)
     Trainer toEntity(UpdateTrainerProfileRequest dto, @MappingTarget Trainer existingTrainer, TrainingType trainingType);
 
 }

@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.RegisterTraineeRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeActivation;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
@@ -26,20 +26,20 @@ import com.sro.SpringCoreTask1.util.response.ApiStandardError;
 import com.sro.SpringCoreTask1.util.response.ApiStandardResponse;
 import com.sro.SpringCoreTask1.util.response.ResponseBuilder;
 
-import io.micrometer.core.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping(value = "/api/v1/trainees", produces = "application/json")
 @Tag(name = "Trainee Management", description = "Operations pertaining to trainees in the system")
-@Timed(value = "trainee.controller", description = "Time taken for trainee controller operations", extraTags = {"version", "v1"})
 public class TraineeController {
 
     private final TraineeService traineeService;
@@ -55,8 +55,10 @@ public class TraineeController {
     @Operation(
         summary = "Register a new trainee",
         description = "Endpoint to create a new trainee profile with basic information. "
-            + "The system will automatically generate credentials.",
-        operationId = "registerTrainee"
+            + "The system will automatically generate credentials. "
+            + "This endpoint does not require authentication.",
+        operationId = "registerTrainee",
+        security = { } 
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -64,7 +66,7 @@ public class TraineeController {
             description = "Trainee registered successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = RegisterTraineeResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -92,9 +94,6 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.create", 
-           description = "Time taken to create a trainee",
-           extraTags = {"version", "v1"})
     @PostMapping
     public ResponseEntity<ApiStandardResponse<RegisterTraineeResponse>> registerTrainee(
             @Valid @RequestBody RegisterTraineeRequest traineeRequest) {
@@ -105,8 +104,10 @@ public class TraineeController {
     @Operation(
         summary = "Get trainee profile",
         description = "Retrieves complete profile information for a trainee including "
-            + "personal details and assigned trainers.",
-        operationId = "getTraineeProfile"
+            + "personal details and assigned trainers. "
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only access their own profile.",
+        operationId = "getTraineeProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -114,7 +115,23 @@ public class TraineeController {
             description = "Trainee profile retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf  = TraineeProfileResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -134,10 +151,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.get.profile", 
-           description = "Time taken to retrieve trainee profile",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @GetMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -149,8 +163,10 @@ public class TraineeController {
     @Operation(
         summary = "Update trainee profile",
         description = "Updates the profile information for an existing trainee. "
-            + "All required fields must be provided.",
-        operationId = "updateTraineeProfile"
+            + "All required fields must be provided. "
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only update their own profile.",
+        operationId = "updateTraineeProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -158,12 +174,28 @@ public class TraineeController {
             description = "Profile updated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeProfileResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
             responseCode = "400",
             description = "Invalid input data",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -186,10 +218,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.update.profile", 
-           description = "Time taken to update trainee profile",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @PutMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -202,14 +231,32 @@ public class TraineeController {
     @Operation(
         summary = "Delete trainee profile",
         description = "Permanently removes a trainee profile from the system. "
-            + "This action cannot be undone.",
-        operationId = "deleteTraineeProfile"
+            + "This action cannot be undone. "
+            + "Requires authentication with ADMIN role. Only administrators can delete trainee profiles.",
+        operationId = "deleteTraineeProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
             description = "Profile deleted successfully",
             content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required ADMIN role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
         ),
         @ApiResponse(
             responseCode = "404",
@@ -228,10 +275,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.delete", 
-           description = "Time taken to delete trainee",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true) 
@@ -244,8 +288,10 @@ public class TraineeController {
         summary = "Get trainee's training sessions",
         description = "Retrieves a list of training sessions for the specified trainee with optional filtering and sorting capabilities. "
         + "Results can be filtered by date range, trainer name, and training type. "
-        + "The response can be sorted by any training duration or date in ascending or descending order.",
-        operationId = "getTraineeTrainings"
+        + "The response can be sorted by any training duration or date in ascending or descending order. "
+        + "Requires authentication with TRAINEE or ADMIN role. A trainee can only view their own training sessions.",
+        operationId = "getTraineeTrainings",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -253,7 +299,23 @@ public class TraineeController {
             description = "Training sessions retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeTrainingResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -282,10 +344,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.get.trainings", 
-           description = "Time taken to retrieve trainee training sessions",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @GetMapping("/{username}/trainings")
     public ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> getTraineeTrainings(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -328,14 +387,32 @@ public class TraineeController {
     @Operation(
         summary = "Update trainee activation status",
         description = "Activates or deactivates a trainee account. "
-            + "Deactivated accounts cannot access the system.",
-        operationId = "updateTraineeActivation"
+            + "Deactivated accounts cannot access the system. "
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only update their own activation status.",
+        operationId = "updateTraineeActivation",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
             description = "Activation status updated successfully",
             content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
         ),
         @ApiResponse(
             responseCode = "404",
@@ -362,10 +439,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.update.activation", 
-           description = "Time taken to update trainee activation status",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @PatchMapping("/{username}/activation")
     public ResponseEntity<ApiStandardResponse<Void>> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -379,8 +453,10 @@ public class TraineeController {
     @Operation(
         summary = "Update trainee's trainers list",
         description = "Updates the list of trainers assigned to a trainee. "
-            + "This replaces the entire list of assigned trainers.",
-        operationId = "updateTraineeTrainers"
+            + "This replaces the entire list of assigned trainers. "
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only update their own trainers list.",
+        operationId = "updateTraineeTrainers",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -388,7 +464,23 @@ public class TraineeController {
             description = "Trainers list updated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TrainerSummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -416,10 +508,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.update.trainers", 
-           description = "Time taken to update trainee's trainers list",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @PutMapping("/{username}/trainers")
     public ResponseEntity<ApiStandardResponse<List<TrainerSummaryResponse>>> updateTrainersList(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -435,8 +524,10 @@ public class TraineeController {
             + "to the specified trainee. Returns HAL+JSON response with _links containing:"
             + "\n- self: Link to this resource"
             + "\n- profile: Link to each trainer's profile"
-            + "\n- trainings: Link to each trainer's training sessions",
-        operationId = "getUnassignedTrainers"
+            + "\n- trainings: Link to each trainer's training sessions. "
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only view unassigned trainers for their own account.",
+        operationId = "getUnassignedTrainers",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -444,7 +535,23 @@ public class TraineeController {
             description = "Unassigned trainers retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = UnassignedTrainerResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -472,10 +579,7 @@ public class TraineeController {
             )
         )
     })
-    @Timed(value = "trainee.get.unassigned.trainers", 
-           description = "Time taken to retrieve unassigned trainers",
-           extraTags = {"version", "v1"})
-    @Authenticated(requireTrainee = true)
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @GetMapping("/{username}/unassigned-trainers")
     public ResponseEntity<ApiStandardResponse<List<UnassignedTrainerResponse>>> getUnassignedTrainers(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 

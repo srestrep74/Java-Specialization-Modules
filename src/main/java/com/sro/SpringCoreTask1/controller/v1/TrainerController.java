@@ -15,9 +15,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import com.sro.SpringCoreTask1.annotations.Authenticated;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.RegisterTrainerRequest;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerActivation;
 import com.sro.SpringCoreTask1.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
@@ -35,9 +35,11 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping(value = "/api/v1/trainers", produces = {"application/json", "application/hal+json"})
 @Tag(name = "Trainer Management", description = "Operations pertaining to trainers in the system")
@@ -56,8 +58,10 @@ public class TrainerController {
         description = "Creates a new trainer profile with provided information. "
             + "Specialization is required and must be a valid training type. Returns HAL+JSON response with _links containing:"
             + "\n- self: Link to the registration"
-            + "\n- profile: Link to the created trainer's profile",
-        operationId = "registerTrainer"
+            + "\n- profile: Link to the created trainer's profile. "
+            + "This endpoint does not require authentication.",
+        operationId = "registerTrainer",
+        security = { }  // Empty security indicates this endpoint doesn't require authentication
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -111,8 +115,10 @@ public class TrainerController {
             + "\n- self: Link to this profile"
             + "\n- update: Link to update the profile"
             + "\n- activation: Link to update activation status"
-            + "\n- trainings: Link to trainer's training sessions",
-        operationId = "getTrainerProfile"
+            + "\n- trainings: Link to trainer's training sessions. "
+            + "Requires authentication with TRAINER role. A trainer can only access their own profile.",
+        operationId = "getTrainerProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -121,6 +127,22 @@ public class TrainerController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = TrainerProfileResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINER role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -140,7 +162,7 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
+    @PreAuthorize("hasRole('TRAINER')")
     @GetMapping("/{username}")
     public ResponseEntity<EntityModel<TrainerProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -162,8 +184,10 @@ public class TrainerController {
             + "\n- self: Link to this update operation"
             + "\n- profile: Link to view the profile"
             + "\n- activation: Link to update activation status"
-            + "\n- trainings: Link to trainer's training sessions",
-        operationId = "updateTrainerProfile"
+            + "\n- trainings: Link to trainer's training sessions. "
+            + "Requires authentication with TRAINER role. A trainer can only update their own profile.",
+        operationId = "updateTrainerProfile",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -177,6 +201,22 @@ public class TrainerController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid input data",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINER role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -199,7 +239,7 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
+    @PreAuthorize("hasRole('TRAINER')")
     @PutMapping("/{username}")
     public ResponseEntity<EntityModel<TrainerProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -220,8 +260,10 @@ public class TrainerController {
         description = "Retrieves a list of training sessions for the specified trainer "
             + "with optional filtering by date range and trainee name. Returns HAL+JSON response with _links containing:"
             + "\n- self: Link to this resource"
-            + "\n- trainer-profile: Link to the trainer's profile",
-        operationId = "getTrainerTrainings"
+            + "\n- trainer-profile: Link to the trainer's profile. "
+            + "Requires authentication with TRAINER role. A trainer can only view their own training sessions.",
+        operationId = "getTrainerTrainings",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -230,6 +272,22 @@ public class TrainerController {
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = TrainerTrainingResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINER role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -257,7 +315,7 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
+    @PreAuthorize("hasRole('TRAINER')")
     @GetMapping("/{username}/trainings")
     public ResponseEntity<CollectionModel<EntityModel<TrainerTrainingResponse>>> getTrainerTrainings(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
@@ -294,14 +352,32 @@ public class TrainerController {
         summary = "Update trainer activation status",
         description = "Activates or deactivates a trainer account. "
             + "Deactivated accounts cannot access the system. Returns no content with Location header containing:"
-            + "\n- Location: URI to view the trainer's profile",
-        operationId = "updateTrainerActivation"
+            + "\n- Location: URI to view the trainer's profile. "
+            + "Requires authentication with TRAINER role. A trainer can only update their own activation status.",
+        operationId = "updateTrainerActivation",
+        security = { @SecurityRequirement(name = "bearerAuth") }
     )
     @ApiResponses(value = {
         @ApiResponse(
             responseCode = "200",
             description = "Activation status updated successfully",
             content = @Content
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required TRAINER role",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
         ),
         @ApiResponse(
             responseCode = "404",
@@ -328,7 +404,7 @@ public class TrainerController {
             )
         )
     })
-    @Authenticated(requireTrainer = true)
+    @PreAuthorize("hasRole('TRAINER')")
     @PatchMapping("/{username}/activation")
     public ResponseEntity<Void> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
