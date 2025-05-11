@@ -105,7 +105,7 @@ public class TraineeController {
         summary = "Get trainee profile",
         description = "Retrieves complete profile information for a trainee including "
             + "personal details and assigned trainers. "
-            + "Requires authentication with TRAINEE role. A trainee can only access their own profile.",
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only access their own profile.",
         operationId = "getTraineeProfile",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -128,7 +128,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -151,7 +151,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @GetMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> getProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -164,7 +164,7 @@ public class TraineeController {
         summary = "Update trainee profile",
         description = "Updates the profile information for an existing trainee. "
             + "All required fields must be provided. "
-            + "Requires authentication with TRAINEE role. A trainee can only update their own profile.",
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only update their own profile.",
         operationId = "updateTraineeProfile",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -195,7 +195,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -218,7 +218,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @PutMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<TraineeProfileResponse>> updateProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -232,7 +232,7 @@ public class TraineeController {
         summary = "Delete trainee profile",
         description = "Permanently removes a trainee profile from the system. "
             + "This action cannot be undone. "
-            + "Requires authentication with TRAINEE role. A trainee can only delete their own profile.",
+            + "Requires authentication with ADMIN role. Only administrators can delete trainee profiles.",
         operationId = "deleteTraineeProfile",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -252,7 +252,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -275,7 +275,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{username}")
     public ResponseEntity<ApiStandardResponse<Void>> deleteProfile(
             @Parameter(description = "Unique username identifier of the trainee", required = true) 
@@ -289,7 +289,7 @@ public class TraineeController {
         description = "Retrieves a list of training sessions for the specified trainee with optional filtering and sorting capabilities. "
         + "Results can be filtered by date range, trainer name, and training type. "
         + "The response can be sorted by any training duration or date in ascending or descending order. "
-        + "Requires authentication with TRAINEE role. A trainee can only view their own training sessions.",
+        + "Requires authentication with TRAINEE or ADMIN role. A trainee can only view their own training sessions.",
         operationId = "getTraineeTrainings",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -312,7 +312,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -344,7 +344,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @GetMapping("/{username}/trainings")
     public ResponseEntity<ApiStandardResponse<List<TraineeTrainingResponse>>> getTraineeTrainings(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -388,7 +388,7 @@ public class TraineeController {
         summary = "Update trainee activation status",
         description = "Activates or deactivates a trainee account. "
             + "Deactivated accounts cannot access the system. "
-            + "Requires authentication with TRAINEE role. A trainee can only update their own activation status.",
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only update their own activation status.",
         operationId = "updateTraineeActivation",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -408,7 +408,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -439,7 +439,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @PatchMapping("/{username}/activation")
     public ResponseEntity<ApiStandardResponse<Void>> updateActivationStatus(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -454,7 +454,7 @@ public class TraineeController {
         summary = "Update trainee's trainers list",
         description = "Updates the list of trainers assigned to a trainee. "
             + "This replaces the entire list of assigned trainers. "
-            + "Requires authentication with TRAINEE role. A trainee can only update their own trainers list.",
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only update their own trainers list.",
         operationId = "updateTraineeTrainers",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -477,7 +477,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -508,7 +508,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @PutMapping("/{username}/trainers")
     public ResponseEntity<ApiStandardResponse<List<TrainerSummaryResponse>>> updateTrainersList(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
@@ -525,7 +525,7 @@ public class TraineeController {
             + "\n- self: Link to this resource"
             + "\n- profile: Link to each trainer's profile"
             + "\n- trainings: Link to each trainer's training sessions. "
-            + "Requires authentication with TRAINEE role. A trainee can only view unassigned trainers for their own account.",
+            + "Requires authentication with TRAINEE or ADMIN role. A trainee can only view unassigned trainers for their own account.",
         operationId = "getUnassignedTrainers",
         security = { @SecurityRequirement(name = "bearerAuth") }
     )
@@ -548,7 +548,7 @@ public class TraineeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - User does not have required TRAINEE role",
+            description = "Forbidden - User does not have required TRAINEE or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
                 schema = @Schema(implementation = ApiStandardError.class)
@@ -579,7 +579,7 @@ public class TraineeController {
             )
         )
     })
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('ADMIN')")
     @GetMapping("/{username}/unassigned-trainers")
     public ResponseEntity<ApiStandardResponse<List<UnassignedTrainerResponse>>> getUnassignedTrainers(
             @Parameter(description = "Unique username identifier of the trainee", required = true, example = "john.doe") 
