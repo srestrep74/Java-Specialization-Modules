@@ -58,7 +58,7 @@ public class TraineeController {
             + "The system will automatically generate credentials. "
             + "This endpoint does not require authentication.",
         operationId = "registerTrainee",
-        security = { }  // Empty security indicates this endpoint doesn't require authentication
+        security = { } 
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -66,7 +66,7 @@ public class TraineeController {
             description = "Trainee registered successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = RegisterTraineeResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -115,7 +115,7 @@ public class TraineeController {
             description = "Trainee profile retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf  = TraineeProfileResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -174,7 +174,7 @@ public class TraineeController {
             description = "Profile updated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeProfileResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -299,7 +299,7 @@ public class TraineeController {
             description = "Training sessions retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TraineeTrainingResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -464,7 +464,7 @@ public class TraineeController {
             description = "Trainers list updated successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = ApiStandardResponse.class, oneOf = TrainerSummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -535,7 +535,7 @@ public class TraineeController {
             description = "Unassigned trainers retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = UnassignedTrainerResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
