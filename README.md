@@ -151,7 +151,11 @@ The API uses JWT tokens for authentication. To use protected endpoints:
 
 4. To use Bearer Auth in Swagger:
    - Click the "Authorize" button in the Swagger UI
+     ![image](https://github.com/user-attachments/assets/2741f3aa-8ba1-4a7d-b643-0a2eaeec9613)
+
    - Enter your token in the format: `Bearer eyJhbGciOi...`
+     ![image](https://github.com/user-attachments/assets/4880779e-057b-4f4c-9aa2-b7ecdd685987)
+
    - Click "Authorize" to apply the token to all API requests
 
 
@@ -207,6 +211,8 @@ Redis is used for token storage in dev and prod profiles:
     - Host: `redis`
     - Port: `6379`
     - Name: `Redis Server`
+   ![image](https://github.com/user-attachments/assets/8402822e-f5f8-4854-8033-d6073ecce036)
+
 
 - **Manual Redis CLI Access**:
   ```sh
@@ -384,7 +390,7 @@ Features:
 
 ```java
 @Service
-@Profile("dev")
+@Profile0({"dev", "prod"})
 public class RedisTokenStorageServiceImpl implements TokenStorageService {
     // Implementation details
 }
