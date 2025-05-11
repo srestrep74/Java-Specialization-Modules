@@ -62,10 +62,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Apply protection for some attacks such as XSS .
-    // See if can add rate limiting to son public endpoints
-    // Al endpoints well documentaded
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
