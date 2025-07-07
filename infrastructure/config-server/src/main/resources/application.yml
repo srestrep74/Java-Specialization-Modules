@@ -1,20 +1,17 @@
 server:
-    port: 8888
-    error:
-        include-message: always
+  port: 8888
+  error:
+    include-message: always
 
 spring:
-    application:
-        name: config-server
-    cloud:
-        config:
-            server:
-                git:
-                    uri: https://github.com/YourUsername/your-config-repo
-                    default-label: main
-                    search-paths: 
-                        - '*service*/*/config'
-                        - 'config/*'
-                    clone-on-start: true
-                    timeout: 5
-                    force-pull: true
+  application:
+    name: config-server
+  profiles:
+    active: git
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/srestrep74/Java-Specialization-Modules
+          search-paths: infrastructure/config-server/src/main/resources/config
+          default-label: microservices
