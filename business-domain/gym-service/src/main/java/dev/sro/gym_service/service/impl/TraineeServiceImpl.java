@@ -11,6 +11,7 @@ import dev.sro.gym_service.entity.Trainer;
 import dev.sro.gym_service.exception.DatabaseOperationException;
 import dev.sro.gym_service.exception.ResourceNotFoundException;
 import dev.sro.gym_service.exception.ResourceAlreadyExistsException;
+import dev.sro.gym_service.mappers.trainee.TraineeCreateMapper;
 import dev.sro.gym_service.mappers.trainee.TraineeResponseMapper;
 import dev.sro.gym_service.mappers.trainee.TraineeUpdateMapper;
 import dev.sro.gym_service.mappers.trainer.TrainerResponseMapper;

@@ -1,0 +1,50 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jpa_epam
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000
+      password: ""
+  cache:
+    type: redis
+
+logging:
+  level:
+    com.sro: INFO
+    org.springframework: INFO
+    org.hibernate: WARN
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    enable:
+      all: true
+
+storage:
+  init:
+    file: classpath:init_data.json
+
+jwt:
+  blacklist:
+    prefix: blacklisted_token:
+  refresh:
+    prefix: user:refresh_tokens:
+    expiry: 7

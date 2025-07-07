@@ -1,0 +1,54 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:trainingdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+
+logging:
+  level:
+    com.sro: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+    org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    io.micrometer: DEBUG
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    enable:
+      all: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        trainee.training.sessions: true
+        trainee.training.duration: true
+
+storage:
+  init:
+    file: classpath:init_data.json
+
+debug: true
+
+jwt:
+  blacklist:
+    prefix: blacklisted_token:
+    cleanup-interval: 60000
+  refresh:
+    prefix: user:refresh_tokens:
+    expiry: 30
