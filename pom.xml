@@ -13,5 +13,6 @@
         <module>infrastructure/config-server</module>
         <module>infrastructure/eureka-server</module>
         <module>business-domain/gym-service</module>
+        <module>business-domain/workload-service</module>
     </modules>
 </project>
