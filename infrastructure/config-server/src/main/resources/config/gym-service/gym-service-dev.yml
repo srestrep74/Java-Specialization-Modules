@@ -44,7 +44,7 @@ storage:
 
 jwt:
   blacklist:
-    prefix: blacklisted_token:
+    prefix: "blacklisted_token:"
   refresh:
-    prefix: user:refresh_tokens:
+    prefix: "user:refresh_tokens:"
     expiry: 7
