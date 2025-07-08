@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "monthly_summaries", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"trainer_username", "year", "month"})
+    @UniqueConstraint(columnNames = {"trainer_username", "year", "month_value"})
 })
 @Data
 @Builder
@@ -29,7 +29,7 @@ public class MonthlySummary {
     @Column(name = "year", nullable = false)
     private Integer year;
     
-    @Column(name = "month", nullable = false)
+    @Column(name = "month_value", nullable = false)
     private Integer month;
     
     @Column(name = "total_duration", nullable = false)
