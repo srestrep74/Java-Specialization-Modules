@@ -27,15 +27,15 @@ public class TrainerWorkloadServiceTest {
     @Test
     public void testProcessTrainerWorkload() {
         // Arrange
-        TrainerWorkloadRequest request = TrainerWorkloadRequest.builder()
-            .trainerUsername("john.doe")
-            .trainerFirstName("John")
-            .trainerLastName("Doe")
-            .isActive(true)
-            .trainingDate(LocalDate.of(2024, 1, 15))
-            .trainingDuration(60)
-            .actionType(ActionType.ADD)
-            .build();
+        TrainerWorkloadRequest request = new TrainerWorkloadRequest(
+            "john.doe",
+            "John",
+            "Doe",
+            true,
+            LocalDate.of(2024, 1, 15),
+            60,
+            ActionType.ADD
+        );
         
         // Act
         trainerWorkloadService.processTrainerWorkload(request);
@@ -45,42 +45,42 @@ public class TrainerWorkloadServiceTest {
             .getTrainerMonthlySummary("john.doe", 2024, 1);
         
         assertNotNull(response);
-        assertEquals("john.doe", response.getTrainerUsername());
-        assertEquals("John", response.getTrainerFirstName());
-        assertEquals("Doe", response.getTrainerLastName());
-        assertTrue(response.isTrainerStatus());
-        assertEquals(1, response.getYears().size());
-        assertEquals(2024, response.getYears().get(0).getYear());
-        assertEquals(1, response.getYears().get(0).getMonths().size());
-        assertEquals(1, response.getYears().get(0).getMonths().get(0).getMonth());
-        assertEquals(60, response.getYears().get(0).getMonths().get(0).getTrainingSummaryDuration());
+        assertEquals("john.doe", response.trainerUsername());
+        assertEquals("John", response.trainerFirstName());
+        assertEquals("Doe", response.trainerLastName());
+        assertTrue(response.trainerStatus());
+        assertEquals(1, response.years().size());
+        assertEquals(2024, response.years().get(0).year());
+        assertEquals(1, response.years().get(0).months().size());
+        assertEquals(1, response.years().get(0).months().get(0).month());
+        assertEquals(60, response.years().get(0).months().get(0).trainingSummaryDuration());
     }
     
     @Test
     public void testProcessTrainerWorkloadWithDelete() {
         // Arrange - First add a training
-        TrainerWorkloadRequest addRequest = TrainerWorkloadRequest.builder()
-            .trainerUsername("jane.smith")
-            .trainerFirstName("Jane")
-            .trainerLastName("Smith")
-            .isActive(true)
-            .trainingDate(LocalDate.of(2024, 2, 10))
-            .trainingDuration(90)
-            .actionType(ActionType.ADD)
-            .build();
+        TrainerWorkloadRequest addRequest = new TrainerWorkloadRequest(
+            "jane.smith",
+            "Jane",
+            "Smith",
+            true,
+            LocalDate.of(2024, 2, 10),
+            90,
+            ActionType.ADD
+        );
         
         trainerWorkloadService.processTrainerWorkload(addRequest);
         
         // Act - Delete some training time
-        TrainerWorkloadRequest deleteRequest = TrainerWorkloadRequest.builder()
-            .trainerUsername("jane.smith")
-            .trainerFirstName("Jane")
-            .trainerLastName("Smith")
-            .isActive(true)
-            .trainingDate(LocalDate.of(2024, 2, 10))
-            .trainingDuration(30)
-            .actionType(ActionType.DELETE)
-            .build();
+        TrainerWorkloadRequest deleteRequest = new TrainerWorkloadRequest(
+            "jane.smith",
+            "Jane",
+            "Smith",
+            true,
+            LocalDate.of(2024, 2, 10),
+            30,
+            ActionType.DELETE
+        );
         
         trainerWorkloadService.processTrainerWorkload(deleteRequest);
         
@@ -89,11 +89,11 @@ public class TrainerWorkloadServiceTest {
             .getTrainerMonthlySummary("jane.smith", 2024, 2);
         
         assertNotNull(response);
-        assertEquals("jane.smith", response.getTrainerUsername());
-        assertEquals(1, response.getYears().size());
-        assertEquals(2024, response.getYears().get(0).getYear());
-        assertEquals(1, response.getYears().get(0).getMonths().size());
-        assertEquals(2, response.getYears().get(0).getMonths().get(0).getMonth());
-        assertEquals(60, response.getYears().get(0).getMonths().get(0).getTrainingSummaryDuration());
+        assertEquals("jane.smith", response.trainerUsername());
+        assertEquals(1, response.years().size());
+        assertEquals(2024, response.years().get(0).year());
+        assertEquals(1, response.years().get(0).months().size());
+        assertEquals(2, response.years().get(0).months().get(0).month());
+        assertEquals(60, response.years().get(0).months().get(0).trainingSummaryDuration());
     }
 } 

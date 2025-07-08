@@ -44,10 +44,7 @@ public class GlobalExceptionHandler {
     ) {
         log.error("Illegal argument exception: {}", ex.getMessage(), ex);
         
-        TrainerWorkloadResponse response = TrainerWorkloadResponse.builder()
-            .message("Invalid request: " + ex.getMessage())
-            .success(false)
-            .build();
+        TrainerWorkloadResponse response = new TrainerWorkloadResponse("Invalid request: " + ex.getMessage(), false);
         
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -56,10 +53,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<TrainerWorkloadResponse> handleGenericException(Exception ex) {
         log.error("Unexpected exception: {}", ex.getMessage(), ex);
         
-        TrainerWorkloadResponse response = TrainerWorkloadResponse.builder()
-            .message("An unexpected error occurred")
-            .success(false)
-            .build();
+        TrainerWorkloadResponse response = new TrainerWorkloadResponse("An unexpected error occurred", false);
         
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

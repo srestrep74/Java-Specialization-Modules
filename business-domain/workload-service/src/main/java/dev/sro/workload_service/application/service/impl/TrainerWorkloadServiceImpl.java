@@ -10,6 +10,9 @@ import dev.sro.workload_service.domain.enums.ActionType;
 import dev.sro.workload_service.domain.repository.MonthlySummaryRepository;
 import dev.sro.workload_service.domain.repository.TrainerRepository;
 import dev.sro.workload_service.domain.repository.TrainingSessionRepository;
+import dev.sro.workload_service.application.mapper.TrainerMapper;
+import dev.sro.workload_service.application.mapper.TrainingSessionMapper;
+import dev.sro.workload_service.application.mapper.TrainerMonthlySummaryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,24 +33,28 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     private final TrainerRepository trainerRepository;
     private final TrainingSessionRepository trainingSessionRepository;
     private final MonthlySummaryRepository monthlySummaryRepository;
+    private final TrainerMapper trainerMapper;
+    private final TrainingSessionMapper trainingSessionMapper;
+    private final TrainerMonthlySummaryMapper trainerMonthlySummaryMapper;
     
     @Override
     public void processTrainerWorkload(TrainerWorkloadRequest request) {
         log.info("Processing trainer workload for username: {}, action: {}", 
-            request.getTrainerUsername(), request.getActionType());
+            request.trainerUsername(), request.actionType());
         
         // Get or create trainer
         Trainer trainer = getOrCreateTrainer(request);
         
         // Create training session record
-        TrainingSession trainingSession = createTrainingSession(trainer, request);
+        TrainingSession trainingSession = trainingSessionMapper.toTrainingSession(request);
+        trainingSession.setTrainer(trainer);
         trainingSessionRepository.save(trainingSession);
         
         // Update monthly summary
         updateMonthlySummary(trainer, request);
         
         log.info("Successfully processed trainer workload for username: {}", 
-            request.getTrainerUsername());
+            request.trainerUsername());
     }
     
     @Override
@@ -64,7 +71,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         Trainer trainer = trainerOpt.get();
         List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainerUsername(trainerUsername);
         
-        return buildTrainerMonthlySummaryResponse(trainer, summaries);
+        return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
     }
     
     @Override
@@ -81,7 +88,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         Trainer trainer = trainerOpt.get();
         List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainerUsernameAndYear(trainerUsername, year);
         
-        return buildTrainerMonthlySummaryResponse(trainer, summaries);
+        return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
     }
     
     @Override
@@ -101,44 +108,30 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             .findByTrainerUsernameAndYearAndMonth(trainerUsername, year, month);
         
         List<MonthlySummary> summaries = summaryOpt.map(List::of).orElse(List.of());
-        return buildTrainerMonthlySummaryResponse(trainer, summaries);
+        return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
     }
     
     private Trainer getOrCreateTrainer(TrainerWorkloadRequest request) {
-        return trainerRepository.findByUsername(request.getTrainerUsername())
+        return trainerRepository.findByUsername(request.trainerUsername())
             .map(trainer -> {
                 // Update trainer info if needed
                 trainer.updateProfile(
-                    request.getTrainerFirstName(),
-                    request.getTrainerLastName(),
-                    request.getIsActive()
+                    request.trainerFirstName(),
+                    request.trainerLastName(),
+                    request.isActive()
                 );
                 return trainerRepository.save(trainer);
             })
             .orElseGet(() -> {
                 // Create new trainer
-                Trainer newTrainer = Trainer.builder()
-                    .username(request.getTrainerUsername())
-                    .firstName(request.getTrainerFirstName())
-                    .lastName(request.getTrainerLastName())
-                    .isActive(request.getIsActive())
-                    .build();
+                Trainer newTrainer = trainerMapper.toTrainer(request);
                 return trainerRepository.save(newTrainer);
             });
     }
     
-    private TrainingSession createTrainingSession(Trainer trainer, TrainerWorkloadRequest request) {
-        return TrainingSession.builder()
-            .trainer(trainer)
-            .trainingDate(request.getTrainingDate())
-            .trainingDuration(request.getTrainingDuration())
-            .actionType(request.getActionType())
-            .build();
-    }
-    
     private void updateMonthlySummary(Trainer trainer, TrainerWorkloadRequest request) {
-        Integer year = request.getTrainingDate().getYear();
-        Integer month = request.getTrainingDate().getMonthValue();
+        Integer year = request.trainingDate().getYear();
+        Integer month = request.trainingDate().getMonthValue();
         
         MonthlySummary summary = monthlySummaryRepository
             .findByTrainerUsernameAndYearAndMonth(trainer.getUsername(), year, month)
@@ -152,59 +145,16 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 return monthlySummaryRepository.save(newSummary);
             });
         
-        if (request.getActionType() == ActionType.ADD) {
-            summary.addDuration(request.getTrainingDuration());
-        } else if (request.getActionType() == ActionType.DELETE) {
-            summary.subtractDuration(request.getTrainingDuration());
+        if (request.actionType() == ActionType.ADD) {
+            summary.addDuration(request.trainingDuration());
+        } else if (request.actionType() == ActionType.DELETE) {
+            summary.subtractDuration(request.trainingDuration());
         }
         
         monthlySummaryRepository.save(summary);
     }
     
-    private TrainerMonthlySummaryResponse buildTrainerMonthlySummaryResponse(
-        Trainer trainer, 
-        List<MonthlySummary> summaries
-    ) {
-        Map<Integer, List<MonthlySummary>> summariesByYear = summaries.stream()
-            .collect(Collectors.groupingBy(MonthlySummary::getYear));
-        
-        List<TrainerMonthlySummaryResponse.YearSummary> yearSummaries = summariesByYear.entrySet()
-            .stream()
-            .map(entry -> {
-                Integer year = entry.getKey();
-                List<MonthlySummary> yearSummariesList = entry.getValue();
-                
-                List<TrainerMonthlySummaryResponse.MonthSummary> monthSummaries = yearSummariesList
-                    .stream()
-                    .map(summary -> TrainerMonthlySummaryResponse.MonthSummary.builder()
-                        .month(summary.getMonth())
-                        .trainingSummaryDuration(summary.getTotalDuration())
-                        .build())
-                    .collect(Collectors.toList());
-                
-                return TrainerMonthlySummaryResponse.YearSummary.builder()
-                    .year(year)
-                    .months(monthSummaries)
-                    .build();
-            })
-            .collect(Collectors.toList());
-        
-        return TrainerMonthlySummaryResponse.builder()
-            .trainerUsername(trainer.getUsername())
-            .trainerFirstName(trainer.getFirstName())
-            .trainerLastName(trainer.getLastName())
-            .trainerStatus(trainer.getIsActive())
-            .years(yearSummaries)
-            .build();
-    }
-    
     private TrainerMonthlySummaryResponse createEmptyResponse(String trainerUsername) {
-        return TrainerMonthlySummaryResponse.builder()
-            .trainerUsername(trainerUsername)
-            .trainerFirstName("")
-            .trainerLastName("")
-            .trainerStatus(false)
-            .years(new ArrayList<>())
-            .build();
+        return new TrainerMonthlySummaryResponse(trainerUsername, null, null, null, new ArrayList<>());
     }
 } 

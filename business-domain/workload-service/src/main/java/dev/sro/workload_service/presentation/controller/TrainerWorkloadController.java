@@ -23,18 +23,15 @@ public class TrainerWorkloadController {
     public ResponseEntity<TrainerWorkloadResponse> processTrainerWorkload(
         @Valid @RequestBody TrainerWorkloadRequest request
     ) {
-        log.info("Received workload request for trainer: {}", request.getTrainerUsername());
+        log.info("Received workload request for trainer: {}", request.trainerUsername());
         
         try {
             trainerWorkloadService.processTrainerWorkload(request);
-            return ResponseEntity.ok(TrainerWorkloadResponse.success());
+            return ResponseEntity.ok(TrainerWorkloadResponse.createSuccessResponse());
         } catch (Exception e) {
             log.error("Error processing trainer workload: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(TrainerWorkloadResponse.builder()
-                    .message("Failed to process trainer workload: " + e.getMessage())
-                    .success(false)
-                    .build());
+                .body(new TrainerWorkloadResponse("Failed to process trainer workload: " + e.getMessage(), false));
         }
     }
     

@@ -12,11 +12,11 @@ public class WorkloadServiceClientFallback implements WorkloadServiceClient {
     @Override
     public TrainerWorkloadResponse processTrainerWorkload(TrainerWorkloadRequest request) {
         log.warn("Workload service is not available. Fallback executed for trainer: {} with action: {}", 
-            request.getTrainerUsername(), request.getActionType());
+            request.trainerUsername(), request.actionType());
         
-        return TrainerWorkloadResponse.builder()
-            .message("Workload service temporarily unavailable. Training operation completed but workload not updated.")
-            .success(false)
-            .build();
+        return new TrainerWorkloadResponse(
+            "Workload service temporarily unavailable. Training operation completed but workload not updated.",
+            false
+        );
     }
 } 

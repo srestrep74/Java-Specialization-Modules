@@ -48,24 +48,24 @@ public class WorkloadNotificationServiceImpl implements WorkloadNotificationServ
     @Override
     public void sendWorkloadNotification(Training training, ActionType actionType) {
         try {
-            TrainerWorkloadRequest request = TrainerWorkloadRequest.builder()
-                .trainerUsername(training.getTrainer().getUsername())
-                .trainerFirstName(training.getTrainer().getFirstName())
-                .trainerLastName(training.getTrainer().getLastName())
-                .isActive(training.getTrainer().isActive())
-                .trainingDate(training.getTrainingDate())
-                .trainingDuration(training.getDuration())
-                .actionType(actionType)
-                .build();
+            TrainerWorkloadRequest request = new TrainerWorkloadRequest(
+                training.getTrainer().getUsername(),
+                training.getTrainer().getFirstName(),
+                training.getTrainer().getLastName(),
+                training.getTrainer().isActive(),
+                training.getTrainingDate(),
+                training.getDuration(),
+                actionType
+            );
             
             TrainerWorkloadResponse response = workloadServiceClient.processTrainerWorkload(request);
             
-            if (response.isSuccess()) {
+            if (response.success()) {
                 log.info("Successfully notified workload service for trainer: {} with action: {}", 
                     training.getTrainer().getUsername(), actionType);
             } else {
                 log.warn("Workload service returned failure for trainer: {} with action: {}. Message: {}", 
-                    training.getTrainer().getUsername(), actionType, response.getMessage());
+                    training.getTrainer().getUsername(), actionType, response.message());
             }
             
         } catch (Exception e) {
