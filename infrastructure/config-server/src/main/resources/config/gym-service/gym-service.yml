@@ -54,3 +54,32 @@ security:
   login:
     max-attempts: 3
     lock-time-minutes: 5
+
+# Workload Service Configuration
+workload-service:
+  url: http://workload-service:8081
+
+# Feign Configuration
+feign:
+  client:
+    config:
+      workload-service:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+  circuitbreaker:
+    enabled: true
+
+# Resilience4j Configuration for Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    instances:
+      workload-service:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10

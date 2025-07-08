@@ -25,6 +25,7 @@ import dev.sro.gym_service.repository.TrainerRepository;
 import dev.sro.gym_service.repository.TrainingRepository;
 import dev.sro.gym_service.repository.specification.TrainingSpecifications;
 import dev.sro.gym_service.service.TrainingService;
+import dev.sro.gym_service.service.WorkloadNotificationService;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,6 +43,7 @@ public class TrainingServiceImpl implements TrainingService {
     private final TrainingMetrics trainingMetrics;
     private final TraineeTrainingMetrics traineeTrainingMetrics;
     private final TrainerTrainingMetrics trainerTrainingMetrics;
+    private final WorkloadNotificationService workloadNotificationService;
 
     private final TrainingTraineeMapper trainingTraineeMapper;
     private final TraininigTrainerMapper traininigTrainerMapper;
@@ -60,7 +62,8 @@ public class TrainingServiceImpl implements TrainingService {
             TrainingUpdateMapper trainingUpdateMapper,
             TrainingMetrics trainingMetrics,
             TraineeTrainingMetrics traineeTrainingMetrics,
-            TrainerTrainingMetrics trainerTrainingMetrics) {
+            TrainerTrainingMetrics trainerTrainingMetrics,
+            WorkloadNotificationService workloadNotificationService) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
         this.traineeRepository = traineeRepository;
@@ -72,6 +75,7 @@ public class TrainingServiceImpl implements TrainingService {
         this.trainingMetrics = trainingMetrics;
         this.traineeTrainingMetrics = traineeTrainingMetrics;
         this.trainerTrainingMetrics = trainerTrainingMetrics;
+        this.workloadNotificationService = workloadNotificationService;
     }
 
     @Override
@@ -91,7 +95,7 @@ public class TrainingServiceImpl implements TrainingService {
 
             Training training = trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee,
                     trainer.getTrainingType());
-            trainingRepository.save(training);
+            Training savedTraining = trainingRepository.save(training);
 
             trainingMetrics.recordNewTraining();
             trainingMetrics.recordTrainingDuration(training.getDuration());
@@ -101,6 +105,9 @@ public class TrainingServiceImpl implements TrainingService {
             
             trainerTrainingMetrics.recordTrainerSession();
             trainerTrainingMetrics.recordTrainerTrainingDuration(training.getDuration());
+            
+            // Notify workload service about new training
+            workloadNotificationService.notifyTrainingCreated(savedTraining);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -159,6 +166,9 @@ public class TrainingServiceImpl implements TrainingService {
             traineeTrainingMetrics.recordTraineeTrainingDuration(savedTraining.getDuration());
             trainerTrainingMetrics.recordTrainerTrainingDuration(savedTraining.getDuration());
 
+            // Notify workload service about training update (treated as new training)
+            workloadNotificationService.notifyTrainingCreated(savedTraining);
+
             return trainingResponseMapper.toTrainingSummaryResponse(savedTraining);
         } catch (Exception e) {
             throw new DatabaseOperationException("Error updating Training", e);
@@ -173,7 +183,16 @@ public class TrainingServiceImpl implements TrainingService {
         }
 
         try {
+            // Get the training before deleting to notify workload service
+            Training training = trainingRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + id));
+            
             trainingRepository.deleteById(id);
+            
+            // Notify workload service about training deletion
+            workloadNotificationService.notifyTrainingDeleted(training);
+        } catch (ResourceNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             throw new DatabaseOperationException("Error deleting Training by id", e);
         }
