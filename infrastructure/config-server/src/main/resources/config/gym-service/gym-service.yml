@@ -97,4 +97,3 @@ resilience4j:
 app:
   kafka:
     retry-topic: "workload.retry.topic"
-    dlt-topic: "workload.dlt.topic"

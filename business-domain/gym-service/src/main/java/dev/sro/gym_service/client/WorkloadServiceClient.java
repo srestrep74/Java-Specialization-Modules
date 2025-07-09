@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(
     name = "workload-service",
-    fallbackFactory = WorkloadServiceClientFallbackFactory.class
+    fallback = WorkloadServiceClientFallback.class
 )
 public interface WorkloadServiceClient {
     

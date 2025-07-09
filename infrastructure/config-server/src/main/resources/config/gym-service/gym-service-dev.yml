@@ -22,6 +22,15 @@ spring:
     
   kafka:
     bootstrap-servers: localhost:29092
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      max-poll-interval-ms: 300000
+      session-timeout-ms: 30000
+      heartbeat-interval-ms: 10000
+    listener:
+      ack-mode: manual_immediate
+      retry-interval: 5000
 
   cloud:
     openfeign:
