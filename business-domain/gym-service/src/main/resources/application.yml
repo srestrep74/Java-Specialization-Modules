@@ -4,21 +4,6 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 
-# Workload Service Configuration
-workload-service:
-  url: http://localhost:8081
-
-# Feign Configuration
-feign:
-  client:
-    config:
-      workload-service:
-        connectTimeout: 5000
-        readTimeout: 10000
-        loggerLevel: basic
-  circuitbreaker:
-    enabled: true
-
 # Resilience4j Configuration for Circuit Breaker
 resilience4j:
   circuitbreaker:
