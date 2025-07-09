@@ -1,4 +1,4 @@
-package dev.sro.workload_service.presentation.controller;
+package dev.sro.workload_service.presentation.controller.v1;
 
 import dev.sro.workload_service.application.dto.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.application.dto.response.TrainerMonthlySummaryResponse;
@@ -15,10 +15,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/trainers")
 @RequiredArgsConstructor
 @Slf4j
-public class TrainerWorkloadController {
+public class TrainerWorkloadController implements TrainerWorkloadApi {
     
     private final TrainerWorkloadService trainerWorkloadService;
     
+    @Override
     @PostMapping("/workload")
     public ResponseEntity<TrainerWorkloadResponse> processTrainerWorkload(
         @Valid @RequestBody TrainerWorkloadRequest request
@@ -35,6 +36,7 @@ public class TrainerWorkloadController {
         }
     }
     
+    @Override
     @GetMapping("/{username}/monthly-summary")
     public ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummary(
         @PathVariable String username
@@ -50,6 +52,7 @@ public class TrainerWorkloadController {
         }
     }
     
+    @Override
     @GetMapping("/{username}/monthly-summary/{year}")
     public ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummaryByYear(
         @PathVariable String username,
@@ -66,6 +69,7 @@ public class TrainerWorkloadController {
         }
     }
     
+    @Override
     @GetMapping("/{username}/monthly-summary/{year}/{month}")
     public ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummaryByMonth(
         @PathVariable String username,

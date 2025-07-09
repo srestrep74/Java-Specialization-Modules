@@ -20,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,15 +40,12 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         log.info("Processing trainer workload for username: {}, action: {}", 
             request.trainerUsername(), request.actionType());
         
-        // Get or create trainer
         Trainer trainer = getOrCreateTrainer(request);
         
-        // Create training session record
         TrainingSession trainingSession = trainingSessionMapper.toTrainingSession(request);
         trainingSession.setTrainer(trainer);
         trainingSessionRepository.save(trainingSession);
         
-        // Update monthly summary
         updateMonthlySummary(trainer, request);
         
         log.info("Successfully processed trainer workload for username: {}", 
@@ -114,7 +109,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     private Trainer getOrCreateTrainer(TrainerWorkloadRequest request) {
         return trainerRepository.findByUsername(request.trainerUsername())
             .map(trainer -> {
-                // Update trainer info if needed
                 trainer.updateProfile(
                     request.trainerFirstName(),
                     request.trainerLastName(),
@@ -123,7 +117,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 return trainerRepository.save(trainer);
             })
             .orElseGet(() -> {
-                // Create new trainer
                 Trainer newTrainer = trainerMapper.toTrainer(request);
                 return trainerRepository.save(newTrainer);
             });
