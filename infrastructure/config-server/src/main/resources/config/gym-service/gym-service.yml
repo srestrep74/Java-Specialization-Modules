@@ -55,10 +55,6 @@ security:
     max-attempts: 3
     lock-time-minutes: 5
 
-# Workload Service Configuration
-workload-service:
-  url: http://workload-service:8081
-
 # Feign Configuration
 feign:
   client:
