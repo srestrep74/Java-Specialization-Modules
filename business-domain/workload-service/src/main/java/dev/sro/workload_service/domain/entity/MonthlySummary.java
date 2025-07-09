@@ -26,7 +26,7 @@ public class MonthlySummary {
     @JoinColumn(name = "trainer_username", nullable = false)
     private Trainer trainer;
     
-    @Column(name = "year", nullable = false)
+    @Column(name = "\"year\"", nullable = false)
     private Integer year;
     
     @Column(name = "month_value", nullable = false)

@@ -23,6 +23,9 @@ spring:
   cache:
     type: redis
 
+  kafka:
+    bootstrap-servers: localhost:29092
+
 logging:
   level:
     com.sro: DEBUG

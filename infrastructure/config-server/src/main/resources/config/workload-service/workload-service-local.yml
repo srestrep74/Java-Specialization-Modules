@@ -10,7 +10,7 @@ spring:
       path: /h2-console
   jpa:
     show-sql: true
-      hibernate:
+    hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
 
