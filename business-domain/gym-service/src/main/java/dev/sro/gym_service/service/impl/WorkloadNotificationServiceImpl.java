@@ -47,8 +47,7 @@ public class WorkloadNotificationServiceImpl implements WorkloadNotificationServ
     
     @Override
     public void sendWorkloadNotification(Training training, ActionType actionType) {
-        try {
-            TrainerWorkloadRequest request = new TrainerWorkloadRequest(
+        TrainerWorkloadRequest request = new TrainerWorkloadRequest(
                 training.getTrainer().getUsername(),
                 training.getTrainer().getFirstName(),
                 training.getTrainer().getLastName(),
@@ -56,24 +55,16 @@ public class WorkloadNotificationServiceImpl implements WorkloadNotificationServ
                 training.getTrainingDate(),
                 training.getDuration(),
                 actionType
-            );
-            
+        );
+        
+        try {
             TrainerWorkloadResponse response = workloadServiceClient.processTrainerWorkload(request);
-            
-            if (response.success()) {
-                log.info("Successfully notified workload service for trainer: {} with action: {}", 
-                    training.getTrainer().getUsername(), actionType);
-            } else {
-                log.warn("Workload service returned failure for trainer: {} with action: {}. Message: {}", 
-                    training.getTrainer().getUsername(), actionType, response.message());
-            }
-            
+            log.info("Successfully notified workload service for trainer: {} with action: {}. Response: {}", 
+                training.getTrainer().getUsername(), actionType, response.message());
         } catch (Exception e) {
             log.error("Failed to notify workload service for trainer: {} with action: {}. Error: {}", 
-                training.getTrainer().getUsername(), actionType, e.getMessage(), e);
-            
-            // Continue with the operation even if workload service fails
-            // This ensures that the main gym service functionality is not affected
+                training.getTrainer().getUsername(), actionType, e.getMessage());
+            // Don't rethrow the exception - let the main operation continue
         }
     }
 } 

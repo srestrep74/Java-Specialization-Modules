@@ -26,6 +26,15 @@ spring:
   kafka:
     bootstrap-servers: localhost:29092
 
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
+feign:
+  circuitbreaker:
+    enabled: true
+
 logging:
   level:
     com.sro: DEBUG
