@@ -20,11 +20,7 @@ spring:
             - id: gym-service-route
               uri: lb://gym-service
               predicates:
-                - Path=/api/v1/trainees/**
-                - Path=/api/v1/trainers/**
-                - Path=/api/v1/trainings/**
-                - Path=/api/v1/training-types/**
-                - Path=/api/v1/auth/**
+                - Path=/api/v1/{segment:trainees|trainers|trainings|training-types|auth}/**
             
             - id: workload-service-route
               uri: lb://workload-service
@@ -35,4 +31,4 @@ logging:
   level:
     org.springframework.cloud.gateway: TRACE
     org.springframework.http.server.reactive: DEBUG
-    reactor.netty.http.client: DEBUG 
+    reactor.netty.http.client: DEBUG
