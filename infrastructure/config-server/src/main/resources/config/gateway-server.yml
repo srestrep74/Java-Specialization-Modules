@@ -11,23 +11,25 @@ eureka:
 spring:
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-      routes:
-        - id: gym-service-route
-          uri: lb://gym-service
-          predicates:
-            - Path=/api/v1/trainees/**
-            - Path=/api/v1/trainers/**
-            - Path=/api/v1/trainings/**
-            - Path=/api/v1/training-types/**
-            - Path=/api/v1/auth/**
-        
-        - id: workload-service-route
-          uri: lb://workload-service
-          predicates:
-            - Path=/api/v1/workloads/**
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+          routes:
+            - id: gym-service-route
+              uri: lb://gym-service
+              predicates:
+                - Path=/api/v1/trainees/**
+                - Path=/api/v1/trainers/**
+                - Path=/api/v1/trainings/**
+                - Path=/api/v1/training-types/**
+                - Path=/api/v1/auth/**
+            
+            - id: workload-service-route
+              uri: lb://workload-service
+              predicates:
+                - Path=/api/v1/workloads/**
 
 logging:
   level:
