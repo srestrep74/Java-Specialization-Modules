@@ -1,23 +1,25 @@
 package dev.sro.gym_service.config;
 
-import java.util.Locale;
-
-import org.springframework.cache.annotation.EnableCaching;
+import feign.Target;
+import org.springframework.cloud.openfeign.CircuitBreakerNameResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 
+import java.lang.reflect.Method;
+import java.util.Locale;
+
 @Configuration
-@EnableAspectJAutoProxy
-@EnableCaching
-@EnableScheduling
 public class AppConfig {
 
     @Bean
     public LocaleResolver localeResolver() {
         return new FixedLocaleResolver(Locale.ENGLISH);
+    }
+
+    @Bean
+    public CircuitBreakerNameResolver circuitBreakerNameResolver() {
+        return (String feignClientName, Target<?> target, Method method) -> feignClientName;
     }
 }
