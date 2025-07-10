@@ -15,7 +15,7 @@ spring:
         webflux:
           discovery:
             locator:
-              enabled: true
+              enabled: false
           routes:
             - id: gym-service-route
               uri: lb://gym-service
