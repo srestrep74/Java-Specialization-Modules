@@ -65,6 +65,8 @@ feign:
         loggerLevel: basic
   circuitbreaker:
     enabled: true
+    group:
+      enabled: true
 
 # Resilience4j Configuration for Circuit Breaker
 resilience4j:
