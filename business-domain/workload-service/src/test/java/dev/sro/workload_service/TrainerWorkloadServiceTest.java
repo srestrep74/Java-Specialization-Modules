@@ -1,9 +1,10 @@
 package dev.sro.workload_service;
 
-import dev.sro.workload_service.application.dto.request.TrainerWorkloadRequest;
-import dev.sro.workload_service.application.dto.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.application.service.TrainerWorkloadService;
 import dev.sro.workload_service.domain.enums.ActionType;
+import dev.sro.workload_service.presentation.dto.request.TrainerWorkloadRequest;
+import dev.sro.workload_service.presentation.dto.response.TrainerMonthlySummaryResponse;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

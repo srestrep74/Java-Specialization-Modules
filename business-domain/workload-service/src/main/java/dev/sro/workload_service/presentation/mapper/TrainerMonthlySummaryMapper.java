@@ -1,8 +1,9 @@
-package dev.sro.workload_service.application.mapper;
+package dev.sro.workload_service.presentation.mapper;
 
-import dev.sro.workload_service.application.dto.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.domain.entity.MonthlySummary;
 import dev.sro.workload_service.domain.entity.Trainer;
+import dev.sro.workload_service.presentation.dto.response.TrainerMonthlySummaryResponse;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

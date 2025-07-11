@@ -1,7 +1,8 @@
-package dev.sro.workload_service.application.mapper;
+package dev.sro.workload_service.presentation.mapper;
 
-import dev.sro.workload_service.application.dto.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.domain.entity.TrainingSession;
+import dev.sro.workload_service.presentation.dto.request.TrainerWorkloadRequest;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;

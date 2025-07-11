@@ -1,4 +1,4 @@
-package dev.sro.workload_service.application.dto.request;
+package dev.sro.workload_service.presentation.dto.request;
 
 import dev.sro.workload_service.domain.enums.ActionType;
 import jakarta.validation.constraints.NotBlank;

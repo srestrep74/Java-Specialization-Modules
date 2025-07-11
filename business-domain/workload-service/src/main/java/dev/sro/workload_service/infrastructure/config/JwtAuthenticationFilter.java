@@ -44,14 +44,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 username = jwtUtil.extractUsername(jwt);
                 log.debug("Extracted username from JWT: {}", username);
+                
+                // Check if token is expired
+                if (jwtUtil.isTokenExpired(jwt)) {
+                    log.debug("JWT token is expired for user: {}", username);
+                    username = null;
+                }
             } catch (Exception e) {
                 log.error("Error extracting username from JWT: {}", e.getMessage());
+                username = null;
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
-                if (jwtUtil.validateToken(jwt)) {
+                if (jwtUtil.validateToken(jwt, username)) {
                     // Extract roles from JWT token
                     List<String> roles = jwtUtil.extractRoles(jwt);
                     log.debug("Extracted roles from JWT: {}", roles);
@@ -73,9 +80,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                     log.debug("Successfully authenticated user: {} with roles: {}", username, roles);
+                } else {
+                    log.debug("JWT token validation failed for user: {}", username);
                 }
             } catch (Exception e) {
                 log.error("JWT validation failed: {}", e.getMessage());
+                // Clear any partial authentication
+                SecurityContextHolder.clearContext();
             }
         }
 

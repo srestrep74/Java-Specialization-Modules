@@ -1,7 +1,5 @@
 package dev.sro.workload_service.application.service.impl;
 
-import dev.sro.workload_service.application.dto.request.TrainerWorkloadRequest;
-import dev.sro.workload_service.application.dto.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.application.service.TrainerWorkloadService;
 import dev.sro.workload_service.domain.entity.MonthlySummary;
 import dev.sro.workload_service.domain.entity.Trainer;
@@ -13,9 +11,11 @@ import dev.sro.workload_service.domain.exception.WorkloadProcessingException;
 import dev.sro.workload_service.domain.repository.MonthlySummaryRepository;
 import dev.sro.workload_service.domain.repository.TrainerRepository;
 import dev.sro.workload_service.domain.repository.TrainingSessionRepository;
-import dev.sro.workload_service.application.mapper.TrainerMapper;
-import dev.sro.workload_service.application.mapper.TrainingSessionMapper;
-import dev.sro.workload_service.application.mapper.TrainerMonthlySummaryMapper;
+import dev.sro.workload_service.presentation.dto.request.TrainerWorkloadRequest;
+import dev.sro.workload_service.presentation.dto.response.TrainerMonthlySummaryResponse;
+import dev.sro.workload_service.presentation.mapper.TrainerMapper;
+import dev.sro.workload_service.presentation.mapper.TrainerMonthlySummaryMapper;
+import dev.sro.workload_service.presentation.mapper.TrainingSessionMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

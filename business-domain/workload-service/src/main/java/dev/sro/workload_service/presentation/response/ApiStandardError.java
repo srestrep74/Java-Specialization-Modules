@@ -1,4 +1,4 @@
-package dev.sro.workload_service.presentation.dto.response;
+package dev.sro.workload_service.presentation.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;

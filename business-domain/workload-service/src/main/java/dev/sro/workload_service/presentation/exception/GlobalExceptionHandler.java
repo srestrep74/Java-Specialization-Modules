@@ -1,11 +1,12 @@
 package dev.sro.workload_service.presentation.exception;
 
+import dev.sro.workload_service.domain.exception.AuthenticationFailedException;
 import dev.sro.workload_service.domain.exception.InvalidWorkloadDataException;
 import dev.sro.workload_service.domain.exception.MonthlySummaryNotFoundException;
 import dev.sro.workload_service.domain.exception.TrainerNotFoundException;
 import dev.sro.workload_service.domain.exception.WorkloadProcessingException;
-import dev.sro.workload_service.presentation.dto.response.ApiStandardError;
-import dev.sro.workload_service.presentation.util.ErrorResponseBuilder;
+import dev.sro.workload_service.presentation.response.ApiStandardError;
+import dev.sro.workload_service.presentation.response.ErrorResponseBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -91,6 +92,20 @@ public class GlobalExceptionHandler {
     }
 
     // =================== SECURITY EXCEPTIONS ===================
+
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<ApiStandardError> handleAuthenticationFailedException(
+            AuthenticationFailedException ex, HttpServletRequest request) {
+        // Check if it's an account lockout scenario
+        if (ex.getMessage().contains("Account locked") || ex.getMessage().contains("Account is locked")) {
+            return ErrorResponseBuilder.buildErrorResponse(
+                    org.springframework.http.HttpStatus.TOO_MANY_REQUESTS, 
+                    "Account Locked", 
+                    ex.getMessage(), 
+                    request);
+        }
+        return ErrorResponseBuilder.unauthorized(ex.getMessage(), request);
+    }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiStandardError> handleAuthenticationException(

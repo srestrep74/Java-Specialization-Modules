@@ -1,6 +1,5 @@
-package dev.sro.workload_service.presentation.util;
+package dev.sro.workload_service.presentation.response;
 
-import dev.sro.workload_service.presentation.dto.response.ApiStandardError;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +85,14 @@ public class ErrorResponseBuilder {
         return buildErrorResponse(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 "Service Unavailable",
+                message,
+                request.getRequestURI());
+    }
+
+    public static ResponseEntity<ApiStandardError> tooManyRequests(String message, HttpServletRequest request) {
+        return buildErrorResponse(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Too Many Requests",
                 message,
                 request.getRequestURI());
     }

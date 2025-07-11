@@ -1,10 +1,10 @@
 package dev.sro.workload_service.presentation.controller.v1;
 
-import dev.sro.workload_service.application.dto.request.TrainerWorkloadRequest;
-import dev.sro.workload_service.application.dto.response.TrainerMonthlySummaryResponse;
-import dev.sro.workload_service.application.dto.response.TrainerWorkloadResponse;
 import dev.sro.workload_service.presentation.response.ApiStandardResponse;
-import dev.sro.workload_service.presentation.dto.response.ApiStandardError;
+import dev.sro.workload_service.presentation.dto.request.TrainerWorkloadRequest;
+import dev.sro.workload_service.presentation.dto.response.TrainerMonthlySummaryResponse;
+import dev.sro.workload_service.presentation.dto.response.TrainerWorkloadResponse;
+import dev.sro.workload_service.presentation.response.ApiStandardError;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;

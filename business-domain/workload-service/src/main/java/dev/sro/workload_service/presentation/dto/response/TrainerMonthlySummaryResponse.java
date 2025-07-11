@@ -1,4 +1,4 @@
-package dev.sro.workload_service.application.dto.response;
+package dev.sro.workload_service.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;

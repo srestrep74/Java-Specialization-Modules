@@ -1,4 +1,4 @@
-package dev.sro.workload_service.application.dto.response;
+package dev.sro.workload_service.presentation.dto.response;
 
 public record TrainerWorkloadResponse(
         String message,

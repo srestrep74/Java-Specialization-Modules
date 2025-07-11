@@ -1,4 +1,4 @@
-package dev.sro.workload_service.application.aspect;
+package dev.sro.workload_service.infrastructure.aspect;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
