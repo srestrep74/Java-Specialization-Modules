@@ -27,6 +27,9 @@ spring:
               predicates:
                 - Path=/api/v1/workloads/**
 
+jwt:
+  secret: ${JWT_SECRET:bXlTZWNyZXRLZXlGb3JKV1RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5}
+
 logging:
   level:
     org.springframework.cloud.gateway: TRACE

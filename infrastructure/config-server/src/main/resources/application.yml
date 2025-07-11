@@ -16,4 +16,4 @@ spring:
           search-paths: 
             - infrastructure/config-server/src/main/resources/config
             - infrastructure/config-server/src/main/resources/config/{application}
-          default-label: microservices
+          default-label: auth
