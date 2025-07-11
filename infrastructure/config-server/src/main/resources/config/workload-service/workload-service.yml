@@ -51,7 +51,56 @@ jwt:
   secret: 5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==
 
 logging:
+  pattern:
+    # File pattern with detailed information for production
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [RequestID:%X{requestId:-}] [User:%X{user:-}] %msg%n"
   level:
+    # Application logging levels
     dev.sro.workload_service: INFO
-    org.springframework: INFO
-    org.hibernate: INFO 
+    dev.sro.workload_service.application.aspect.LoggingAspect: INFO
+    dev.sro.workload_service.presentation.exception.GlobalExceptionHandler: INFO
+    dev.sro.workload_service.application.service: INFO
+    dev.sro.workload_service.domain.repository: INFO
+    dev.sro.workload_service.infrastructure.repository: INFO
+    dev.sro.workload_service.presentation.controller: INFO
+    dev.sro.workload_service.application.mapper: WARN
+    
+    # Spring framework logging
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.aop: INFO
+    org.aspectj: INFO
+    
+    # Database logging
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.orm.jpa: INFO
+    
+    # HTTP client logging
+    org.springframework.web.client: INFO
+    
+    # Root level
+    root: INFO
+  
+  # File appender configuration for production
+  file:
+    name: logs/workload-service.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 3GB
+
+# Management endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+  endpoint:
+    health:
+      show-details: when-authorized
+    loggers:
+      enabled: true
+  metrics:
+    export:
+      simple:
+        enabled: true 
