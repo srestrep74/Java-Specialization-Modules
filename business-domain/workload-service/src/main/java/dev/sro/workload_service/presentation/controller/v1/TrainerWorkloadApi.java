@@ -3,6 +3,8 @@ package dev.sro.workload_service.presentation.controller.v1;
 import dev.sro.workload_service.application.dto.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.application.dto.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.application.dto.response.TrainerWorkloadResponse;
+import dev.sro.workload_service.presentation.response.ApiStandardResponse;
+import dev.sro.workload_service.presentation.dto.response.ApiStandardError;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +36,7 @@ public interface TrainerWorkloadApi {
             description = "Workload processed successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerWorkloadResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -42,7 +44,7 @@ public interface TrainerWorkloadApi {
             description = "Invalid request body or missing required fields",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerWorkloadResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -50,7 +52,7 @@ public interface TrainerWorkloadApi {
             description = "Unauthorized - Authentication token missing or invalid",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerWorkloadResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -58,7 +60,7 @@ public interface TrainerWorkloadApi {
             description = "Forbidden - User does not have required TRAINER or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerWorkloadResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -66,11 +68,11 @@ public interface TrainerWorkloadApi {
             description = "Internal server error during workload processing",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerWorkloadResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
-    ResponseEntity<TrainerWorkloadResponse> processTrainerWorkload(
+    ResponseEntity<ApiStandardResponse<TrainerWorkloadResponse>> processTrainerWorkload(
         @Parameter(description = "Trainer workload request containing trainer information, training session details, and action type")
         @RequestBody TrainerWorkloadRequest request
     );
@@ -89,7 +91,7 @@ public interface TrainerWorkloadApi {
             description = "Monthly summary retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -97,7 +99,7 @@ public interface TrainerWorkloadApi {
             description = "Unauthorized - Authentication token missing or invalid",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -105,7 +107,7 @@ public interface TrainerWorkloadApi {
             description = "Forbidden - User does not have required TRAINER or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -113,7 +115,7 @@ public interface TrainerWorkloadApi {
             description = "Trainer not found or no training data available",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -121,11 +123,11 @@ public interface TrainerWorkloadApi {
             description = "Internal server error during summary retrieval",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
-    ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummary(
+    ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummary(
         @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
         @PathVariable String username
     );
@@ -144,7 +146,7 @@ public interface TrainerWorkloadApi {
             description = "Yearly summary retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -152,7 +154,7 @@ public interface TrainerWorkloadApi {
             description = "Invalid year parameter",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -160,7 +162,7 @@ public interface TrainerWorkloadApi {
             description = "Unauthorized - Authentication token missing or invalid",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -168,7 +170,7 @@ public interface TrainerWorkloadApi {
             description = "Forbidden - User does not have required TRAINER or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -176,7 +178,7 @@ public interface TrainerWorkloadApi {
             description = "Trainer not found or no training data available for the specified year",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -184,11 +186,11 @@ public interface TrainerWorkloadApi {
             description = "Internal server error during summary retrieval",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
-    ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummaryByYear(
+    ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummaryByYear(
         @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
         @PathVariable String username,
         @Parameter(description = "Year to retrieve the summary for (e.g., 2024)", required = true, example = "2024") 
@@ -209,7 +211,7 @@ public interface TrainerWorkloadApi {
             description = "Monthly summary retrieved successfully",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardResponse.class)
             )
         ),
         @ApiResponse(
@@ -217,7 +219,7 @@ public interface TrainerWorkloadApi {
             description = "Invalid year or month parameters (month must be 1-12)",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -225,7 +227,7 @@ public interface TrainerWorkloadApi {
             description = "Unauthorized - Authentication token missing or invalid",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -233,7 +235,7 @@ public interface TrainerWorkloadApi {
             description = "Forbidden - User does not have required TRAINER or ADMIN role",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -241,7 +243,7 @@ public interface TrainerWorkloadApi {
             description = "Trainer not found or no training data available for the specified month and year",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         ),
         @ApiResponse(
@@ -249,11 +251,11 @@ public interface TrainerWorkloadApi {
             description = "Internal server error during summary retrieval",
             content = @Content(
                 mediaType = "application/json",
-                schema = @Schema(implementation = TrainerMonthlySummaryResponse.class)
+                schema = @Schema(implementation = ApiStandardError.class)
             )
         )
     })
-    ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummaryByMonth(
+    ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummaryByMonth(
         @Parameter(description = "Unique username identifier of the trainer", required = true, example = "john.doe") 
         @PathVariable String username,
         @Parameter(description = "Year of the summary (e.g., 2024)", required = true, example = "2024") 
