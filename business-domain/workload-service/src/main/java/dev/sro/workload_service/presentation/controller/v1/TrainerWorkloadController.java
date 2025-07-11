@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,10 +24,13 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     
     @Override
     @PostMapping("/workload")
+    @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<TrainerWorkloadResponse> processTrainerWorkload(
         @Valid @RequestBody TrainerWorkloadRequest request
     ) {
-        log.info("Received workload request for trainer: {}", request.trainerUsername());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Processing workload request for trainer: {} from user: {} with roles: {}", 
+            request.trainerUsername(), authentication.getName(), authentication.getAuthorities());
         
         try {
             trainerWorkloadService.processTrainerWorkload(request);
@@ -38,10 +44,13 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     
     @Override
     @GetMapping("/{username}/monthly-summary")
+    @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummary(
         @PathVariable String username
     ) {
-        log.info("Received request for trainer monthly summary: {}", username);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Retrieving monthly summary for trainer: {} requested by user: {} with roles: {}", 
+            username, authentication.getName(), authentication.getAuthorities());
         
         try {
             TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary(username);
@@ -54,11 +63,14 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     
     @Override
     @GetMapping("/{username}/monthly-summary/{year}")
+    @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummaryByYear(
         @PathVariable String username,
         @PathVariable Integer year
     ) {
-        log.info("Received request for trainer monthly summary: {} for year: {}", username, year);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Retrieving monthly summary for trainer: {} for year: {} requested by user: {} with roles: {}", 
+            username, year, authentication.getName(), authentication.getAuthorities());
         
         try {
             TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary(username, year);
@@ -71,13 +83,15 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     
     @Override
     @GetMapping("/{username}/monthly-summary/{year}/{month}")
+    @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<TrainerMonthlySummaryResponse> getTrainerMonthlySummaryByMonth(
         @PathVariable String username,
         @PathVariable Integer year,
         @PathVariable Integer month
     ) {
-        log.info("Received request for trainer monthly summary: {} for year: {} month: {}", 
-            username, year, month);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Retrieving monthly summary for trainer: {} for year: {} month: {} requested by user: {} with roles: {}", 
+            username, year, month, authentication.getName(), authentication.getAuthorities());
         
         try {
             TrainerMonthlySummaryResponse response = trainerWorkloadService

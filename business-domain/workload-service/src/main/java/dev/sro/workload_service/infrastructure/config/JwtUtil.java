@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -47,6 +49,18 @@ public class JwtUtil {
 
     public String extractTokenId(String token) {
         return extractClaim(token, Claims::getId);
+    }
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        Object roles = claims.get("roles");
+        if (roles instanceof List<?>) {
+            return ((List<?>) roles).stream()
+                    .filter(role -> role instanceof String)
+                    .map(role -> (String) role)
+                    .collect(Collectors.toList());
+        }
+        return List.of();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
