@@ -1817,3 +1817,7 @@ Consider defining a bean of type 'dev.sro.workload_service.application.mapper.Tr
 2025-07-11 13:32:39.997 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
 2025-07-11 13:37:40.003 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
 2025-07-11 13:42:40.005 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
+2025-07-11 13:47:40.014 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
+2025-07-11 13:52:40.028 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
+2025-07-11 13:57:40.037 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
+2025-07-11 14:02:40.044 [AsyncResolver-bootstrap-executor-%d] INFO  c.n.d.s.r.aws.ConfigClusterResolver - [RequestID:] [User:] Resolving eureka endpoints via configuration
