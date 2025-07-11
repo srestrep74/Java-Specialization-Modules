@@ -31,15 +31,21 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus,info
+        include: health,metrics,prometheus,info,loggers
   metrics:
     tags:
       application: workload-management
+    export:
+      simple:
+        enabled: true
   endpoint:
     health:
+      show-details: when-authorized
       group:
         custom:
           include: db
+    loggers:
+      enabled: true
 
 springdoc:
   api-docs:
@@ -87,20 +93,4 @@ logging:
     name: logs/workload-service.log
     max-size: 100MB
     max-history: 30
-    total-size-cap: 3GB
-
-# Management endpoints for monitoring
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,loggers
-  endpoint:
-    health:
-      show-details: when-authorized
-    loggers:
-      enabled: true
-  metrics:
-    export:
-      simple:
-        enabled: true 
+    total-size-cap: 3GB 
