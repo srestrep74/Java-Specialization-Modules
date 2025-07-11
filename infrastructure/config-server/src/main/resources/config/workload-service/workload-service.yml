@@ -58,8 +58,8 @@ jwt:
 
 logging:
   pattern:
-    # File pattern with detailed information for production
-    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [RequestID:%X{requestId:-}] [User:%X{user:-}] %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
   level:
     # Application logging levels
     dev.sro.workload_service: INFO
@@ -87,10 +87,3 @@ logging:
     
     # Root level
     root: INFO
-  
-  # File appender configuration for production
-  file:
-    name: logs/workload-service.log
-    max-size: 100MB
-    max-history: 30
-    total-size-cap: 3GB 

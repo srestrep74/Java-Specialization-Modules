@@ -44,8 +44,11 @@ public class LoggingAspect {
             HttpServletRequest request = getCurrentHttpRequest();
             if (request == null) return;
 
-            // Generate unique request ID for tracing
-            String requestId = UUID.randomUUID().toString().substring(0, 8);
+            // Try to get request ID from header, otherwise generate a new one
+            String requestId = request.getHeader("X-Request-ID");
+            if (requestId == null || requestId.isEmpty()) {
+                requestId = UUID.randomUUID().toString().substring(0, 8);
+            }
             MDC.put(REQUEST_ID_KEY, requestId);
 
             // Extract user from security context if available
