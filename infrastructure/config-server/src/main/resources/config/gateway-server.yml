@@ -28,7 +28,7 @@ spring:
                 - Path=/api/v1/workloads/**
 
 jwt:
-  secret: ${JWT_SECRET:bXlTZWNyZXRLZXlGb3JKV1RUb2tlbkdlbmVyYXRpb25BbmRWYWxpZGF0aW9uUHVycG9zZXNPbmx5}
+  secret: 5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==
 
 logging:
   level:
