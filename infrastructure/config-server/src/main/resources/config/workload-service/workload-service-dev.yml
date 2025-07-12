@@ -43,14 +43,4 @@ logging:
     # Root level
     root: INFO
 
-management:
-  endpoint:
-    health:
-      show-details: always
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-  metrics:
-    enable:
-      all: true 
+ 

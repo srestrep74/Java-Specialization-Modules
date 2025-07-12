@@ -47,21 +47,4 @@ logging:
     # Metrics and monitoring
     io.micrometer: DEBUG
 
-management:
-  endpoint:
-    health:
-      show-details: always
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-  metrics:
-    enable:
-      all: true
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-        trainer.workload.sessions: true
-        trainer.workload.duration: true
-
 debug: true 
