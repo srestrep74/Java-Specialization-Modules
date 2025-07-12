@@ -36,40 +36,22 @@ logging:
     org.springframework.http.server.reactive: DEBUG
     reactor.netty.http.client: DEBUG
 
-# OpenTelemetry Configuration for SigNoz
 management:
-  endpoint:
-    health:
-      show-details: always
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-    distribution:
-      percentiles-histogram:
-        spring.cloud.gateway.requests: true
   tracing:
     sampling:
-      probability: 1.0  # 100% sampling for development
-  otlp:
-    metrics:
-      export:
-        url: http://localhost:4318/v1/metrics
-        headers:
-          signoz-service-name: gateway-server
+      probability: 1.0  # 100% sampling for development, reduce in production
+  zipkin:
     tracing:
-      endpoint: http://localhost:4318/v1/traces
-      headers:
-        signoz-service-name: gateway-server
+      endpoint: http://localhost:9411/api/v2/spans
 
-# OpenTelemetry Resource Attributes
-otel:
-  resource:
-    attributes:
-      service.name: gateway-server
-      service.namespace: fitness-app
-      deployment.environment: ${spring.profiles.active:default}
+# Micrometer Tracing configuration
+micrometer:
+  tracing:
+    propagation:
+      type: B3  # or W3C
+    brave:
+      span-joining-supported: true

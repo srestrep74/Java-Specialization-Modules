@@ -26,18 +26,27 @@ eureka:
     lease-expiration-duration-in-seconds: 90
 
 management:
+  endpoint:
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus,info,circuitbreakers
-  metrics:
-    tags:
-      application: training-management
-  endpoint:
-    health:
-      group:
-        custom:
-          include: db,traineeService
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling for development, reduce in production
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+# Micrometer Tracing configuration
+micrometer:
+  tracing:
+    propagation:
+      type: B3  # or W3C
+    brave:
+      span-joining-supported: true
 
 springdoc:
   api-docs:
@@ -86,41 +95,3 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
-
-# OpenTelemetry Configuration for SigNoz
-management:
-  endpoint:
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-  tracing:
-    sampling:
-      probability: 1.0  # 100% sampling for development
-  otlp:
-    metrics:
-      export:
-        url: http://localhost:4318/v1/metrics
-        headers:
-          signoz-service-name: gym-service
-    tracing:
-      endpoint: http://localhost:4318/v1/traces
-      headers:
-        signoz-service-name: gym-service
-
-# OpenTelemetry Resource Attributes
-otel:
-  resource:
-    attributes:
-      service.name: gym-service
-      service.namespace: fitness-app
-      deployment.environment: ${spring.profiles.active:default}

@@ -31,21 +31,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus,info,loggers
-  metrics:
-    tags:
-      application: workload-management
-    export:
-      simple:
-        enabled: true
-  endpoint:
-    health:
-      show-details: when-authorized
-      group:
-        custom:
-          include: db
-    loggers:
-      enabled: true
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling for development, reduce in production
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
 
 springdoc:
   api-docs:
@@ -88,40 +80,10 @@ logging:
     # Root level
     root: INFO
 
-# OpenTelemetry Configuration for SigNoz
-management:
-  endpoint:
-    health:
-      show-details: always
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
+# Micrometer Tracing configuration
+micrometer:
   tracing:
-    sampling:
-      probability: 1.0  # 100% sampling for development
-  otlp:
-    metrics:
-      export:
-        url: http://localhost:4318/v1/metrics
-        headers:
-          signoz-service-name: workload-service
-    tracing:
-      endpoint: http://localhost:4318/v1/traces
-      headers:
-        signoz-service-name: workload-service
-
-# OpenTelemetry Resource Attributes
-otel:
-  resource:
-    attributes:
-      service.name: workload-service
-      service.namespace: fitness-app
-      deployment.environment: ${spring.profiles.active:default}
+    propagation:
+      type: B3  # or W3C
+    brave:
+      span-joining-supported: true
