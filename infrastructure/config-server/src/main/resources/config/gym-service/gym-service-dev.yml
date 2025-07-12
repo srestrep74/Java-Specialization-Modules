@@ -60,4 +60,4 @@ jwt:
 
 internal:
   service:
-    token: "edhskjhdsjdhsjkdsjkdshjkd"
+    token: "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOIl0sInN1YiI6ImNsaWVudC5jbGllbnQiLCJpYXQiOjE3NTIyOTI0ODQsImV4cCI6MTc1MDU4OTUxNiwianRpIjoiZWJmNjdlZGQtMzM3NC00OTc0LWI4Y2EtMjdmMTUzZjJkZWVmIn0.aNtara1R2k1Rgu5M4vgpz33R7pD6mgKKgMJcSkdTU600_T-gVhHniYAbr1USH519amZxIGQt57q6JwUln2JRYw"
