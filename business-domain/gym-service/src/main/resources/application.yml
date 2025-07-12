@@ -3,17 +3,3 @@ spring:
     name: gym-service
   config:
     import: optional:configserver:http://localhost:8888
-
-# Resilience4j Configuration for Circuit Breaker
-resilience4j:
-  circuitbreaker:
-    instances:
-      workload-service:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
-        failureRateThreshold: 50
-        eventConsumerBufferSize: 10
