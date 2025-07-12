@@ -76,6 +76,11 @@ logging:
     
     # HTTP client logging
     org.springframework.web.client: INFO
+
+    # Micrometer Tracing debug
+    io.micrometer.tracing: DEBUG
+    io.zipkin.reporter2: DEBUG
+    brave: DEBUG
     
     # Root level
     root: INFO
