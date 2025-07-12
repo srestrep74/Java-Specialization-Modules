@@ -7,19 +7,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-/**
- * A dedicated Feign client for the WorkloadRelayService.
- * This client does NOT have a fallback. If a call fails, it will throw an
- * exception, which is the desired behavior for the relay service to catch
- * and decide to retry the operation later.
- */
-@FeignClient(
-    name = "workload-service",
-    contextId = "workload-relay-client",
-    configuration = WorkloadRelayClientConfig.class
-)
+@FeignClient(name = "workload-service", contextId = "workload-relay-client", configuration = WorkloadRelayClientConfig.class)
 public interface WorkloadRelayClient {
 
-    @PostMapping("/api/v1/trainers/workload")
+    @PostMapping("/api/v1/workloads")
     TrainerWorkloadResponse processTrainerWorkload(@RequestBody TrainerWorkloadRequest request);
-} 
+}

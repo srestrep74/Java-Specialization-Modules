@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "pending_workloads", uniqueConstraints = {
-        // This constraint prevents duplicate entries from being created by the relay service.
         @UniqueConstraint(columnNames = {"trainerUsername", "trainingDate", "actionType"})
 })
 @Data

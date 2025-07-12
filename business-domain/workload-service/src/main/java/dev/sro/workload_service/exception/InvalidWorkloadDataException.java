@@ -1,9 +1,5 @@
 package dev.sro.workload_service.exception;
 
-/**
- * Exception thrown when workload data is invalid or doesn't meet business requirements.
- * This includes invalid dates, negative durations, missing required fields, etc.
- */
 public class InvalidWorkloadDataException extends RuntimeException {
     
     public InvalidWorkloadDataException(String message) {

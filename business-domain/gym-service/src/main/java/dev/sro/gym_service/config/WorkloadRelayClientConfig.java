@@ -1,8 +1,10 @@
 package dev.sro.gym_service.config;
 
-import dev.sro.gym_service.client.ServiceTokenInterceptor;
 import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;
+
+import dev.sro.gym_service.client.interceptor.ServiceTokenInterceptor;
+
 import org.springframework.beans.factory.annotation.Value;
 
 

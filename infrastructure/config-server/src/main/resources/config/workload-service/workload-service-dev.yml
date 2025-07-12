@@ -13,10 +13,8 @@ spring:
 
 logging:
   pattern:
-    # Console pattern for development environment
     console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %X{requestId:--} %X{user:--} %m%n%wEx"
   level:
-    # Application logging levels (balanced for development)
     dev.sro.workload_service: INFO
     dev.sro.workload_service.application.aspect.LoggingAspect: INFO
     dev.sro.workload_service.presentation.exception.GlobalExceptionHandler: INFO
@@ -26,32 +24,26 @@ logging:
     dev.sro.workload_service.presentation.controller: INFO
     dev.sro.workload_service.application.mapper: WARN
     
-    # Spring framework logging
     org.springframework.web: INFO
     org.springframework.security: INFO
     org.springframework.aop: INFO
     org.aspectj: INFO
     
-    # Micrometer Tracing debug
     io.micrometer: DEBUG
     io.micrometer.tracing: DEBUG
     io.zipkin.reporter2: DEBUG
     brave: DEBUG
     
-    # Specific Zipkin logging
     zipkin2: DEBUG
     brave.http: DEBUG
     brave.spring.web: DEBUG
     
-    # Database logging (moderate for development)
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.orm.jpa: INFO
     
-    # HTTP client logging
     org.springframework.web.client: INFO
     
-    # Root level
     root: INFO
 
  

@@ -7,14 +7,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(
-    name = "workload-service",
-    contextId = "workload-service-client",
-    fallback = WorkloadServiceClientFallback.class,
-    configuration = WorkloadServiceClientConfig.class
-)
+@FeignClient(name = "workload-service", contextId = "workload-service-client", fallback = WorkloadServiceClientFallback.class, configuration = WorkloadServiceClientConfig.class)
 public interface WorkloadServiceClient {
-    
-    @PostMapping("/api/v1/trainers/workload")
+
+    @PostMapping("/api/v1/workloads")
     TrainerWorkloadResponse processTrainerWorkload(@RequestBody TrainerWorkloadRequest request);
-} 
+}

@@ -1,9 +1,5 @@
 package dev.sro.workload_service.exception;
 
-/**
- * Exception thrown when a monthly summary is not found for a specific trainer and period.
- * This indicates that no workload data exists for the requested time frame.
- */
 public class MonthlySummaryNotFoundException extends RuntimeException {
     
     public MonthlySummaryNotFoundException(String trainerUsername) {

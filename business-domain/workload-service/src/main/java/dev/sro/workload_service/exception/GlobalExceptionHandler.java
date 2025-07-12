@@ -3,7 +3,6 @@ package dev.sro.workload_service.exception;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,12 +13,6 @@ import dev.sro.workload_service.util.response.ErrorResponseBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 
-/**
- * Global exception handler for the workload-service.
- * Implements comprehensive error handling using standardized error responses.
- * Follows the same pattern as gym-service for consistency across microservices.
- * All logging is handled by the LoggingAspect to maintain consistency.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -91,7 +84,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationFailedException.class)
     public ResponseEntity<ApiStandardError> handleAuthenticationFailedException(
             AuthenticationFailedException ex, HttpServletRequest request) {
-        // Check if it's an account lockout scenario
         if (ex.getMessage().contains("Account locked") || ex.getMessage().contains("Account is locked")) {
             return ErrorResponseBuilder.buildErrorResponse(
                     org.springframework.http.HttpStatus.TOO_MANY_REQUESTS, 
@@ -119,7 +111,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiStandardError> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        // Re-throw security exceptions to be handled by Spring Security
         if (ex instanceof AccessDeniedException) {
             throw (AccessDeniedException) ex;
         }

@@ -35,16 +35,15 @@ management:
         include: health,info,metrics,prometheus
   tracing:
     sampling:
-      probability: 1.0  # 100% sampling for development, reduce in production
+      probability: 1.0
   zipkin:
     tracing:
       endpoint: http://localhost:9411/api/v2/spans
 
-# Micrometer Tracing configuration
 micrometer:
   tracing:
     propagation:
-      type: B3  # or W3C
+      type: B3
     brave:
       span-joining-supported: true
 
@@ -64,7 +63,6 @@ security:
     max-attempts: 3
     lock-time-minutes: 5
 
-# Feign Configuration
 feign:
   client:
     config:
@@ -81,7 +79,6 @@ feign:
     group:
       enabled: true
 
-# Resilience4j Configuration for Circuit Breaker
 resilience4j:
   circuitbreaker:
     instances:
@@ -94,12 +91,12 @@ resilience4j:
         waitDurationInOpenState: 10s
         failureRateThreshold: 50
         slowCallRateThreshold: 80
-        slowCallDurationThreshold: 5s    # Increased from 3s to 5s
+        slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
   timelimiter:
     instances:
       workload-service:
-        timeoutDuration: 15s    # This should match or exceed Feign readTimeout
+        timeoutDuration: 15s
 
 logging:
   pattern:

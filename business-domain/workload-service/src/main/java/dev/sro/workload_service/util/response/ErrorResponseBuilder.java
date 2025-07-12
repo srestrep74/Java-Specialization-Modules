@@ -4,10 +4,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-/**
- * Utility class for building standardized error responses across the workload service.
- * Provides consistent error response structure and HTTP status codes.
- */
 public class ErrorResponseBuilder {
 
     public static ResponseEntity<ApiStandardError> buildErrorResponse(

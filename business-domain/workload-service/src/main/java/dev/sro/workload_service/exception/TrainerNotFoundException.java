@@ -1,9 +1,6 @@
 package dev.sro.workload_service.exception;
 
-/**
- * Exception thrown when a trainer is not found in the system.
- * This exception indicates that the requested trainer does not exist.
- */
+
 public class TrainerNotFoundException extends RuntimeException {
     
     public TrainerNotFoundException(String username) {

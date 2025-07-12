@@ -27,7 +27,6 @@ public class GenerateToken {
         for (Trainer trainer : trainers) {
             if (trainer.getUsername().equals("client.client")) {
                 CustomUserDetails userDetails = new CustomUserDetails(trainer);
-                // Token que dura 1 año (365 días)
                 long oneYearInMillis = 1000L * 60 * 60 * 24 * 365;
                 String token = jwtUtil.generateToken(userDetails, new HashMap<>(), oneYearInMillis);
                 System.out.println("=== TOKEN DE SERVICIO INTERNO (1 AÑO) ===");

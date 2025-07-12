@@ -20,7 +20,7 @@ public class WorkloadRelayService {
     private final PendingWorkloadRepository pendingWorkloadRepository;
     private final WorkloadRelayClient workloadRelayClient;
 
-    @Scheduled(fixedRate = 120000) // Run every 2 minutes
+    @Scheduled(fixedRate = 120000)
     @Transactional
     public void processPendingWorkloads() {
         log.info("Checking for pending workloads to relay...");
@@ -41,21 +41,16 @@ public class WorkloadRelayService {
                         workload.getIsActive(),
                         workload.getTrainingDate(),
                         workload.getTrainingDuration(),
-                        TrainerWorkloadRequest.ActionType.valueOf(workload.getActionType().name())
-                );
-                // The actual Feign client is called here, not the fallback
+                        TrainerWorkloadRequest.ActionType.valueOf(workload.getActionType().name()));
                 workloadRelayClient.processTrainerWorkload(request);
 
-                // If the call succeeds, delete the pending workload
                 pendingWorkloadRepository.deleteById(workload.getId());
                 log.info("Successfully processed and removed workload for trainer: {}", workload.getTrainerUsername());
 
             } catch (Exception e) {
-                // If workload-service is still down, this will throw an exception.
-                // We catch it, log it, and continue to the next item. The current one remains in DB.
                 log.warn("Failed to process workload for trainer: {}. Will retry later. Error: {}",
                         workload.getTrainerUsername(), e.getMessage());
             }
         }
     }
-} 
+}

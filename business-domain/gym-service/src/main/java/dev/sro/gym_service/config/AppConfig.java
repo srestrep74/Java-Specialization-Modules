@@ -2,8 +2,10 @@ package dev.sro.gym_service.config;
 
 import feign.Target;
 import org.springframework.cloud.openfeign.CircuitBreakerNameResolver;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 
@@ -11,6 +13,8 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 
 @Configuration
+@EnableFeignClients
+@EnableScheduling
 public class AppConfig {
 
     @Bean

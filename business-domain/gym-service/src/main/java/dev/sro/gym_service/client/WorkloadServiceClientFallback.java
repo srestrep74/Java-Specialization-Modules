@@ -22,11 +22,11 @@ public class WorkloadServiceClientFallback implements WorkloadServiceClient {
 
     @Override
     public TrainerWorkloadResponse processTrainerWorkload(TrainerWorkloadRequest request) {
-        log.warn("Workload service is not available. Fallback executed for trainer: {} with action: {}. Saving to outbox.",
+        log.warn(
+                "Workload service is not available. Fallback executed for trainer: {} with action: {}. Saving to outbox.",
                 request.trainerUsername(), request.actionType());
 
         try {
-            // Find the trainer to get the latest details
             Trainer trainer = trainerRepository.findByUsername(request.trainerUsername())
                     .orElseThrow(() -> new RuntimeException("Trainer not found: " + request.trainerUsername()));
 
@@ -43,15 +43,15 @@ public class WorkloadServiceClientFallback implements WorkloadServiceClient {
             pendingWorkloadRepository.save(pendingWorkload);
             log.info("Successfully saved workload for trainer {} to outbox.", request.trainerUsername());
         } catch (DataIntegrityViolationException e) {
-            log.warn("Duplicate workload request detected for trainer {}. It's already in the outbox.", request.trainerUsername());
+            log.warn("Duplicate workload request detected for trainer {}. It's already in the outbox.",
+                    request.trainerUsername());
         } catch (Exception e) {
-            log.error("CRITICAL: Failed to save workload to outbox for trainer {}. Data might be lost!", request.trainerUsername(), e);
+            log.error("CRITICAL: Failed to save workload to outbox for trainer {}. Data might be lost!",
+                    request.trainerUsername(), e);
         }
-
 
         return new TrainerWorkloadResponse(
                 "Workload service temporarily unavailable. The operation has been queued and will be processed later.",
-                true // We can consider this "successful" from the client's perspective
-        );
+                true);
     }
-} 
+}

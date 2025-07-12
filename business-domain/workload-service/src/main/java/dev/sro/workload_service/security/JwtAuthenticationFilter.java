@@ -42,12 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(authorizationHeader) && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
-            
+
             try {
                 username = jwtUtil.extractUsername(jwt);
                 log.debug("Extracted username from JWT: {}", username);
-                
-                // Check if token is expired
+
                 if (jwtUtil.isTokenExpired(jwt)) {
                     log.debug("JWT token is expired for user: {}", username);
                     username = null;
@@ -61,15 +60,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 if (jwtUtil.validateToken(jwt, username)) {
-                    // Extract roles from JWT token
                     List<String> roles = jwtUtil.extractRoles(jwt);
                     log.debug("Extracted roles from JWT: {}", roles);
-                    
-                    // Convert roles to GrantedAuthority objects
+
                     List<SimpleGrantedAuthority> authorities = roles.stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
-                    
+
                     UserDetails userDetails = User.builder()
                             .username(username)
                             .password("")
@@ -87,11 +84,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             } catch (Exception e) {
                 log.error("JWT validation failed: {}", e.getMessage());
-                // Clear any partial authentication
                 SecurityContextHolder.clearContext();
             }
         }
 
         filterChain.doFilter(request, response);
     }
-} 
+}

@@ -55,7 +55,6 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
   level:
-    # Application logging levels
     dev.sro.workload_service: INFO
     dev.sro.workload_service.application.aspect.LoggingAspect: INFO
     dev.sro.workload_service.presentation.exception.GlobalExceptionHandler: INFO
@@ -65,7 +64,6 @@ logging:
     dev.sro.workload_service.presentation.controller: INFO
     dev.sro.workload_service.application.mapper: WARN
     
-    # Spring framework logging
     org.springframework.web: INFO
     org.springframework.security: INFO
     org.springframework.aop: INFO
@@ -73,29 +71,23 @@ logging:
     org.springframework.cloud.sleuth: DEBUG
     org.springframework.web.servlet.DispatcherServlet: DEBUG
     
-    # Database logging
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.orm.jpa: INFO
     
-    # HTTP client logging
     org.springframework.web.client: INFO
 
-    # Micrometer Tracing debug
     io.micrometer: DEBUG
     io.micrometer.tracing: DEBUG
     io.zipkin.reporter2: DEBUG
     brave: DEBUG
     
-    # Specific Zipkin logging
     zipkin2: DEBUG
     brave.http: DEBUG
     brave.spring.web: DEBUG
     
-    # Root level
     root: INFO
 
-# Micrometer Tracing configuration
 micrometer:
   tracing:
     propagation:

@@ -1,4 +1,4 @@
-package dev.sro.gym_service.client;
+package dev.sro.gym_service.client.interceptor;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
@@ -18,4 +18,4 @@ public class ServiceTokenInterceptor implements RequestInterceptor {
             template.header("Authorization", "Bearer " + serviceToken);
         }
     }
-} 
+}

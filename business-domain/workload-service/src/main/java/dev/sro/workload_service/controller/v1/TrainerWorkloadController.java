@@ -13,14 +13,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/trainers")
+@RequestMapping("/api/v1/workloads")
 @RequiredArgsConstructor
 public class TrainerWorkloadController implements TrainerWorkloadApi {
     
     private final TrainerWorkloadService trainerWorkloadService;
     
     @Override
-    @PostMapping("/workload")
+    @PostMapping
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerWorkloadResponse>> processTrainerWorkload(
         @Valid @RequestBody TrainerWorkloadRequest request
@@ -31,7 +31,7 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     }
     
     @Override
-    @GetMapping("/{username}/monthly-summary")
+    @GetMapping("trainers/{username}/monthly-summary")
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummary(
         @PathVariable String username
@@ -41,7 +41,7 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     }
     
     @Override
-    @GetMapping("/{username}/monthly-summary/{year}")
+    @GetMapping("trainers/{username}/monthly-summary/{year}")
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummaryByYear(
         @PathVariable String username,
@@ -52,7 +52,7 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     }
     
     @Override
-    @GetMapping("/{username}/monthly-summary/{year}/{month}")
+    @GetMapping("trainers/{username}/monthly-summary/{year}/{month}")
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummaryByMonth(
         @PathVariable String username,
