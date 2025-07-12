@@ -32,6 +32,17 @@ logging:
     org.springframework.aop: INFO
     org.aspectj: INFO
     
+    # Micrometer Tracing debug
+    io.micrometer: DEBUG
+    io.micrometer.tracing: DEBUG
+    io.zipkin.reporter2: DEBUG
+    brave: DEBUG
+    
+    # Specific Zipkin logging
+    zipkin2: DEBUG
+    brave.http: DEBUG
+    brave.spring.web: DEBUG
+    
     # Database logging (moderate for development)
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: WARN

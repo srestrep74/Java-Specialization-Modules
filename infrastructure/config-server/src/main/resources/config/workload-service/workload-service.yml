@@ -70,6 +70,8 @@ logging:
     org.springframework.security: INFO
     org.springframework.aop: INFO
     org.aspectj: INFO
+    org.springframework.cloud.sleuth: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
     
     # Database logging
     org.hibernate.SQL: WARN
@@ -80,6 +82,7 @@ logging:
     org.springframework.web.client: INFO
 
     # Micrometer Tracing debug
+    io.micrometer: DEBUG
     io.micrometer.tracing: DEBUG
     io.zipkin.reporter2: DEBUG
     brave: DEBUG
