@@ -30,11 +30,23 @@ public class FeignJwtInterceptor implements RequestInterceptor {
             }
         }
 
-        // Propagate the Request ID
+        // Propagate the Request ID - try multiple sources
         String requestId = MDC.get(REQUEST_ID_KEY);
+        
+        // If not found in MDC, try to get it from the original HTTP request
+        if (requestId == null && attributes != null) {
+            HttpServletRequest request = attributes.getRequest();
+            requestId = request.getHeader(REQUEST_ID_HEADER);
+            if (requestId != null) {
+                log.debug("Request ID retrieved from original HTTP request header: {}", requestId);
+            }
+        }
+        
         if (requestId != null) {
             requestTemplate.header(REQUEST_ID_HEADER, requestId);
-            log.debug("Request ID propagated to downstream service: {}", requestId);
+            log.info("Request ID propagated to downstream service: {} | URL: {}", requestId, requestTemplate.url());
+        } else {
+            log.warn("No Request ID found in MDC or original request to propagate to downstream service | URL: {}", requestTemplate.url());
         }
     }
 } 

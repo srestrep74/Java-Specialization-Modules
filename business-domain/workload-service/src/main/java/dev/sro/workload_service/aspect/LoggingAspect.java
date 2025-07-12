@@ -38,7 +38,7 @@ public class LoggingAspect {
 
     // =================== CONTROLLER LAYER ===================
 
-    @Before("execution(* dev.sro.workload_service.presentation.controller.v1.*.*(..))")
+    @Before("execution(* dev.sro.workload_service.controller.v1.*.*(..))")
     public void logBeforeControllerMethod(JoinPoint joinPoint) {
         try {
             HttpServletRequest request = getCurrentHttpRequest();
@@ -46,8 +46,12 @@ public class LoggingAspect {
 
             // Try to get request ID from header, otherwise generate a new one
             String requestId = request.getHeader("X-Request-ID");
+            
             if (requestId == null || requestId.isEmpty()) {
                 requestId = UUID.randomUUID().toString().substring(0, 8);
+                logger.info("Generated new request ID: {} (no X-Request-ID header found)", requestId);
+            } else {
+                logger.info("Using request ID from header: {}", requestId);
             }
             MDC.put(REQUEST_ID_KEY, requestId);
 
@@ -60,6 +64,12 @@ public class LoggingAspect {
             Map<String, String> headers = extractRelevantHeaders(request);
             String queryParams = extractQueryParameters(request);
 
+            // Debug: Log all headers to see what's being received
+            if (logger.isDebugEnabled()) {
+                logger.debug("Received headers: {}", headers);
+                logger.debug("X-Request-ID header value: '{}'", requestId);
+            }
+            
             logger.info("REST Request - START: {} {} | Handler: {}.{}() | RequestID: {} | User: {}",
                     request.getMethod(),
                     request.getRequestURI(),
@@ -78,7 +88,7 @@ public class LoggingAspect {
         }
     }
 
-    @Around("execution(* dev.sro.workload_service.presentation.controller.v1.*.*(..))")
+    @Around("execution(* dev.sro.workload_service.controller.v1.*.*(..))")
     public Object logAroundControllerMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object result = null;
@@ -92,7 +102,7 @@ public class LoggingAspect {
         }
     }
 
-    @AfterThrowing(pointcut = "execution(* dev.sro.workload_service.presentation.controller.v1.*.*(..))", throwing = "exception")
+    @AfterThrowing(pointcut = "execution(* dev.sro.workload_service.controller.v1.*.*(..))", throwing = "exception")
     public void logAfterControllerException(JoinPoint joinPoint, Exception exception) {
         try {
             HttpServletRequest request = getCurrentHttpRequest();
@@ -116,7 +126,7 @@ public class LoggingAspect {
 
     // =================== APPLICATION SERVICE LAYER ===================
 
-    @Before("execution(* dev.sro.workload_service.application.service.*.*(..))")
+    @Before("execution(* dev.sro.workload_service.service.*.*(..))")
     public void logBeforeApplicationServiceMethod(JoinPoint joinPoint) {
         logger.info("Application Service - START: {}.{}() | RequestID: {}",
                 joinPoint.getSignature().getDeclaringType().getSimpleName(),
@@ -128,7 +138,7 @@ public class LoggingAspect {
         }
     }
 
-    @Around("execution(* dev.sro.workload_service.application.service.*.*(..))")
+    @Around("execution(* dev.sro.workload_service.service.*.*(..))")
     public Object logAroundApplicationServiceMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object result = null;
@@ -167,7 +177,7 @@ public class LoggingAspect {
 
     // =================== DOMAIN REPOSITORY LAYER ===================
 
-    @Before("execution(* dev.sro.workload_service.domain.repository.*.*(..))")
+    @Before("execution(* dev.sro.workload_service.repository.*.*(..))")
     public void logBeforeDomainRepositoryMethod(JoinPoint joinPoint) {
         logger.debug("Domain Repository - START: {}.{}() | RequestID: {}",
                 joinPoint.getSignature().getDeclaringType().getSimpleName(),
@@ -175,7 +185,7 @@ public class LoggingAspect {
                 MDC.get(REQUEST_ID_KEY));
     }
 
-    @Around("execution(* dev.sro.workload_service.domain.repository.*.*(..))")
+    @Around("execution(* dev.sro.workload_service.repository.*.*(..))")
     public Object logAroundDomainRepositoryMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object result = null;
@@ -210,7 +220,7 @@ public class LoggingAspect {
 
     // =================== INFRASTRUCTURE REPOSITORY LAYER ===================
 
-    @Before("execution(* dev.sro.workload_service.infrastructure.repository.*.*(..))")
+    @Before("execution(* dev.sro.workload_service.repository.*.*(..))")
     public void logBeforeInfrastructureRepositoryMethod(JoinPoint joinPoint) {
         logger.debug("Infrastructure Repository - START: {}.{}() | RequestID: {}",
                 joinPoint.getSignature().getDeclaringType().getSimpleName(),
@@ -218,7 +228,7 @@ public class LoggingAspect {
                 MDC.get(REQUEST_ID_KEY));
     }
 
-    @Around("execution(* dev.sro.workload_service.infrastructure.repository.*.*(..))")
+    @Around("execution(* dev.sro.workload_service.repository.*.*(..))")
     public Object logAroundInfrastructureRepositoryMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
         Object result = null;
@@ -253,7 +263,7 @@ public class LoggingAspect {
 
     // =================== MAPPER LAYER ===================
 
-    @Around("execution(* dev.sro.workload_service.application.mapper.*.*(..))")
+    @Around("execution(* dev.sro.workload_service.mapper.*.*(..))")
     public Object logAroundMapperMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         if (logger.isTraceEnabled()) {
             long startTime = System.currentTimeMillis();
