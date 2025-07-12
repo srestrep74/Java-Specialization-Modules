@@ -68,10 +68,14 @@ security:
 feign:
   client:
     config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 15000
+        loggerLevel: basic
       workload-service:
         connectTimeout: 5000
-        readTimeout: 10000
-        loggerLevel: basic
+        readTimeout: 15000
+        loggerLevel: full
   circuitbreaker:
     enabled: true
     group:
@@ -90,8 +94,12 @@ resilience4j:
         waitDurationInOpenState: 10s
         failureRateThreshold: 50
         slowCallRateThreshold: 80
-        slowCallDurationThreshold: 3s
+        slowCallDurationThreshold: 5s    # Increased from 3s to 5s
         eventConsumerBufferSize: 10
+  timelimiter:
+    instances:
+      workload-service:
+        timeoutDuration: 15s    # This should match or exceed Feign readTimeout
 
 logging:
   pattern:
