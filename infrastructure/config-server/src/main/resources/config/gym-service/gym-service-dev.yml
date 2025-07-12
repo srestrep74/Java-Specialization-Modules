@@ -57,3 +57,7 @@ jwt:
   refresh:
     prefix: "user:refresh_tokens:"
     expiry: 7
+
+internal:
+  service:
+    token: "edhskjhdsjdhsjkdsjkdshjkd"

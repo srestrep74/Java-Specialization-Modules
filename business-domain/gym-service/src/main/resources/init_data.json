@@ -81,6 +81,13 @@
       "active": true,
       "trainingTypeId": 5,
       "role": "TRAINER"
+    },
+    {
+      "firstName": "client",
+      "lastName": "client",
+      "active": true,
+      "trainingTypeId": 1,
+      "role": "ADMIN"
     }
   ],
   "trainingTypes": [
