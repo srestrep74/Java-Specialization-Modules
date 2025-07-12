@@ -86,3 +86,41 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+
+# OpenTelemetry Configuration for SigNoz
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling for development
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        headers:
+          signoz-service-name: gym-service
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+      headers:
+        signoz-service-name: gym-service
+
+# OpenTelemetry Resource Attributes
+otel:
+  resource:
+    attributes:
+      service.name: gym-service
+      service.namespace: fitness-app
+      deployment.environment: ${spring.profiles.active:default}

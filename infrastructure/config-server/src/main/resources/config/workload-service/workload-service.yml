@@ -87,3 +87,41 @@ logging:
     
     # Root level
     root: INFO
+
+# OpenTelemetry Configuration for SigNoz
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: 1.0  # 100% sampling for development
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:4318/v1/metrics
+        headers:
+          signoz-service-name: workload-service
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+      headers:
+        signoz-service-name: workload-service
+
+# OpenTelemetry Resource Attributes
+otel:
+  resource:
+    attributes:
+      service.name: workload-service
+      service.namespace: fitness-app
+      deployment.environment: ${spring.profiles.active:default}

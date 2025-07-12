@@ -1,0 +1,126 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  
+  # Prometheus receiver for scraping metrics
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'gym-service'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['host.docker.internal:8081']
+          metric_relabel_configs:
+            - source_labels: [__name__]
+              regex: 'jvm_.*|process_.*|logback_.*|system_.*|http_server_requests_.*'
+              action: keep
+        
+        - job_name: 'workload-service'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['host.docker.internal:8082']
+          metric_relabel_configs:
+            - source_labels: [__name__]
+              regex: 'jvm_.*|process_.*|logback_.*|system_.*|http_server_requests_.*'
+              action: keep
+        
+        - job_name: 'gateway-server'
+          scrape_interval: 30s
+          static_configs:
+            - targets: ['host.docker.internal:8080']
+          metric_relabel_configs:
+            - source_labels: [__name__]
+              regex: 'jvm_.*|process_.*|logback_.*|system_.*|http_server_requests_.*'
+              action: keep
+
+  # Jaeger receiver for backward compatibility
+  jaeger:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:14250
+      thrift_http:
+        endpoint: 0.0.0.0:14268
+
+  # Zipkin receiver for backward compatibility
+  zipkin:
+    endpoint: 0.0.0.0:9411
+
+  # Syslog receiver for logs from logspout
+  syslog:
+    tcp:
+      listen_address: "0.0.0.0:2255"
+    protocol: rfc3164
+
+processors:
+  # Add attributes to all telemetry
+  resource:
+    attributes:
+      - key: signoz.environment
+        value: development
+        action: insert
+  
+  # Batch processor to optimize performance
+  batch:
+    send_batch_size: 10000
+    timeout: 10s
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1000
+    spike_limit_mib: 200
+
+  # Span processor for traces
+  span:
+    name:
+      from_attributes: ["http.method", "http.target"]
+      separator: " "
+
+exporters:
+  # Export to ClickHouse
+  clickhousetraces:
+    datasource: tcp://clickhouse:9000/?database=signoz
+    docker_multi_node_cluster: false
+    low_cardinal_exception_grouping: false
+
+  clickhousemetricswrite:
+    endpoint: tcp://clickhouse:9000/?database=signoz
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  clickhouselogsexporter:
+    dsn: tcp://clickhouse:9000/?database=signoz
+    docker_multi_node_cluster: false
+    timeout: 10s
+
+  # Prometheus exporter for self-monitoring
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp, jaeger, zipkin]
+      processors: [memory_limiter, resource, batch, span]
+      exporters: [clickhousetraces]
+    
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resource, batch]
+      exporters: [clickhousemetricswrite]
+    
+    logs:
+      receivers: [otlp, syslog]
+      processors: [memory_limiter, resource, batch]
+      exporters: [clickhouselogsexporter] 
