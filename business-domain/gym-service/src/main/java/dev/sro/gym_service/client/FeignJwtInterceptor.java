@@ -1,4 +1,4 @@
-package dev.sro.gym_service.config;
+package dev.sro.gym_service.client;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
