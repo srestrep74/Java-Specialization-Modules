@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # INFRASTRUCTURE SERVICES
+  # ==========================================
+  
+  # Config Server - Debe arrancar primero
+  config-server:
+    build:
+      context: ./infrastructure/config-server
+      dockerfile: Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=git
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Eureka Server - Necesita Config Server
+  eureka-server:
+    build:
+      context: ./infrastructure/eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      config-server:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # API Gateway - Necesita Config Server y Eureka Server
+  gateway-server:
+    build:
+      context: ./infrastructure/gateway-server
+      dockerfile: Dockerfile
+    container_name: gateway-server
+    ports:
+      - "8083:8083"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # ==========================================
+  # BUSINESS SERVICES
+  # ==========================================
+
+  # Gym Service - Servicio principal de gimnasio
+  gym-service:
+    build:
+      context: ./business-domain/gym-service
+      dockerfile: Dockerfile
+    container_name: gym-service
+    ports:
+      - "8081:8081"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      # Database configuration
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/jpa_epam
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      # Redis configuration
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+      # Feign client configuration
+      - FEIGN_CLIENT_CONFIG_WORKLOAD-SERVICE_URL=http://workload-service:8082
+      - JAVA_OPTS=-Xmx1g -Xms512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      gateway-server:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  # Workload Service - Servicio de carga de trabajo
+  workload-service:
+    build:
+      context: ./business-domain/workload-service
+      dockerfile: Dockerfile
+    container_name: workload-service
+    ports:
+      - "8082:8082"
+    environment:
+      - CONFIG_SERVER_URL=http://config-server:8888
+      - SPRING_PROFILES_ACTIVE=dev
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      # Database configuration
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/workload_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=workload_user
+      - SPRING_DATASOURCE_PASSWORD=workload_pass
+      - JAVA_OPTS=-Xmx1g -Xms512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+    depends_on:
+      config-server:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      gateway-server:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+# ==========================================
+# NETWORKS
+# ==========================================
+networks:
+  microservices-network:
+    external: true
+    name: springcoretask1_microservices-network  # Usa la red externa creada por docker-compose-infrastructure.yml 

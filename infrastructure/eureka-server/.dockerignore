@@ -1,0 +1,55 @@
+# Archivos y directorios de Maven
+target/
+!target/*.jar
+.mvn/wrapper/maven-wrapper.jar
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de Git
+.git/
+.gitignore
+.gitattributes
+
+# Archivos de logs
+*.log
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Archivos de test
+**/test-results/
+
+# Archivos de Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Archivos de documentación
+README.md
+*.md
+
+# Archivos de configuración local
+.env
+.env.local
+.env.*.local
+
+# Archivos de backup
+*.bak
+*.backup
+
+# Archivos de cache
+.cache/
+node_modules/ 

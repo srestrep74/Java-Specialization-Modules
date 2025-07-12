@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # TRACING & MONITORING
+  # ==========================================
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    environment:
+      - STORAGE_TYPE=mem
+    networks:
+      - microservices-network
+
+  # ==========================================
+  # GYM-SERVICE INFRASTRUCTURE
+  # ==========================================
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: jpa_epam
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - ./business-domain/gym-service/pgadmin-servers.json:/pgadmin4/servers.json
+    depends_on:
+      - postgres
+    networks:
+      - microservices-network
+      
+  redis:
+    image: redis:latest
+    container_name: redis-jwt
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - microservices-network
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    container_name: redisinsight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight_data:/db
+    depends_on:
+      - redis
+    networks:
+      - microservices-network
+    restart: always
+
+  # ==========================================
+  # WORKLOAD-SERVICE INFRASTRUCTURE
+  # ==========================================
+  mysql:
+    image: mysql:8.0
+    container_name: workload-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: workload_db
+      MYSQL_USER: workload_user
+      MYSQL_PASSWORD: workload_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+    networks:
+      - microservices-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: workload-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+      PMA_ARBITRARY: 1
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - microservices-network
+
+# ==========================================
+# VOLUMES
+# ==========================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  redisinsight_data:
+    driver: local
+  mysql_data:
+    driver: local
+
+# ==========================================
+# NETWORKS
+# ==========================================
+networks:
+  microservices-network:
+    driver: bridge 
