@@ -10,7 +10,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-@Component
 @Slf4j
 public class FeignJwtInterceptor implements RequestInterceptor {
 
