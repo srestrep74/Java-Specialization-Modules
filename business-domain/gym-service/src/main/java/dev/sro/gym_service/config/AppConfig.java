@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 
 @Configuration
-@EnableFeignClients
+@EnableFeignClients(basePackages = "dev.sro.gym_service.client")
 @EnableScheduling
 public class AppConfig {
 

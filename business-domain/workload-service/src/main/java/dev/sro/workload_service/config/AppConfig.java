@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
 @EnableDiscoveryClient
-@EnableJpaRepositories
+@EnableJpaRepositories(basePackages = "dev.sro.workload_service.repository")
 public class AppConfig {
 
 }

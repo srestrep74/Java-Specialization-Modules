@@ -2,13 +2,12 @@ package dev.sro.gym_service.client.interceptor;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import org.springframework.beans.factory.annotation.Value;
 
 public class ServiceTokenInterceptor implements RequestInterceptor {
 
     private final String serviceToken;
 
-    public ServiceTokenInterceptor(@Value("${internal.service.token}") String serviceToken) {
+    public ServiceTokenInterceptor(String serviceToken) {
         this.serviceToken = serviceToken;
     }
 

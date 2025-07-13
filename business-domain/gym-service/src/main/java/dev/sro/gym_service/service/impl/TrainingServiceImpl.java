@@ -1,6 +1,7 @@
 package dev.sro.gym_service.service.impl;
 
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
+import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.TraineeTrainingFilter;
 import dev.sro.gym_service.dtos.v1.request.training.TraineeTrainingResponse;
 import dev.sro.gym_service.dtos.v1.request.training.TrainerTrainingFilter;
@@ -197,6 +198,35 @@ public class TrainingServiceImpl implements TrainingService {
             throw new DatabaseOperationException("Error deleting Training by id", e);
         }
     }
+
+    @Override
+    @Transactional
+    public void deleteTraining(DeleteTrainingRequest deleteTrainingRequest) {
+        if (deleteTrainingRequest == null) {
+            throw new IllegalArgumentException("DeleteTrainingRequest cannot be null");
+        }
+
+        try {
+            Trainee trainee = traineeRepository.findByUsername(deleteTrainingRequest.traineeUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainee not found with username: " + deleteTrainingRequest.traineeUsername()));
+            Trainer trainer = trainerRepository.findByUsername(deleteTrainingRequest.trainerUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainer not found with username: " + deleteTrainingRequest.trainerUsername()));
+
+            Training training = trainingRepository.findByTraineeAndTrainerAndTrainingDate(trainee, trainer, deleteTrainingRequest.trainingDate())
+                    .orElseThrow(() -> new ResourceNotFoundException("Training not found"));
+
+            trainingRepository.delete(training);
+
+            workloadNotificationService.notifyTrainingDeleted(training);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error deleting Training", e);
+        }
+    }
+
 
     @Override
     @Transactional(readOnly = true)

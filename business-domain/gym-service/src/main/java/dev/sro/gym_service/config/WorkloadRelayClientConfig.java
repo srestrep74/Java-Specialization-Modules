@@ -2,12 +2,13 @@ package dev.sro.gym_service.config;
 
 import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import dev.sro.gym_service.client.interceptor.ServiceTokenInterceptor;
 
 import org.springframework.beans.factory.annotation.Value;
 
-
+@Configuration
 public class WorkloadRelayClientConfig {
 
     @Bean

@@ -31,7 +31,7 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     }
     
     @Override
-    @GetMapping("trainers/{username}/monthly-summary")
+    @GetMapping("/trainers/{username}/monthly-summary")
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummary(
         @PathVariable String username
@@ -41,7 +41,7 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     }
     
     @Override
-    @GetMapping("trainers/{username}/monthly-summary/{year}")
+    @GetMapping("/trainers/{username}/monthly-summary/{year}")
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummaryByYear(
         @PathVariable String username,
@@ -52,7 +52,7 @@ public class TrainerWorkloadController implements TrainerWorkloadApi {
     }
     
     @Override
-    @GetMapping("trainers/{username}/monthly-summary/{year}/{month}")
+    @GetMapping("/trainers/{username}/monthly-summary/{year}/{month}")
     @PreAuthorize("hasRole('TRAINER') or hasRole('ADMIN')")
     public ResponseEntity<ApiStandardResponse<TrainerMonthlySummaryResponse>> getTrainerMonthlySummaryByMonth(
         @PathVariable String username,
