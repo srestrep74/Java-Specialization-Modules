@@ -1,8 +1,11 @@
 package dev.sro.gym_service.client.interceptor;
 
+import org.springframework.context.annotation.Profile;
+
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 
+@Profile("!test")
 public class ServiceTokenInterceptor implements RequestInterceptor {
 
     private final String serviceToken;
