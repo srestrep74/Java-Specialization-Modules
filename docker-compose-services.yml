@@ -5,7 +5,7 @@ services:
   # INFRASTRUCTURE SERVICES
   # ==========================================
   
-  # Config Server - Debe arrancar primero
+  # Config Server 
   config-server:
     build:
       context: ./infrastructure/config-server
@@ -26,7 +26,7 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # Eureka Server - Necesita Config Server
+  # Eureka Server 
   eureka-server:
     build:
       context: ./infrastructure/eureka-server
@@ -51,7 +51,7 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # API Gateway - Necesita Config Server y Eureka Server
+  # API Gateway 
   gateway-server:
     build:
       context: ./infrastructure/gateway-server
@@ -83,7 +83,7 @@ services:
   # BUSINESS SERVICES
   # ==========================================
 
-  # Gym Service - Servicio principal de gimnasio
+  # Gym Service 
   gym-service:
     build:
       context: ./business-domain/gym-service
@@ -123,7 +123,7 @@ services:
       - microservices-network
     restart: unless-stopped
 
-  # Workload Service - Servicio de carga de trabajo
+  # Workload Service 
   workload-service:
     build:
       context: ./business-domain/workload-service
@@ -164,4 +164,4 @@ services:
 networks:
   microservices-network:
     external: true
-    name: springcoretask1_microservices-network  # Usa la red externa creada por docker-compose-infrastructure.yml 
+    name: springcoretask1_microservices-network  
