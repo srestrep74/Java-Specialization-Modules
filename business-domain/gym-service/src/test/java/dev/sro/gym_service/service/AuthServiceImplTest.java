@@ -43,22 +43,22 @@ class AuthServiceImplTest {
 
     @Mock
     private TrainerRepository trainerRepository;
-    
+
     @Mock
     private JwtUtil jwtUtil;
-    
+
     @Mock
     private CustomUserDetailsService userDetailsService;
-    
+
     @Mock
     private PasswordEncoder passwordEncoder;
-    
+
     @Mock
     private LoginAttemptService loginAttemptService;
-    
+
     @Mock
     private TokenBlacklist tokenBlacklist;
-    
+
     @Mock
     private TokenStorageService tokenStorageService;
 
@@ -87,10 +87,10 @@ class AuthServiceImplTest {
         trainer.setPassword("encodedPassword1");
         trainer.setActive(true);
         trainer.setRole(RoleType.TRAINER);
-        
+
         traineeUserDetails = new CustomUserDetails(trainee);
         trainerUserDetails = new CustomUserDetails(trainer);
-        
+
         accessToken = "access.token.jwt";
         refreshToken = "refresh.token.jwt";
     }
@@ -99,7 +99,7 @@ class AuthServiceImplTest {
     void authenticate_ShouldReturnLoginResponseForTrainee_WhenCredentialsAreValid() {
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainee1", "password1"))
-            .thenReturn(traineeUserDetails);
+                .thenReturn(traineeUserDetails);
         when(jwtUtil.generateToken(traineeUserDetails)).thenReturn(accessToken);
         when(jwtUtil.generateRefreshToken(traineeUserDetails)).thenReturn(refreshToken);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("token123");
@@ -114,7 +114,7 @@ class AuthServiceImplTest {
         assertTrue(authService.isCurrentUserTrainee());
         assertFalse(authService.isCurrentUserTrainer());
         assertEquals(trainee, authService.getCurrentUser());
-        
+
         verify(tokenStorageService).storeRefreshToken("trainee1", "token123");
         verify(loginAttemptService).resetAttempts("trainee1");
     }
@@ -123,7 +123,7 @@ class AuthServiceImplTest {
     void authenticate_ShouldReturnLoginResponseForTrainer_WhenCredentialsAreValid() {
         when(loginAttemptService.isBlocked("trainer1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainer1", "password1"))
-            .thenReturn(trainerUserDetails);
+                .thenReturn(trainerUserDetails);
         when(jwtUtil.generateToken(trainerUserDetails)).thenReturn(accessToken);
         when(jwtUtil.generateRefreshToken(trainerUserDetails)).thenReturn(refreshToken);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("token123");
@@ -138,7 +138,7 @@ class AuthServiceImplTest {
         assertFalse(authService.isCurrentUserTrainee());
         assertTrue(authService.isCurrentUserTrainer());
         assertEquals(trainer, authService.getCurrentUser());
-        
+
         verify(tokenStorageService).storeRefreshToken("trainer1", "token123");
         verify(loginAttemptService).resetAttempts("trainer1");
     }
@@ -155,9 +155,9 @@ class AuthServiceImplTest {
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(true);
         when(loginAttemptService.getBlockDuration()).thenReturn(5);
 
-        AuthenticationFailedException exception = assertThrows(AuthenticationFailedException.class, 
-            () -> authService.authenticate("trainee1", "password1"));
-            
+        AuthenticationFailedException exception = assertThrows(AuthenticationFailedException.class,
+                () -> authService.authenticate("trainee1", "password1"));
+
         assertTrue(exception.getMessage().contains("Account is locked"));
     }
 
@@ -165,15 +165,15 @@ class AuthServiceImplTest {
     void authenticate_ShouldThrowAuthenticationFailedException_WhenUserNotFound() {
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainee1", "password1"))
-            .thenThrow(new UsernameNotFoundException("User not found"));
+                .thenThrow(new UsernameNotFoundException("User not found"));
         when(loginAttemptService.getRemainingAttempts("trainee1")).thenReturn(2);
 
-        AuthenticationFailedException exception = assertThrows(AuthenticationFailedException.class, 
-            () -> authService.authenticate("trainee1", "password1"));
-            
+        AuthenticationFailedException exception = assertThrows(AuthenticationFailedException.class,
+                () -> authService.authenticate("trainee1", "password1"));
+
         assertTrue(exception.getMessage().contains("Invalid username or password"));
         assertTrue(exception.getMessage().contains("2 attempts remaining"));
-        
+
         verify(loginAttemptService).registerFailedAttempt("trainee1");
     }
 
@@ -181,15 +181,15 @@ class AuthServiceImplTest {
     void authenticate_ShouldThrowAuthenticationFailedException_WhenNoAttemptsRemaining() {
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainee1", "password1"))
-            .thenThrow(new UsernameNotFoundException("User not found"));
+                .thenThrow(new UsernameNotFoundException("User not found"));
         when(loginAttemptService.getRemainingAttempts("trainee1")).thenReturn(0);
         when(loginAttemptService.getBlockDuration()).thenReturn(5);
 
-        AuthenticationFailedException exception = assertThrows(AuthenticationFailedException.class, 
-            () -> authService.authenticate("trainee1", "password1"));
-            
+        AuthenticationFailedException exception = assertThrows(AuthenticationFailedException.class,
+                () -> authService.authenticate("trainee1", "password1"));
+
         assertTrue(exception.getMessage().contains("Account locked for 5 minutes"));
-        
+
         verify(loginAttemptService).registerFailedAttempt("trainee1");
     }
 
@@ -197,7 +197,7 @@ class AuthServiceImplTest {
     void authenticate_ShouldThrowDatabaseOperationException_WhenErrorOccurs() {
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainee1", "password1"))
-            .thenThrow(new RuntimeException("Database error"));
+                .thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class, () -> authService.authenticate("trainee1", "password1"));
     }
@@ -207,7 +207,7 @@ class AuthServiceImplTest {
         String oldRefreshToken = "old.refresh.token";
         String newAccessToken = "new.access.token";
         String newRefreshToken = "new.refresh.token";
-        
+
         when(jwtUtil.isRefreshToken(oldRefreshToken)).thenReturn(true);
         when(jwtUtil.extractTokenId(oldRefreshToken)).thenReturn("oldTokenId");
         when(tokenBlacklist.isBlacklisted("oldTokenId")).thenReturn(false);
@@ -217,45 +217,45 @@ class AuthServiceImplTest {
         when(jwtUtil.generateToken(traineeUserDetails)).thenReturn(newAccessToken);
         when(jwtUtil.generateRefreshToken(traineeUserDetails)).thenReturn(newRefreshToken);
         when(jwtUtil.extractTokenId(newRefreshToken)).thenReturn("newTokenId");
-        
+
         LoginResponse response = authService.refreshToken(oldRefreshToken);
-        
+
         assertTrue(response.success());
         assertEquals("trainee1", response.username());
         assertEquals(newAccessToken, response.token());
         assertEquals(newRefreshToken, response.refreshToken());
-        
+
         verify(tokenStorageService).storeRefreshToken("trainee1", "newTokenId");
     }
-    
+
     @Test
     void refreshToken_ShouldThrowIllegalArgumentException_WhenRefreshTokenIsNull() {
         assertThrows(IllegalArgumentException.class, () -> authService.refreshToken(null));
     }
-    
+
     @Test
     void refreshToken_ShouldThrowAuthenticationFailedException_WhenTokenIsNotRefreshToken() {
         when(jwtUtil.isRefreshToken("not.refresh.token")).thenReturn(false);
-        
+
         assertThrows(AuthenticationFailedException.class, () -> authService.refreshToken("not.refresh.token"));
     }
-    
+
     @Test
     void refreshToken_ShouldThrowAuthenticationFailedException_WhenTokenIsBlacklisted() {
         when(jwtUtil.isRefreshToken(refreshToken)).thenReturn(true);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("tokenId");
         when(tokenBlacklist.isBlacklisted("tokenId")).thenReturn(true);
-        
+
         assertThrows(AuthenticationFailedException.class, () -> authService.refreshToken(refreshToken));
     }
-    
+
     @Test
     void refreshToken_ShouldThrowAuthenticationFailedException_WhenTokenIsExpired() {
         when(jwtUtil.isRefreshToken(refreshToken)).thenReturn(true);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("tokenId");
         when(tokenBlacklist.isBlacklisted("tokenId")).thenReturn(false);
         when(jwtUtil.isTokenExpired(refreshToken)).thenReturn(true);
-        
+
         assertThrows(AuthenticationFailedException.class, () -> authService.refreshToken(refreshToken));
     }
 
@@ -267,57 +267,53 @@ class AuthServiceImplTest {
         when(tokenBlacklist.isBlacklisted("tokenId")).thenReturn(false);
         when(jwtUtil.extractUsername("token")).thenReturn("trainee1");
         when(jwtUtil.isRefreshToken("token")).thenReturn(true);
-        
+
         authService.invalidateToken("token");
-        
+
         verify(tokenBlacklist).blacklistToken(eq("tokenId"), any(Instant.class));
         verify(tokenStorageService).removeRefreshToken("trainee1", "tokenId");
     }
-    
+
     @Test
     void invalidateToken_ShouldDoNothing_WhenTokenIsNull() {
         authService.invalidateToken(null);
-        
+
         verifyNoInteractions(tokenBlacklist);
         verifyNoInteractions(tokenStorageService);
     }
 
     @Test
     void changePassword_ShouldUpdatePasswordForTrainee_WhenCredentialsAreValid() {
-        // Setup authenticate method mock
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainee1", "password1"))
-            .thenReturn(traineeUserDetails);
+                .thenReturn(traineeUserDetails);
         when(jwtUtil.generateToken(traineeUserDetails)).thenReturn(accessToken);
         when(jwtUtil.generateRefreshToken(traineeUserDetails)).thenReturn(refreshToken);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("token123");
-        
-        // Setup for password matching and encoding
+
         when(passwordEncoder.matches("password1", "encodedPassword1")).thenReturn(true);
         when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
-        
+
         authService.changePassword("trainee1", "password1", "newpassword");
-        
+
         assertEquals("encodedNewPassword", trainee.getPassword());
         verify(traineeRepository).save(trainee);
     }
 
     @Test
     void changePassword_ShouldUpdatePasswordForTrainer_WhenCredentialsAreValid() {
-        // Setup authenticate method mock
         when(loginAttemptService.isBlocked("trainer1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainer1", "password1"))
-            .thenReturn(trainerUserDetails);
+                .thenReturn(trainerUserDetails);
         when(jwtUtil.generateToken(trainerUserDetails)).thenReturn(accessToken);
         when(jwtUtil.generateRefreshToken(trainerUserDetails)).thenReturn(refreshToken);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("token123");
-        
-        // Setup for password matching and encoding
+
         when(passwordEncoder.matches("password1", "encodedPassword1")).thenReturn(true);
         when(passwordEncoder.encode("newpassword")).thenReturn("encodedNewPassword");
-        
+
         authService.changePassword("trainer1", "password1", "newpassword");
-        
+
         assertEquals("encodedNewPassword", trainer.getPassword());
         verify(trainerRepository).save(trainer);
     }
@@ -332,35 +328,33 @@ class AuthServiceImplTest {
 
     @Test
     void changePassword_ShouldThrowAuthenticationFailedException_WhenCurrentPasswordIncorrect() {
-        // Setup authenticate method mock
         when(loginAttemptService.isBlocked("trainee1")).thenReturn(false);
         when(userDetailsService.loadUserByUsernameAndPassword("trainee1", "password1"))
-            .thenReturn(traineeUserDetails);
+                .thenReturn(traineeUserDetails);
         when(jwtUtil.generateToken(traineeUserDetails)).thenReturn(accessToken);
         when(jwtUtil.generateRefreshToken(traineeUserDetails)).thenReturn(refreshToken);
         when(jwtUtil.extractTokenId(refreshToken)).thenReturn("token123");
-        
+
         when(passwordEncoder.matches("password1", "encodedPassword1")).thenReturn(false);
-        
-        assertThrows(AuthenticationFailedException.class, 
-            () -> authService.changePassword("trainee1", "password1", "newpassword"));
+
+        assertThrows(AuthenticationFailedException.class,
+                () -> authService.changePassword("trainee1", "password1", "newpassword"));
     }
 
     @Test
     void logout_ShouldClearCurrentUserAndBlacklistTokens() {
-        // Setup for getting user refresh tokens
         authService.setCurrentUser(trainee);
         Set<String> refreshTokenIds = new HashSet<>();
         refreshTokenIds.add("token1");
         refreshTokenIds.add("token2");
-        
+
         when(tokenStorageService.getUserRefreshTokens("trainee1")).thenReturn(refreshTokenIds);
-        
+
         authService.logout();
-        
+
         assertNull(authService.getCurrentUser());
         assertFalse(authService.isAuthenticated());
-        
+
         verify(tokenBlacklist, times(2)).blacklistToken(anyString(), any(Instant.class));
         verify(tokenStorageService).clearUserRefreshTokens("trainee1");
     }
@@ -368,7 +362,7 @@ class AuthServiceImplTest {
     @Test
     void getCurrentUser_ShouldReturnAuthenticatedUser() {
         authService.setCurrentUser(trainee);
-        
+
         assertEquals(trainee, authService.getCurrentUser());
     }
 

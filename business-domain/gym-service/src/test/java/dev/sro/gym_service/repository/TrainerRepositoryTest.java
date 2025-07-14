@@ -39,7 +39,7 @@ class TrainerRepositoryTest {
         activeTrainer = createTrainer("John", "Doe", "johndoe", true);
         inactiveTrainer = createTrainer("Jane", "Smith", "janesmith", false);
         trainee = createTrainee("Mark", "Johnson", "markj");
-        
+
         associateTrainerWithTrainee(activeTrainer, trainee);
     }
 
@@ -96,9 +96,9 @@ class TrainerRepositoryTest {
         String newPassword = "newPassword123";
         trainerRepository.updatePassword(activeTrainer.getId(), newPassword);
         entityManager.clear();
-        
+
         assertThat(entityManager.find(Trainer.class, activeTrainer.getId()).getPassword())
-            .isEqualTo(newPassword);
+                .isEqualTo(newPassword);
     }
 
     @Test
@@ -117,15 +117,14 @@ class TrainerRepositoryTest {
     void findUnassignedTrainers_UsingSpecification() {
         Trainer unassignedTrainer = createTrainer("Unassigned", "Trainer", "unassigned", true);
         entityManager.flush();
-        
-        Specification<Trainer> spec = (root, query, cb) -> 
-            cb.notEqual(root.get("username"), "johndoe");
-        
+
+        Specification<Trainer> spec = (root, query, cb) -> cb.notEqual(root.get("username"), "johndoe");
+
         var trainers = trainerRepository.findAll(spec);
-        
+
         assertThat(trainers)
-            .hasSize(2)
-            .contains(inactiveTrainer, unassignedTrainer)
-            .doesNotContain(activeTrainer);
+                .hasSize(2)
+                .contains(inactiveTrainer, unassignedTrainer)
+                .doesNotContain(activeTrainer);
     }
 }

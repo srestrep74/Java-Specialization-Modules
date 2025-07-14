@@ -16,7 +16,6 @@ import dev.sro.gym_service.util.response.ApiStandardResponse;
 import dev.sro.gym_service.service.impl.auth.LoginAttemptService;
 import dev.sro.gym_service.service.impl.InMemoryTokenStorageServiceImpl;
 
-
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,219 +33,212 @@ import static org.mockito.Mockito.mock;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TrainingControllerWebTestClientTest {
 
-    @TestConfiguration
-    static class ControllerTestConfig {
-        @Bean
-        @Primary
-        public WorkloadNotificationService workloadNotificationService() {
-            return mock(WorkloadNotificationService.class);
+        @TestConfiguration
+        static class ControllerTestConfig {
+                @Bean
+                @Primary
+                public WorkloadNotificationService workloadNotificationService() {
+                        return mock(WorkloadNotificationService.class);
+                }
+
+                @Bean
+                @Primary
+                public InMemoryTokenStorageServiceImpl tokenStorageService() {
+                        return mock(InMemoryTokenStorageServiceImpl.class);
+                }
+
+                @Bean
+                @Primary
+                public LoginAttemptService loginAttemptService() {
+                        return mock(LoginAttemptService.class);
+                }
         }
 
-        @Bean
-        @Primary
-        public InMemoryTokenStorageServiceImpl tokenStorageService() {
-            return mock(InMemoryTokenStorageServiceImpl.class);
+        private static final String BASE_URL = "/api/v1/trainings";
+        private static RegisterTraineeResponse trainee;
+        private static String traineeUsername;
+        private static String trainerUsername;
+        private static String accessToken;
+        private static LocalDate trainingDate;
+
+        @Autowired
+        private WebTestClient webTestClient;
+
+        @BeforeAll
+        static void setupAll(
+                        @Autowired TrainingTypeService trainingTypeService,
+                        @Autowired TraineeService traineeService,
+                        @Autowired TrainerService trainerService) {
+
+                TrainingTypeRequestDTO typeRequest = new TrainingTypeRequestDTO("Zumba");
+                trainingTypeService.save(typeRequest);
+
+                RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
+                                "Test", "Trainee", LocalDate.of(1990, 1, 1), "Test Address");
+                trainee = traineeService.save(traineeRequest);
+                traineeUsername = trainee.username();
+
+                RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
+                                "Test", "Trainer", 1L);
+                trainerUsername = trainerService.save(trainerRequest).username();
+
+                trainingDate = LocalDate.now();
         }
 
-        @Bean
-        @Primary
-        public LoginAttemptService loginAttemptService() {
-            return mock(LoginAttemptService.class);
+        @Test
+        @Order(1)
+        void createTraining_ShouldReturnSuccess() {
+                CreateTrainingRequest request = new CreateTrainingRequest(
+                                traineeUsername,
+                                trainerUsername,
+                                "Zumba",
+                                trainingDate,
+                                60);
+
+                LoginResponse loginResponse = authenticate(trainee.username(), trainee.plainPassword());
+                accessToken = loginResponse.token();
+
+                webTestClient.post()
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(request)
+                                .exchange()
+                                .expectStatus().isOk();
         }
-    }
 
-    private static final String BASE_URL = "/api/v1/trainings";
-    private static RegisterTraineeResponse trainee;
-    private static String traineeUsername;
-    private static String trainerUsername;
-    private static String accessToken;
-    private static LocalDate trainingDate;
+        @Test
+        @Order(2)
+        void createTraining_WithInvalidData_ShouldReturnBadRequest() {
+                CreateTrainingRequest invalidRequest = new CreateTrainingRequest(
+                                "", "", "", null, 0);
 
-    @Autowired
-    private WebTestClient webTestClient;
+                webTestClient.post()
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(invalidRequest)
+                                .exchange()
+                                .expectStatus().isBadRequest();
+        }
 
+        @Test
+        @Order(3)
+        void createTraining_WithNonExistentUsers_ShouldReturnNotFound() {
+                CreateTrainingRequest request = new CreateTrainingRequest(
+                                "nonexistent.trainee",
+                                "nonexistent.trainer",
+                                "Invalid Training",
+                                LocalDate.now(),
+                                30);
 
-    @BeforeAll
-    static void setupAll(
-            @Autowired TrainingTypeService trainingTypeService,
-            @Autowired TraineeService traineeService,
-            @Autowired TrainerService trainerService) {
-        
-        TrainingTypeRequestDTO typeRequest = new TrainingTypeRequestDTO("Zumba");
-        trainingTypeService.save(typeRequest);
+                webTestClient.post()
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(request)
+                                .exchange()
+                                .expectStatus().isNotFound();
+        }
 
-        RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
-                "Test", "Trainee", LocalDate.of(1990, 1, 1), "Test Address");
-        trainee = traineeService.save(traineeRequest);
-        traineeUsername = trainee.username();
+        @Test
+        @Order(4)
+        void deleteTraining_ShouldReturnSuccess() {
+                DeleteTrainingRequest request = new DeleteTrainingRequest(
+                                traineeUsername,
+                                trainerUsername,
+                                trainingDate);
 
-        RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
-                "Test", "Trainer", 1L);
-        trainerUsername = trainerService.save(trainerRequest).username();
-        
-        trainingDate = LocalDate.now();
-    }
+                webTestClient.method(org.springframework.http.HttpMethod.DELETE)
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(request)
+                                .exchange()
+                                .expectStatus().isOk();
+        }
 
-    @Test
-    @Order(1)
-    void createTraining_ShouldReturnSuccess() {
-        CreateTrainingRequest request = new CreateTrainingRequest(
-                traineeUsername,
-                trainerUsername,
-                "Zumba",
-                trainingDate,
-                60
-        );
+        @Test
+        @Order(5)
+        void deleteTraining_WithInvalidData_ShouldReturnBadRequest() {
+                DeleteTrainingRequest invalidRequest = new DeleteTrainingRequest(
+                                "", "", null);
 
-        LoginResponse loginResponse = authenticate(trainee.username(), trainee.plainPassword());
-        accessToken = loginResponse.token();
+                webTestClient.method(org.springframework.http.HttpMethod.DELETE)
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(invalidRequest)
+                                .exchange()
+                                .expectStatus().isBadRequest();
+        }
 
-        webTestClient.post()
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isOk();
-    }
+        @Test
+        @Order(6)
+        void deleteTraining_WithNonExistentUsers_ShouldReturnNotFound() {
+                DeleteTrainingRequest request = new DeleteTrainingRequest(
+                                "nonexistent.trainee",
+                                "nonexistent.trainer",
+                                LocalDate.now());
 
-    @Test
-    @Order(2)
-    void createTraining_WithInvalidData_ShouldReturnBadRequest() {
-        CreateTrainingRequest invalidRequest = new CreateTrainingRequest(
-                "", "", "", null, 0);
+                webTestClient.method(org.springframework.http.HttpMethod.DELETE)
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(request)
+                                .exchange()
+                                .expectStatus().isNotFound();
+        }
 
-        webTestClient.post()
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(invalidRequest)
-                .exchange()
-                .expectStatus().isBadRequest();
-    }
+        @Test
+        @Order(7)
+        void deleteTraining_WithNonExistentTraining_ShouldReturnNotFound() {
+                DeleteTrainingRequest request = new DeleteTrainingRequest(
+                                traineeUsername,
+                                trainerUsername,
+                                LocalDate.now().plusDays(30));
 
-    @Test
-    @Order(3)
-    void createTraining_WithNonExistentUsers_ShouldReturnNotFound() {
-        CreateTrainingRequest request = new CreateTrainingRequest(
-                "nonexistent.trainee",
-                "nonexistent.trainer",
-                "Invalid Training",
-                LocalDate.now(),
-                30
-        );
+                webTestClient.method(org.springframework.http.HttpMethod.DELETE)
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .header("Authorization", "Bearer " + accessToken)
+                                .bodyValue(request)
+                                .exchange()
+                                .expectStatus().isNotFound();
+        }
 
-        webTestClient.post()
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isNotFound();
-    }
+        @Test
+        @Order(8)
+        void deleteTraining_WithoutAuthorization_ShouldReturnUnauthorized() {
+                DeleteTrainingRequest request = new DeleteTrainingRequest(
+                                traineeUsername,
+                                trainerUsername,
+                                trainingDate);
 
-    @Test
-    @Order(4)
-    void deleteTraining_ShouldReturnSuccess() {
-        DeleteTrainingRequest request = new DeleteTrainingRequest(
-                traineeUsername,
-                trainerUsername,
-                trainingDate
-        );
+                webTestClient.method(org.springframework.http.HttpMethod.DELETE)
+                                .uri(BASE_URL)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(request)
+                                .exchange()
+                                .expectStatus().isUnauthorized();
+        }
 
-        webTestClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isOk();
-    }
+        private LoginResponse authenticate(String username, String password) {
+                LoginRequest loginRequest = new LoginRequest(username, password);
 
-    @Test
-    @Order(5)
-    void deleteTraining_WithInvalidData_ShouldReturnBadRequest() {
-        DeleteTrainingRequest invalidRequest = new DeleteTrainingRequest(
-                "", "", null);
+                ParameterizedTypeReference<ApiStandardResponse<LoginResponse>> responseType = new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                };
 
-        webTestClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(invalidRequest)
-                .exchange()
-                .expectStatus().isBadRequest();
-    }
+                ApiStandardResponse<LoginResponse> response = webTestClient.post()
+                                .uri("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(loginRequest)
+                                .exchange()
+                                .expectStatus().isOk()
+                                .expectBody(responseType)
+                                .returnResult()
+                                .getResponseBody();
 
-    @Test
-    @Order(6)
-    void deleteTraining_WithNonExistentUsers_ShouldReturnNotFound() {
-        DeleteTrainingRequest request = new DeleteTrainingRequest(
-                "nonexistent.trainee",
-                "nonexistent.trainer",
-                LocalDate.now()
-        );
-
-        webTestClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isNotFound();
-    }
-
-    @Test
-    @Order(7)
-    void deleteTraining_WithNonExistentTraining_ShouldReturnNotFound() {
-        DeleteTrainingRequest request = new DeleteTrainingRequest(
-                traineeUsername,
-                trainerUsername,
-                LocalDate.now().plusDays(30) // Future date that doesn't exist
-        );
-
-        webTestClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + accessToken)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isNotFound();
-    }
-
-    @Test
-    @Order(8)
-    void deleteTraining_WithoutAuthorization_ShouldReturnUnauthorized() {
-        DeleteTrainingRequest request = new DeleteTrainingRequest(
-                traineeUsername,
-                trainerUsername,
-                trainingDate
-        );
-
-        webTestClient.method(org.springframework.http.HttpMethod.DELETE)
-                .uri(BASE_URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isUnauthorized();
-    }
-
-    private LoginResponse authenticate(String username, String password) {
-        LoginRequest loginRequest = new LoginRequest(username, password);
-        
-        ParameterizedTypeReference<ApiStandardResponse<LoginResponse>> responseType = 
-            new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {};
-            
-        ApiStandardResponse<LoginResponse> response = webTestClient.post()
-                .uri("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(loginRequest)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(responseType)
-                .returnResult()
-                .getResponseBody();
-                
-        return response != null ? response.data() : null;
-    }
+                return response != null ? response.data() : null;
+        }
 }

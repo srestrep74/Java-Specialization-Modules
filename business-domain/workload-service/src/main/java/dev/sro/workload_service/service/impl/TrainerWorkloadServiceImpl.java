@@ -71,7 +71,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             Trainer trainer = trainerRepository.findByUsername(trainerUsername)
                     .orElseThrow(() -> new TrainerNotFoundException(trainerUsername));
 
-            List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainerUsername(trainerUsername);
+            List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainer_Username(trainerUsername);
 
             return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
         } catch (TrainerNotFoundException e) {
@@ -97,7 +97,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             Trainer trainer = trainerRepository.findByUsername(trainerUsername)
                     .orElseThrow(() -> new TrainerNotFoundException(trainerUsername));
 
-            List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainerUsernameAndYear(trainerUsername,
+            List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainer_UsernameAndYear(trainerUsername,
                     year);
 
             return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
@@ -128,7 +128,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                     .orElseThrow(() -> new TrainerNotFoundException(trainerUsername));
 
             Optional<MonthlySummary> summaryOpt = monthlySummaryRepository
-                    .findByTrainerUsernameAndYearAndMonth(trainerUsername, year, month);
+                    .findByTrainer_UsernameAndYearAndMonth(trainerUsername, year, month);
 
             List<MonthlySummary> summaries = summaryOpt.map(List::of).orElse(List.of());
             return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
@@ -166,7 +166,7 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             Integer month = request.trainingDate().getMonthValue();
 
             MonthlySummary summary = monthlySummaryRepository
-                    .findByTrainerUsernameAndYearAndMonth(trainer.getUsername(), year, month)
+                    .findByTrainer_UsernameAndYearAndMonth(trainer.getUsername(), year, month)
                     .orElseGet(() -> {
                         MonthlySummary newSummary = MonthlySummary.builder()
                                 .trainer(trainer)

@@ -40,7 +40,7 @@ class TrainingTypeRepositoryTest {
         fitnessType = createTrainingType("Fitness");
         yogaType = createTrainingType("Yoga");
         cardioType = createTrainingType("Cardio");
-        
+
         trainer = createTrainer("John", "Doe", "johndoe", fitnessType);
         trainee = createTrainee("Jane", "Smith", "janesmith");
         createTraining(trainer, trainee, fitnessType);
@@ -112,7 +112,7 @@ class TrainingTypeRepositoryTest {
         newType.setTrainingTypeName("Pilates");
 
         TrainingType saved = trainingTypeRepository.save(newType);
-        
+
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getTrainingTypeName()).isEqualTo("Pilates");
     }
@@ -120,9 +120,9 @@ class TrainingTypeRepositoryTest {
     @Test
     void save_ShouldUpdateExistingTrainingType() {
         fitnessType.setTrainingTypeName("Advanced Fitness");
-        
+
         TrainingType updated = trainingTypeRepository.save(fitnessType);
-        
+
         assertThat(updated.getTrainingTypeName()).isEqualTo("Advanced Fitness");
         assertThat(updated.getId()).isEqualTo(fitnessType.getId());
     }
@@ -132,7 +132,7 @@ class TrainingTypeRepositoryTest {
         Long typeId = cardioType.getId();
         trainingTypeRepository.delete(cardioType);
         entityManager.flush();
-        
+
         Optional<TrainingType> found = trainingTypeRepository.findById(typeId);
         assertThat(found).isEmpty();
     }
@@ -142,58 +142,55 @@ class TrainingTypeRepositoryTest {
         Long typeId = yogaType.getId();
         trainingTypeRepository.deleteById(typeId);
         entityManager.flush();
-        
+
         Optional<TrainingType> found = trainingTypeRepository.findById(typeId);
         assertThat(found).isEmpty();
     }
 
     @Test
     void findByTrainingTypeName_UsingSpecification() {
-        Specification<TrainingType> spec = (root, query, cb) -> 
-            cb.equal(root.get("trainingTypeName"), "Fitness");
-        
+        Specification<TrainingType> spec = (root, query, cb) -> cb.equal(root.get("trainingTypeName"), "Fitness");
+
         List<TrainingType> trainingTypes = trainingTypeRepository.findAll(spec);
-        
+
         assertThat(trainingTypes)
-            .hasSize(1)
-            .contains(fitnessType);
+                .hasSize(1)
+                .contains(fitnessType);
     }
 
     @Test
     void findByTrainingTypeNameContaining_UsingSpecification() {
-        Specification<TrainingType> spec = (root, query, cb) -> 
-            cb.like(cb.lower(root.get("trainingTypeName")), "%fit%");
-        
+        Specification<TrainingType> spec = (root, query, cb) -> cb.like(cb.lower(root.get("trainingTypeName")),
+                "%fit%");
+
         List<TrainingType> trainingTypes = trainingTypeRepository.findAll(spec);
-        
+
         assertThat(trainingTypes)
-            .hasSize(1)
-            .contains(fitnessType);
+                .hasSize(1)
+                .contains(fitnessType);
     }
 
     @Test
     void findTrainingTypesWithTrainers_UsingSpecification() {
-        Specification<TrainingType> spec = (root, query, cb) -> 
-            cb.isNotEmpty(root.get("trainers"));
-        
+        Specification<TrainingType> spec = (root, query, cb) -> cb.isNotEmpty(root.get("trainers"));
+
         List<TrainingType> trainingTypes = trainingTypeRepository.findAll(spec);
-        
+
         assertThat(trainingTypes)
-            .hasSize(1)
-            .contains(fitnessType);
+                .hasSize(1)
+                .contains(fitnessType);
     }
 
     @Test
     void findTrainingTypesWithoutTrainers_UsingSpecification() {
-        Specification<TrainingType> spec = (root, query, cb) -> 
-            cb.isEmpty(root.get("trainers"));
-        
+        Specification<TrainingType> spec = (root, query, cb) -> cb.isEmpty(root.get("trainers"));
+
         List<TrainingType> trainingTypes = trainingTypeRepository.findAll(spec);
-        
+
         assertThat(trainingTypes)
-            .hasSize(2)
-            .contains(yogaType, cardioType)
-            .doesNotContain(fitnessType);
+                .hasSize(2)
+                .contains(yogaType, cardioType)
+                .doesNotContain(fitnessType);
     }
 
     @Test
@@ -213,4 +210,4 @@ class TrainingTypeRepositoryTest {
         boolean exists = trainingTypeRepository.existsById(999L);
         assertThat(exists).isFalse();
     }
-} 
+}

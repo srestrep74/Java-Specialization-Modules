@@ -11,13 +11,13 @@ import java.util.Optional;
 @Repository
 public interface MonthlySummaryRepository extends JpaRepository<MonthlySummary, Long> {
     
-    Optional<MonthlySummary> findByTrainerUsernameAndYearAndMonth(
+    Optional<MonthlySummary> findByTrainer_UsernameAndYearAndMonth(
         String trainerUsername, 
         Integer year, 
         Integer month
     );
     
-    List<MonthlySummary> findByTrainerUsername(String trainerUsername);
+    List<MonthlySummary> findByTrainer_Username(String trainerUsername);
     
-    List<MonthlySummary> findByTrainerUsernameAndYear(String trainerUsername, Integer year);
+    List<MonthlySummary> findByTrainer_UsernameAndYear(String trainerUsername, Integer year);
 } 

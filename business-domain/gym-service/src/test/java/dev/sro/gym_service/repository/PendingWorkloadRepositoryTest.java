@@ -33,15 +33,15 @@ class PendingWorkloadRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        addWorkload = createPendingWorkload("john.doe", "John", "Doe", true, 
-            LocalDate.of(2024, 1, 15), 60, ActionType.ADD);
-        deleteWorkload = createPendingWorkload("jane.smith", "Jane", "Smith", true, 
-            LocalDate.of(2024, 1, 16), 90, ActionType.DELETE);
-        anotherAddWorkload = createPendingWorkload("bob.wilson", "Bob", "Wilson", false, 
-            LocalDate.of(2024, 1, 17), 45, ActionType.ADD);
+        addWorkload = createPendingWorkload("john.doe", "John", "Doe", true,
+                LocalDate.of(2024, 1, 15), 60, ActionType.ADD);
+        deleteWorkload = createPendingWorkload("jane.smith", "Jane", "Smith", true,
+                LocalDate.of(2024, 1, 16), 90, ActionType.DELETE);
+        anotherAddWorkload = createPendingWorkload("bob.wilson", "Bob", "Wilson", false,
+                LocalDate.of(2024, 1, 17), 45, ActionType.ADD);
     }
 
-    private PendingWorkload createPendingWorkload(String username, String firstName, String lastName, 
+    private PendingWorkload createPendingWorkload(String username, String firstName, String lastName,
             boolean isActive, LocalDate trainingDate, int duration, ActionType actionType) {
         PendingWorkload workload = PendingWorkload.builder()
                 .trainerUsername(username)
@@ -89,7 +89,7 @@ class PendingWorkloadRepositoryTest {
                 .build();
 
         PendingWorkload saved = pendingWorkloadRepository.save(newWorkload);
-        
+
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getTrainerUsername()).isEqualTo("new.trainer");
         assertThat(saved.getCreatedAt()).isNotNull();
@@ -100,73 +100,68 @@ class PendingWorkloadRepositoryTest {
         Long workloadId = addWorkload.getId();
         pendingWorkloadRepository.delete(addWorkload);
         entityManager.flush();
-        
+
         Optional<PendingWorkload> found = pendingWorkloadRepository.findById(workloadId);
         assertThat(found).isEmpty();
     }
 
     @Test
     void findByTrainerUsername_UsingSpecification() {
-        Specification<PendingWorkload> spec = (root, query, cb) -> 
-            cb.equal(root.get("trainerUsername"), "john.doe");
-        
+        Specification<PendingWorkload> spec = (root, query, cb) -> cb.equal(root.get("trainerUsername"), "john.doe");
+
         List<PendingWorkload> workloads = pendingWorkloadRepository.findAll(spec);
-        
+
         assertThat(workloads)
-            .hasSize(1)
-            .contains(addWorkload);
+                .hasSize(1)
+                .contains(addWorkload);
     }
 
     @Test
     void findByActionType_UsingSpecification() {
-        Specification<PendingWorkload> spec = (root, query, cb) -> 
-            cb.equal(root.get("actionType"), ActionType.ADD);
-        
+        Specification<PendingWorkload> spec = (root, query, cb) -> cb.equal(root.get("actionType"), ActionType.ADD);
+
         List<PendingWorkload> workloads = pendingWorkloadRepository.findAll(spec);
-        
+
         assertThat(workloads)
-            .hasSize(2)
-            .contains(addWorkload, anotherAddWorkload)
-            .doesNotContain(deleteWorkload);
+                .hasSize(2)
+                .contains(addWorkload, anotherAddWorkload)
+                .doesNotContain(deleteWorkload);
     }
 
     @Test
     void findByTrainingDate_UsingSpecification() {
         LocalDate targetDate = LocalDate.of(2024, 1, 15);
-        Specification<PendingWorkload> spec = (root, query, cb) -> 
-            cb.equal(root.get("trainingDate"), targetDate);
-        
+        Specification<PendingWorkload> spec = (root, query, cb) -> cb.equal(root.get("trainingDate"), targetDate);
+
         List<PendingWorkload> workloads = pendingWorkloadRepository.findAll(spec);
-        
+
         assertThat(workloads)
-            .hasSize(1)
-            .contains(addWorkload);
+                .hasSize(1)
+                .contains(addWorkload);
     }
 
     @Test
     void findByIsActive_UsingSpecification() {
-        Specification<PendingWorkload> spec = (root, query, cb) -> 
-            cb.equal(root.get("isActive"), true);
-        
+        Specification<PendingWorkload> spec = (root, query, cb) -> cb.equal(root.get("isActive"), true);
+
         List<PendingWorkload> workloads = pendingWorkloadRepository.findAll(spec);
-        
+
         assertThat(workloads)
-            .hasSize(2)
-            .contains(addWorkload, deleteWorkload)
-            .doesNotContain(anotherAddWorkload);
+                .hasSize(2)
+                .contains(addWorkload, deleteWorkload)
+                .doesNotContain(anotherAddWorkload);
     }
 
     @Test
     void findByTrainingDurationGreaterThan_UsingSpecification() {
-        Specification<PendingWorkload> spec = (root, query, cb) -> 
-            cb.greaterThan(root.get("trainingDuration"), 50);
-        
+        Specification<PendingWorkload> spec = (root, query, cb) -> cb.greaterThan(root.get("trainingDuration"), 50);
+
         List<PendingWorkload> workloads = pendingWorkloadRepository.findAll(spec);
-        
+
         assertThat(workloads)
-            .hasSize(2)
-            .contains(addWorkload, deleteWorkload)
-            .doesNotContain(anotherAddWorkload);
+                .hasSize(2)
+                .contains(addWorkload, deleteWorkload)
+                .doesNotContain(anotherAddWorkload);
     }
 
     @Test
@@ -186,4 +181,4 @@ class PendingWorkloadRepositoryTest {
         boolean exists = pendingWorkloadRepository.existsById(999L);
         assertThat(exists).isFalse();
     }
-} 
+}

@@ -42,13 +42,11 @@ class AuthControllerWebTestClientTest {
                 @Primary
                 public InMemoryTokenStorageServiceImpl tokenStorageService() {
                         InMemoryTokenStorageServiceImpl mock = mock(InMemoryTokenStorageServiceImpl.class);
-                        // Configure mock to allow token operations by default
                         when(mock.isTokenBlacklisted(any())).thenReturn(false);
                         doNothing().when(mock).blacklistToken(any(), any());
                         doNothing().when(mock).storeRefreshToken(any(), any());
                         doNothing().when(mock).removeRefreshToken(any(), any());
                         doNothing().when(mock).clearUserRefreshTokens(any());
-                        // Return empty set for refresh tokens to simulate logout behavior
                         when(mock.getUserRefreshTokens(any())).thenReturn(java.util.Set.of());
                         return mock;
                 }
@@ -57,7 +55,6 @@ class AuthControllerWebTestClientTest {
                 @Primary
                 public LoginAttemptService loginAttemptService() {
                         LoginAttemptService mock = mock(LoginAttemptService.class);
-                        // Configure mock to allow login attempts by default
                         when(mock.isBlocked(any())).thenReturn(false);
                         when(mock.getRemainingAttempts(any())).thenReturn(3);
                         when(mock.getMaxAttempts()).thenReturn(3);

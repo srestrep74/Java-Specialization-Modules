@@ -30,8 +30,8 @@ class JwtUtilTest {
     void setUp() {
         ReflectionTestUtils.setField(jwtUtil, "secret",
                 "dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9ydGVzdGluZ2p3dHRva2Vuc2FuZGl0c2hvdWxkYmVhdGxlYXN0NjRieXRlc2xvbmc=");
-        ReflectionTestUtils.setField(jwtUtil, "expiration", 3600000L); // 1 hour
-        ReflectionTestUtils.setField(jwtUtil, "refreshExpiration", 86400000L); // 1 day
+        ReflectionTestUtils.setField(jwtUtil, "expiration", 3600000L);
+        ReflectionTestUtils.setField(jwtUtil, "refreshExpiration", 86400000L);
 
         jwtUtil.init();
 

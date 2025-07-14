@@ -78,7 +78,7 @@ class DataSeedServiceTest {
 
     @Mock
     private TrainerTrainingMetrics trainerTrainingMetrics;
-    
+
     @Mock
     private PasswordEncoder passwordEncoder;
 
@@ -167,7 +167,7 @@ class DataSeedServiceTest {
             profileUtilMock.when(() -> ProfileUtil.generateUsername(anyString(), anyString(), any()))
                     .thenReturn("johndoe");
             profileUtilMock.when(ProfileUtil::generatePassword).thenReturn("password");
-            
+
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(traineeSeedMapper.toEntity(traineeSeedRequest)).thenReturn(trainee);
             when(traineeRepository.save(trainee)).thenReturn(trainee);
@@ -215,7 +215,7 @@ class DataSeedServiceTest {
             profileUtilMock.when(() -> ProfileUtil.generateUsername(anyString(), anyString(), any()))
                     .thenReturn("trainer1");
             profileUtilMock.when(ProfileUtil::generatePassword).thenReturn("password");
-            
+
             when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
             when(trainingTypeRepository.findById(1L)).thenReturn(Optional.of(trainingType));
             when(trainerSeedMapper.toEntity(trainerSeedRequest, trainingType)).thenReturn(trainer);

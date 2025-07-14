@@ -1,5 +1,5 @@
 package dev.sro.gym_service.controller;
-    
+
 import dev.sro.gym_service.dtos.v1.request.auth.LoginRequest;
 import dev.sro.gym_service.dtos.v1.request.trainee.RegisterTraineeRequest;
 import dev.sro.gym_service.dtos.v1.request.trainingType.TrainingTypeRequestDTO;

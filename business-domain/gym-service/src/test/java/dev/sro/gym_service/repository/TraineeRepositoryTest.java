@@ -81,7 +81,7 @@ class TraineeRepositoryTest {
 
         trainer1.getTrainees().add(trainee1);
         trainee1.getTrainers().add(trainer1);
-        
+
         trainer2.getTrainees().add(trainee1);
         trainee1.getTrainers().add(trainer2);
 
@@ -149,4 +149,4 @@ class TraineeRepositoryTest {
         long activeCount = traineeRepository.countByActive(true);
         assertThat(activeCount).isEqualTo(1);
     }
-} 
+}

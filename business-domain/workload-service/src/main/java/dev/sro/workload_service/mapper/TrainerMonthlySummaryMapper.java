@@ -6,6 +6,7 @@ import dev.sro.workload_service.entity.Trainer;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,8 @@ import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface TrainerMonthlySummaryMapper {
+
+    TrainerMonthlySummaryMapper INSTANCE = Mappers.getMapper(TrainerMonthlySummaryMapper.class);
 
     @Mapping(target = "trainingSummaryDuration", source = "totalDuration")
     TrainerMonthlySummaryResponse.MonthSummary toMonthSummary(MonthlySummary summary);
