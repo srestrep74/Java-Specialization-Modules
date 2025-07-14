@@ -99,6 +99,14 @@ public class JwtUtil {
                 .collect(Collectors.toList()));
         return createToken(claims, userDetails.getUsername(), expiration);
     }
+    
+    public String generateToken(UserDetails userDetails, Map<String, Object> claims, long expirationTime) {
+        claims.put("roles", userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+        return createToken(claims, userDetails.getUsername(), expirationTime);
+    }
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();

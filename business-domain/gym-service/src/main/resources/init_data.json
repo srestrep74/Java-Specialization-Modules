@@ -81,6 +81,13 @@
       "active": true,
       "trainingTypeId": 5,
       "role": "TRAINER"
+    },
+    {
+      "firstName": "client",
+      "lastName": "client",
+      "active": true,
+      "trainingTypeId": 1,
+      "role": "ADMIN"
     }
   ],
   "trainingTypes": [
@@ -105,7 +112,7 @@
       "trainingName": "Morning Yoga",
       "trainingDate": "2023-10-01",
       "duration": 60,
-      "traineeId": 6,
+      "traineeId": 7,
       "trainerId": 1,
       "trainingTypeId": 1
     },
@@ -113,7 +120,7 @@
       "trainingName": "Evening Weightlifting",
       "trainingDate": "2023-10-02",
       "duration": 90,
-      "traineeId": 7,
+      "traineeId": 8,
       "trainerId": 2,
       "trainingTypeId": 2
     },
@@ -121,7 +128,7 @@
       "trainingName": "Cardio Blast",
       "trainingDate": "2023-10-03",
       "duration": 45,
-      "traineeId": 8,
+      "traineeId": 9,
       "trainerId": 3,
       "trainingTypeId": 3
     },
@@ -129,7 +136,7 @@
       "trainingName": "Pilates Core",
       "trainingDate": "2023-10-04",
       "duration": 60,
-      "traineeId": 9,
+      "traineeId": 10,
       "trainerId": 4,
       "trainingTypeId": 4
     },
@@ -137,7 +144,7 @@
       "trainingName": "CrossFit Challenge",
       "trainingDate": "2023-10-05",
       "duration": 75,
-      "traineeId": 10,
+      "traineeId": 11,
       "trainerId": 5,
       "trainingTypeId": 5
     }

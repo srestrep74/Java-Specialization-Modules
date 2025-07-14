@@ -1,0 +1,53 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Gym Service - Main business service
+  - job_name: 'gym-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['gym-service:8081']
+    scrape_timeout: 10s
+
+  # Workload Service - Training workload service
+  - job_name: 'workload-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['workload-service:8082']
+    scrape_timeout: 10s
+
+  # Config Server
+  - job_name: 'config-server'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['config-server:8888']
+    scrape_timeout: 10s
+
+  # Eureka Server
+  - job_name: 'eureka-server'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['eureka-server:8761']
+    scrape_timeout: 10s
+
+  # Gateway Server
+  - job_name: 'gateway-server'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['gateway-server:8083']
+    scrape_timeout: 10s 

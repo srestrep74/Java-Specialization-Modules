@@ -26,18 +26,26 @@ eureka:
     lease-expiration-duration-in-seconds: 90
 
 management:
+  endpoint:
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
-        include: health,metrics,prometheus,info,circuitbreakers
-  metrics:
-    tags:
-      application: training-management
-  endpoint:
-    health:
-      group:
-        custom:
-          include: db,traineeService
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+
+micrometer:
+  tracing:
+    propagation:
+      type: B3
+    brave:
+      span-joining-supported: true
 
 springdoc:
   api-docs:
@@ -55,20 +63,22 @@ security:
     max-attempts: 3
     lock-time-minutes: 5
 
-# Feign Configuration
 feign:
   client:
     config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 15000
+        loggerLevel: basic
       workload-service:
         connectTimeout: 5000
-        readTimeout: 10000
-        loggerLevel: basic
+        readTimeout: 15000
+        loggerLevel: full
   circuitbreaker:
     enabled: true
     group:
       enabled: true
 
-# Resilience4j Configuration for Circuit Breaker
 resilience4j:
   circuitbreaker:
     instances:
@@ -78,6 +88,17 @@ resilience4j:
         minimumNumberOfCalls: 5
         permittedNumberOfCallsInHalfOpenState: 3
         automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 5s
+        waitDurationInOpenState: 10s
         failureRateThreshold: 50
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
+  timelimiter:
+    instances:
+      workload-service:
+        timeoutDuration: 15s
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"

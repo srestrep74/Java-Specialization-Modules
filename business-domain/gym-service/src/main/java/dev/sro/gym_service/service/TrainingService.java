@@ -1,6 +1,7 @@
 package dev.sro.gym_service.service;
 
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
+import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.TraineeTrainingFilter;
 import dev.sro.gym_service.dtos.v1.request.training.TraineeTrainingResponse;
 import dev.sro.gym_service.dtos.v1.request.training.TrainerTrainingFilter;
@@ -18,6 +19,8 @@ public interface TrainingService {
     List<TrainingSummaryResponse> findAll();
 
     void deleteById(Long id);
+
+    void deleteTraining(DeleteTrainingRequest deleteTrainingRequest);
 
     TrainingSummaryResponse update(UpdateTrainingRequest updateTrainingRequest);
 

@@ -12,7 +12,7 @@ import dev.sro.gym_service.util.storage.JsonFileReader;
 import jakarta.annotation.PostConstruct;
 
 @Service
-@Profile({ "local", "dev" })
+@Profile("!prod")
 public class DataInitializationService {
 
     private final DataSeedService dataSeedService;

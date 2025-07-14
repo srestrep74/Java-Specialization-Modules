@@ -15,28 +15,30 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
 
 logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %X{requestId:--} %X{user:--} %m%n%wEx"
   level:
     dev.sro.workload_service: DEBUG
-    org.springframework: INFO
-    org.hibernate: INFO
+    dev.sro.workload_service.application.aspect.LoggingAspect: DEBUG
+    dev.sro.workload_service.presentation.exception.GlobalExceptionHandler: DEBUG
+    dev.sro.workload_service.application.service: DEBUG
+    dev.sro.workload_service.domain.repository: DEBUG
+    dev.sro.workload_service.infrastructure.repository: DEBUG
+    dev.sro.workload_service.presentation.controller: DEBUG
+    dev.sro.workload_service.application.mapper: TRACE
+    
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.aop: DEBUG
+    org.aspectj: DEBUG
+    
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.orm.jpa: DEBUG
     org.springframework.orm.jpa.JpaTransactionManager: DEBUG
+    
+    org.springframework.web.client: DEBUG
+    
     io.micrometer: DEBUG
-
-management:
-  endpoint:
-    health:
-      show-details: always
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-  metrics:
-    enable:
-      all: true
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-        trainer.workload.sessions: true
-        trainer.workload.duration: true
 
 debug: true 

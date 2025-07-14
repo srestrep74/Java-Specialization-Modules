@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@Profile("local")
+@Profile({ "local", "test" })
 public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
 
     private final Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
