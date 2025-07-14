@@ -1,0 +1,96 @@
+server:
+  port: 8082
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: workload-service
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_SERVER_URL:http://localhost:9411/api/v2/spans}
+      sender:
+        type: web
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_SECRET:5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+  level:
+    dev.sro.workload_service: INFO
+    dev.sro.workload_service.application.aspect.LoggingAspect: INFO
+    dev.sro.workload_service.presentation.exception.GlobalExceptionHandler: INFO
+    dev.sro.workload_service.application.service: INFO
+    dev.sro.workload_service.domain.repository: INFO
+    dev.sro.workload_service.infrastructure.repository: INFO
+    dev.sro.workload_service.presentation.controller: INFO
+    dev.sro.workload_service.application.mapper: WARN
+    
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.aop: INFO
+    org.aspectj: INFO
+    org.springframework.cloud.sleuth: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.orm.jpa: INFO
+    
+    org.springframework.web.client: INFO
+
+    io.micrometer: DEBUG
+    io.micrometer.tracing: DEBUG
+    io.zipkin.reporter2: DEBUG
+    brave: DEBUG
+    
+    zipkin2: DEBUG
+    brave.http: DEBUG
+    brave.spring.web: DEBUG
+    
+    root: INFO
+
+micrometer:
+  tracing:
+    propagation:
+      type: B3
+    brave:
+      span-joining-supported: true

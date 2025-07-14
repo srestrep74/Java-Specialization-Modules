@@ -1,0 +1,60 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_PROD_HOST}:${DB_PROD_PORT}/jpa_epam
+    username: ${DB_PROD_USER}
+    password: ${DB_PROD_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    redis:
+      host: ${REDIS_PROD_HOST}
+      port: ${REDIS_PROD_PORT}
+      timeout: ${REDIS_PROD_TIMEOUT:5000}
+      password: ${REDIS_PROD_PASSWORD:}
+
+  cache:
+    type: redis
+
+logging:
+  level:
+    com.sro: WARN
+    org.springframework: WARN
+    org.hibernate: ERROR
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  metrics:
+    enable:
+      all: false
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+jwt:
+  blacklist:
+    prefix: "blacklisted_token:"
+  refresh:
+    prefix: "user:refresh_tokens:"
+    expiry: 30

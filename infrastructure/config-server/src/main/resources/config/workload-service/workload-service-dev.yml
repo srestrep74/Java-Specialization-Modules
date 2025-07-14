@@ -1,0 +1,49 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3307/workload_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USERNAME:workload_user}
+    password: ${DB_PASSWORD:workload_pass}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %X{requestId:--} %X{user:--} %m%n%wEx"
+  level:
+    dev.sro.workload_service: INFO
+    dev.sro.workload_service.application.aspect.LoggingAspect: INFO
+    dev.sro.workload_service.presentation.exception.GlobalExceptionHandler: INFO
+    dev.sro.workload_service.application.service: INFO
+    dev.sro.workload_service.domain.repository: DEBUG
+    dev.sro.workload_service.infrastructure.repository: DEBUG
+    dev.sro.workload_service.presentation.controller: INFO
+    dev.sro.workload_service.application.mapper: WARN
+    
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.aop: INFO
+    org.aspectj: INFO
+    
+    io.micrometer: DEBUG
+    io.micrometer.tracing: DEBUG
+    io.zipkin.reporter2: DEBUG
+    brave: DEBUG
+    
+    zipkin2: DEBUG
+    brave.http: DEBUG
+    brave.spring.web: DEBUG
+    
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.orm.jpa: INFO
+    
+    org.springframework.web.client: INFO
+    
+    root: INFO
+
+ 
