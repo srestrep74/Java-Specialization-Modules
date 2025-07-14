@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/jpa_epam
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/jpa_epam}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -60,4 +60,4 @@ jwt:
 
 internal:
   service:
-    token: "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOIl0sInN1YiI6ImNsaWVudC5jbGllbnQiLCJpYXQiOjE3NTIzMzk3MTQsImV4cCI6MTc4Mzg3NTcxNCwianRpIjoiYWE4ZDEwODEtNjhkMy00OGMzLTg4N2EtM2Y0YjY0M2Q5Nzg1In0.1CF-fhhN5GoVDAIWmoTNYi8DBVa3PE_we0g-SULHvVwEphYT1zfF6KZmHoRDdppgER9uyZN-RwYC9V24J0W9ww"
+    token: ${INTERNAL_SERVICE_TOKEN:eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOIl0sInN1YiI6ImNsaWVudC5jbGllbnQiLCJpYXQiOjE3NTIzMzk3MTQsImV4cCI6MTc4Mzg3NTcxNCwianRpIjoiYWE4ZDEwODEtNjhkMy00OGMzLTg4N2EtM2Y0YjY0M2Q5Nzg1In0.1CF-fhhN5GoVDAIWmoTNYi8DBVa3PE_we0g-SULHvVwEphYT1zfF6KZmHoRDdppgER9uyZN-RwYC9V24J0W9ww}

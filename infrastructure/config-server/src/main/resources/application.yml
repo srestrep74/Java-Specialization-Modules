@@ -12,8 +12,8 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/srestrep74/Java-Specialization-Modules
+          uri: ${GIT_URI:https://github.com/srestrep74/Java-Specialization-Modules}
           search-paths: 
             - infrastructure/config-server/src/main/resources/config
             - infrastructure/config-server/src/main/resources/config/{application}
-          default-label: signoz
+          default-label: microservices
