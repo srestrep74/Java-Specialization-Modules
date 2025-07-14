@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
+import dev.sro.gym_service.dtos.v1.response.training.TrainingMutationResponse;
+import dev.sro.gym_service.dtos.v1.response.workload.TrainerWorkloadResponse;
 import dev.sro.gym_service.service.TrainingService;
 import dev.sro.gym_service.util.response.ApiStandardError;
 
@@ -48,7 +50,10 @@ public class TrainingController {
         @ApiResponse(
             responseCode = "200",
             description = "Training session created successfully",
-            content = @Content
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = TrainingMutationResponse.class)
+            )
         ),
         @ApiResponse(
             responseCode = "400",
@@ -101,11 +106,20 @@ public class TrainingController {
     })
     @PreAuthorize("hasRole('TRAINEE') or hasRole('TRAINER')")
     @PostMapping
-    public ResponseEntity<Void> createTraining(
+    public ResponseEntity<TrainingMutationResponse> createTraining(
             @Parameter(description = "Details of the training session to create") 
             @Valid @RequestBody CreateTrainingRequest createTrainingRequest) {
-        trainingService.save(createTrainingRequest);
-        return ResponseEntity.ok().build();
+        TrainerWorkloadResponse workloadResponse = trainingService.save(createTrainingRequest);
+        
+        String message = "Training created successfully.";
+        String details = null;
+
+        if (workloadResponse != null && workloadResponse.message().contains("queued")) {
+            message = "Training created, but workload notification is delayed.";
+            details = workloadResponse.message();
+        }
+
+        return ResponseEntity.ok(new TrainingMutationResponse(message, details));
     }
 
 
@@ -120,7 +134,10 @@ public class TrainingController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Training session deleted successfully",
-                    content = @Content
+                    content = @Content(
+                        mediaType = "application/json",
+                        schema = @Schema(implementation = TrainingMutationResponse.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",
@@ -165,11 +182,20 @@ public class TrainingController {
     })
     @PreAuthorize("hasRole('TRAINEE') or hasRole('TRAINER')")
     @DeleteMapping
-    public ResponseEntity<Void> deleteTraining(
+    public ResponseEntity<TrainingMutationResponse> deleteTraining(
             @Parameter(description = "Details of the training session to delete")
             @Valid @RequestBody DeleteTrainingRequest deleteTrainingRequest) {
-        trainingService.deleteTraining(deleteTrainingRequest);
-        return ResponseEntity.ok().build();
+        TrainerWorkloadResponse workloadResponse = trainingService.deleteTraining(deleteTrainingRequest);
+
+        String message = "Training deleted successfully.";
+        String details = null;
+
+        if (workloadResponse != null && workloadResponse.message().contains("queued")) {
+            message = "Training deleted, but workload notification is delayed.";
+            details = workloadResponse.message();
+        }
+
+        return ResponseEntity.ok(new TrainingMutationResponse(message, details));
     }
 
 }

@@ -8,11 +8,12 @@ import dev.sro.gym_service.dtos.v1.request.training.TrainerTrainingFilter;
 import dev.sro.gym_service.dtos.v1.request.training.TrainerTrainingResponse;
 import dev.sro.gym_service.dtos.v1.request.training.UpdateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.response.training.TrainingSummaryResponse;
+import dev.sro.gym_service.dtos.v1.response.workload.TrainerWorkloadResponse;
 
 import java.util.List;
 
 public interface TrainingService {
-    void save(CreateTrainingRequest createTrainingRequest);
+    TrainerWorkloadResponse save(CreateTrainingRequest createTrainingRequest);
 
     TrainingSummaryResponse findById(Long id);
 
@@ -20,7 +21,7 @@ public interface TrainingService {
 
     void deleteById(Long id);
 
-    void deleteTraining(DeleteTrainingRequest deleteTrainingRequest);
+    TrainerWorkloadResponse deleteTraining(DeleteTrainingRequest deleteTrainingRequest);
 
     TrainingSummaryResponse update(UpdateTrainingRequest updateTrainingRequest);
 

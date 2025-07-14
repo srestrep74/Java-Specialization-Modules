@@ -8,6 +8,7 @@ import dev.sro.gym_service.dtos.v1.request.training.TrainerTrainingFilter;
 import dev.sro.gym_service.dtos.v1.request.training.TrainerTrainingResponse;
 import dev.sro.gym_service.dtos.v1.request.training.UpdateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.response.training.TrainingSummaryResponse;
+import dev.sro.gym_service.dtos.v1.response.workload.TrainerWorkloadResponse;
 import dev.sro.gym_service.entity.Trainee;
 import dev.sro.gym_service.entity.Trainer;
 import dev.sro.gym_service.entity.Training;
@@ -81,7 +82,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public void save(CreateTrainingRequest createTrainingRequest) {
+    public TrainerWorkloadResponse save(CreateTrainingRequest createTrainingRequest) {
         if (createTrainingRequest == null) {
             throw new IllegalArgumentException("CreateTrainingRequest cannot be null");
         }
@@ -108,7 +109,7 @@ public class TrainingServiceImpl implements TrainingService {
             trainerTrainingMetrics.recordTrainerTrainingDuration(training.getDuration());
             
             // Notify workload service about new training
-            workloadNotificationService.notifyTrainingCreated(savedTraining);
+            return workloadNotificationService.notifyTrainingCreated(savedTraining);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -201,7 +202,7 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
-    public void deleteTraining(DeleteTrainingRequest deleteTrainingRequest) {
+    public TrainerWorkloadResponse deleteTraining(DeleteTrainingRequest deleteTrainingRequest) {
         if (deleteTrainingRequest == null) {
             throw new IllegalArgumentException("DeleteTrainingRequest cannot be null");
         }
@@ -219,7 +220,7 @@ public class TrainingServiceImpl implements TrainingService {
 
             trainingRepository.delete(training);
 
-            workloadNotificationService.notifyTrainingDeleted(training);
+            return workloadNotificationService.notifyTrainingDeleted(training);
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
