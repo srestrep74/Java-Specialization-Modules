@@ -29,10 +29,12 @@ management:
   endpoint:
     health:
       show-details: always
+    circuitbreakers:
+      enabled: true
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,circuitbreakers
   tracing:
     sampling:
       probability: 1.0
@@ -67,38 +69,86 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 5000
-        readTimeout: 15000
+        connectTimeout: 10000
+        readTimeout: 22000
         loggerLevel: basic
       workload-service:
-        connectTimeout: 5000
-        readTimeout: 15000
+        connectTimeout: 10000
+        readTimeout: 22000
         loggerLevel: full
   circuitbreaker:
-    enabled: true
+    enabled: true  # ¡HABILITADO!
     group:
       enabled: true
 
 resilience4j:
   circuitbreaker:
     instances:
-      workload-service:
+      # Configuración para workload-relay-client (contextId del primer Feign client)
+      workload-relay-client:
         registerHealthIndicator: true
         slidingWindowSize: 10
-        minimumNumberOfCalls: 5
-        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 3  # Reducido para testing
+        permittedNumberOfCallsInHalfOpenState: 2
         automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 10s
-        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 60  # 60% de fallos para abrir
         slowCallRateThreshold: 80
         slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.util.concurrent.TimeoutException
+          - feign.FeignException$ServiceUnavailable
+          - feign.FeignException
+          - java.io.IOException
+          - java.net.ConnectException
+      # Configuración para workload-service-client (contextId del segundo Feign client)
+      workload-service-client:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 3
+        permittedNumberOfCallsInHalfOpenState: 2
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 60
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 5s
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.util.concurrent.TimeoutException
+          - feign.FeignException$ServiceUnavailable
+          - feign.FeignException
+          - java.io.IOException
+          - java.net.ConnectException
   timelimiter:
     instances:
-      workload-service:
+      workload-relay-client:
         timeoutDuration: 15s
+      workload-service-client:
+        timeoutDuration: 15s
+  retry:
+    instances:
+      workload-relay-client:
+        maxAttempts: 2
+        waitDuration: 1s
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - feign.FeignException$ServiceUnavailable
+          - java.net.ConnectException
+      workload-service-client:
+        maxAttempts: 2
+        waitDuration: 1s
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - feign.FeignException$ServiceUnavailable
+          - java.net.ConnectException
 
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+  level:
+    io.github.resilience4j.circuitbreaker: DEBUG
+    io.github.resilience4j.timelimiter: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    feign: DEBUG
