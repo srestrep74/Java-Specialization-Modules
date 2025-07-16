@@ -95,6 +95,7 @@ resilience4j:
         slowCallRateThreshold: 80
         slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
+    shareConfigs: true
   timelimiter:
     instances:
       workload-service:
@@ -104,3 +105,6 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X{requestId}] - %msg%n"
+  level:
+    io.github.resilience4j.circuitbreaker: TRACE
+    feign: DEBUG
