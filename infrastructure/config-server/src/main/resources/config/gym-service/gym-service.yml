@@ -77,9 +77,9 @@ feign:
         readTimeout: 22000
         loggerLevel: full
   circuitbreaker:
-    enabled: true
-    group:
-      enabled: true
+    enabled: false
+    #group:
+      #enabled: true
 
 resilience4j:
   circuitbreaker:
@@ -95,6 +95,10 @@ resilience4j:
         slowCallRateThreshold: 80
         slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.util.concurrent.TimeoutException
+          - feign.FeignException
+          - java.io.IOException
     shareConfigs: true
   timelimiter:
     instances:
