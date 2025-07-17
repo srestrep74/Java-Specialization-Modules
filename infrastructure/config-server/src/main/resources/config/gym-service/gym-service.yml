@@ -12,6 +12,14 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
+    packages:
+      trust-all: true
+  jms:
+    pub-sub-domain: false
 
 eureka:
   instance:
@@ -65,83 +73,29 @@ security:
     max-attempts: 3
     lock-time-minutes: 5
 
-feign:
-  client:
-    config:
-      default:
-        connectTimeout: 10000
-        readTimeout: 22000
-        loggerLevel: basic
-      workload-service:
-        connectTimeout: 10000
-        readTimeout: 22000
-        loggerLevel: full
-  circuitbreaker:
-    enabled: true  # ¡HABILITADO!
-    group:
-      enabled: true
-
 resilience4j:
   circuitbreaker:
     instances:
-      # Configuración para workload-relay-client (contextId del primer Feign client)
-      workload-relay-client:
+      activemq-producer:
         registerHealthIndicator: true
         slidingWindowSize: 10
-        minimumNumberOfCalls: 3  # Reducido para testing
+        minimumNumberOfCalls: 3  
         permittedNumberOfCallsInHalfOpenState: 2
         automaticTransitionFromOpenToHalfOpenEnabled: true
         waitDurationInOpenState: 30s
-        failureRateThreshold: 60  # 60% de fallos para abrir
+        failureRateThreshold: 60  
         slowCallRateThreshold: 80
         slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
         recordExceptions:
-          - java.util.concurrent.TimeoutException
-          - feign.FeignException$ServiceUnavailable
-          - feign.FeignException
-          - java.io.IOException
+          - javax.jms.JMSException
+          - org.springframework.jms.JmsException
           - java.net.ConnectException
-      # Configuración para workload-service-client (contextId del segundo Feign client)
-      workload-service-client:
-        registerHealthIndicator: true
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 3
-        permittedNumberOfCallsInHalfOpenState: 2
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 30s
-        failureRateThreshold: 60
-        slowCallRateThreshold: 80
-        slowCallDurationThreshold: 5s
-        eventConsumerBufferSize: 10
-        recordExceptions:
-          - java.util.concurrent.TimeoutException
-          - feign.FeignException$ServiceUnavailable
-          - feign.FeignException
           - java.io.IOException
-          - java.net.ConnectException
   timelimiter:
     instances:
-      workload-relay-client:
+      activemq-producer:
         timeoutDuration: 15s
-      workload-service-client:
-        timeoutDuration: 15s
-  retry:
-    instances:
-      workload-relay-client:
-        maxAttempts: 2
-        waitDuration: 1s
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          - feign.FeignException$ServiceUnavailable
-          - java.net.ConnectException
-      workload-service-client:
-        maxAttempts: 2
-        waitDuration: 1s
-        exponentialBackoffMultiplier: 2
-        retryExceptions:
-          - feign.FeignException$ServiceUnavailable
-          - java.net.ConnectException
 
 logging:
   pattern:
@@ -150,5 +104,3 @@ logging:
   level:
     io.github.resilience4j.circuitbreaker: DEBUG
     io.github.resilience4j.timelimiter: DEBUG
-    org.springframework.cloud.openfeign: DEBUG
-    feign: DEBUG
