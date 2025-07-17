@@ -88,7 +88,7 @@ resilience4j:
         slowCallDurationThreshold: 5s
         eventConsumerBufferSize: 10
         recordExceptions:
-          - javax.jms.JMSException
+          - jakarta.jms.JMSException
           - org.springframework.jms.JmsException
           - java.net.ConnectException
           - java.io.IOException
