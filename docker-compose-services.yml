@@ -119,8 +119,6 @@ services:
         condition: service_healthy
       gateway-server:
         condition: service_healthy
-      activemq:
-        condition: service_healthy
     networks:
       - microservices-network
     restart: unless-stopped
@@ -155,8 +153,6 @@ services:
       eureka-server:
         condition: service_healthy
       gateway-server:
-        condition: service_healthy
-      activemq:
         condition: service_healthy
     networks:
       - microservices-network

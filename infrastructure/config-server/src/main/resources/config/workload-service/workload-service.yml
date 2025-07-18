@@ -115,3 +115,6 @@ micrometer:
       type: B3
     brave:
       span-joining-supported: true
+    # Enable JMS tracing
+    jms:
+      enabled: true

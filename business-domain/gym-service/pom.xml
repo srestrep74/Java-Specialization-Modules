@@ -176,6 +176,8 @@
             <artifactId>activemq-broker</artifactId>
         </dependency>
 
+
+
         <!-- Resilience4j Circuit Breaker -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
