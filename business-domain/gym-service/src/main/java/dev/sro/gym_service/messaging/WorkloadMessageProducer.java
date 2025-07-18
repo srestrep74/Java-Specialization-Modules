@@ -1,5 +1,7 @@
 package dev.sro.gym_service.messaging;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
@@ -27,23 +29,27 @@ public class WorkloadMessageProducer {
     
     @CircuitBreaker(name = "activemq-producer", fallbackMethod = "fallbackSendWorkloadMessage")
     @TimeLimiter(name = "activemq-producer")
-    public void sendWorkloadMessage(TrainerWorkloadRequest request) {
-        jmsTemplate.convertAndSend("workload-queue", request);
+    public CompletableFuture<Void> sendWorkloadMessage(TrainerWorkloadRequest request) {
+        return CompletableFuture.runAsync(() -> {
+            jmsTemplate.convertAndSend("workload-queue", request);
+        });
     }
 
-    public void fallbackSendWorkloadMessage(TrainerWorkloadRequest request, Throwable throwable) {
-        Trainer trainer = trainerRepository.findByUsername(request.trainerUsername())
+    public CompletableFuture<Void> fallbackSendWorkloadMessage(TrainerWorkloadRequest request, Throwable throwable) {
+        return CompletableFuture.runAsync(() -> {
+            Trainer trainer = trainerRepository.findByUsername(request.trainerUsername())
                 .orElseThrow(() -> new RuntimeException("Trainer not found: " + request.trainerUsername()));
 
-        PendingWorkload pendingWorkload = PendingWorkload.builder()
-                .trainerUsername(request.trainerUsername())
-                .trainerFirstname(trainer.getFirstName())
-                .trainerLastname(trainer.getLastName())
-                .isActive(trainer.isActive())
-                .trainingDate(request.trainingDate())
-                .trainingDuration(request.trainingDuration())
-                .actionType(ActionType.valueOf(request.actionType().name()))
-                .build();
-        pendingWorkloadRepository.save(pendingWorkload);
+            PendingWorkload pendingWorkload = PendingWorkload.builder()
+                    .trainerUsername(request.trainerUsername())
+                    .trainerFirstname(trainer.getFirstName())
+                    .trainerLastname(trainer.getLastName())
+                    .isActive(trainer.isActive())
+                    .trainingDate(request.trainingDate())
+                    .trainingDuration(request.trainingDuration())
+                    .actionType(ActionType.valueOf(request.actionType().name()))
+                    .build();
+            pendingWorkloadRepository.save(pendingWorkload);
+            });
     }
 }
