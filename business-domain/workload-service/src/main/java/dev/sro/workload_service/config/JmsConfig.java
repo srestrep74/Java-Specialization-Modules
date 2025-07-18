@@ -48,6 +48,11 @@ public class JmsConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         converter.setObjectMapper(objectMapper);
+
+        converter.setTypeIdMappings(java.util.Map.of(
+            "dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest", 
+            dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest.class
+        ));
         
         return converter;
     }
