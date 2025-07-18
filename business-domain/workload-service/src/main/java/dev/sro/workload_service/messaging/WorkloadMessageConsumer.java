@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class WorkloadMessageConsumer {
-    
+
     private final TrainerWorkloadService trainerWorkloadService;
 
     private static final String WORKLOAD_QUEUE = "workload-queue";
@@ -22,17 +22,31 @@ public class WorkloadMessageConsumer {
     @JmsListener(destination = WORKLOAD_QUEUE)
     public void processWorkloadMessage(TrainerWorkloadRequest request) {
         try {
+            log.info("Processing workload message for trainer: {}", request.trainerUsername());
+
             trainerWorkloadService.processTrainerWorkload(request);
-        } catch (InvalidWorkloadDataException | IllegalArgumentException e) {
+
+            log.info("Successfully processed workload message for trainer: {}", request.trainerUsername());
+        } catch (InvalidWorkloadDataException e) {
             log.error("Invalid workload data for trainer {} : {}", request.trainerUsername(), e.getMessage());
+
+            throw new RuntimeException("Invalid workload data for trainer " + request.trainerUsername(), e);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid workload data for trainer {} : {}", request.trainerUsername(), e.getMessage());
+
+            throw new RuntimeException("Invalid workload data for trainer " + request.trainerUsername(), e);
         } catch (Exception e) {
-            log.error("Error processing workload message for trainer {} : {}", request.trainerUsername(), e.getMessage(), e);
-            throw e;
+            log.error("Error processing workload message for trainer {} : {}", request.trainerUsername(),
+                    e.getMessage(), e);
+
+            throw new RuntimeException("Error processing workload message for trainer " + request.trainerUsername(), e);
         }
     }
 
-    @JmsListener(destination = WORKLOAD_DLQ)
-    public void processDLQMessage(TrainerWorkloadRequest request) {
-        log.warn("Message moved to DLQ: {}", request.trainerUsername());
-    }
+    /*
+     * @JmsListener(destination = WORKLOAD_DLQ)
+     * public void processDLQMessage(TrainerWorkloadRequest request) {
+     * log.warn("Message moved to DLQ for trainer: {}", request.trainerUsername());
+     * }
+     */
 }

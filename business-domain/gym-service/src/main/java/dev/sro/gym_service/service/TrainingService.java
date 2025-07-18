@@ -13,7 +13,9 @@ import dev.sro.gym_service.dtos.v1.response.workload.TrainerWorkloadResponse;
 import java.util.List;
 
 public interface TrainingService {
-    TrainerWorkloadResponse save(CreateTrainingRequest createTrainingRequest);
+    TrainerWorkloadResponse saveWithoutValidation(CreateTrainingRequest createTrainingRequest);
+
+    TrainerWorkloadResponse saveWithValidation(CreateTrainingRequest createTrainingRequest);
 
     TrainingSummaryResponse findById(Long id);
 

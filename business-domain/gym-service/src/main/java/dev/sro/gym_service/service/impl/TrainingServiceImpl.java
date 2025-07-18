@@ -81,8 +81,8 @@ public class TrainingServiceImpl implements TrainingService {
     }
 
     @Override
-    @Transactional
-    public TrainerWorkloadResponse save(CreateTrainingRequest createTrainingRequest) {
+    @Transactional // Simulates sending messages without validation for testing DLQ
+    public TrainerWorkloadResponse saveWithoutValidation(CreateTrainingRequest createTrainingRequest) {
         if (createTrainingRequest == null) {
             throw new IllegalArgumentException("CreateTrainingRequest cannot be null");
         }
@@ -104,10 +104,49 @@ public class TrainingServiceImpl implements TrainingService {
 
             traineeTrainingMetrics.recordTraineeSession();
             traineeTrainingMetrics.recordTraineeTrainingDuration(training.getDuration());
-            
+
             trainerTrainingMetrics.recordTrainerSession();
             trainerTrainingMetrics.recordTrainerTrainingDuration(training.getDuration());
-            
+
+            // Notify workload service about new training
+            return workloadNotificationService.notifyTrainingCreated(savedTraining);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error adding Training", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public TrainerWorkloadResponse saveWithValidation(CreateTrainingRequest createTrainingRequest) {
+        if (createTrainingRequest == null) {
+            throw new IllegalArgumentException("CreateTrainingRequest cannot be null");
+        }
+
+        validateWorkloadRequest(createTrainingRequest);
+
+        try {
+            Trainee trainee = traineeRepository.findByUsername(createTrainingRequest.traineeUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainee not found with username: " + createTrainingRequest.traineeUsername()));
+            Trainer trainer = trainerRepository.findByUsername(createTrainingRequest.trainerUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainer not found with username: " + createTrainingRequest.trainerUsername()));
+
+            Training training = trainingCreateMapper.toEntity(createTrainingRequest, trainer, trainee,
+                    trainer.getTrainingType());
+            Training savedTraining = trainingRepository.save(training);
+
+            trainingMetrics.recordNewTraining();
+            trainingMetrics.recordTrainingDuration(training.getDuration());
+
+            traineeTrainingMetrics.recordTraineeSession();
+            traineeTrainingMetrics.recordTraineeTrainingDuration(training.getDuration());
+
+            trainerTrainingMetrics.recordTrainerSession();
+            trainerTrainingMetrics.recordTrainerTrainingDuration(training.getDuration());
+
             // Notify workload service about new training
             return workloadNotificationService.notifyTrainingCreated(savedTraining);
         } catch (ResourceNotFoundException e) {
@@ -188,9 +227,9 @@ public class TrainingServiceImpl implements TrainingService {
             // Get the training before deleting to notify workload service
             Training training = trainingRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found with id: " + id));
-            
+
             trainingRepository.deleteById(id);
-            
+
             // Notify workload service about training deletion
             workloadNotificationService.notifyTrainingDeleted(training);
         } catch (ResourceNotFoundException e) {
@@ -215,7 +254,8 @@ public class TrainingServiceImpl implements TrainingService {
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Trainer not found with username: " + deleteTrainingRequest.trainerUsername()));
 
-            Training training = trainingRepository.findByTraineeAndTrainerAndTrainingDate(trainee, trainer, deleteTrainingRequest.trainingDate())
+            Training training = trainingRepository
+                    .findByTraineeAndTrainerAndTrainingDate(trainee, trainer, deleteTrainingRequest.trainingDate())
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found"));
 
             trainingRepository.delete(training);
@@ -227,7 +267,6 @@ public class TrainingServiceImpl implements TrainingService {
             throw new DatabaseOperationException("Error deleting Training", e);
         }
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -282,6 +321,20 @@ public class TrainingServiceImpl implements TrainingService {
                     .toList();
         } catch (Exception e) {
             throw new DatabaseOperationException("Error finding Trainings by Trainer with filters", e);
+        }
+    }
+
+    private void validateWorkloadRequest(CreateTrainingRequest request) {
+        if (request.trainerUsername() == null || request.trainerUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("Trainer username is required");
+        }
+
+        if (request.trainingDate() == null) {
+            throw new IllegalArgumentException("Training date is required");
+        }
+
+        if (request.trainingDuration() < 0) {
+            throw new IllegalArgumentException("Training duration must be positive");
         }
     }
 }

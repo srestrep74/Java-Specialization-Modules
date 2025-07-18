@@ -168,7 +168,7 @@ class TrainingServiceImplTest {
         doNothing().when(trainerTrainingMetrics).recordTrainerTrainingDuration(anyLong());
         doNothing().when(workloadNotificationService).notifyTrainingCreated(any(Training.class));
 
-        assertDoesNotThrow(() -> trainingService.save(createTrainingRequest));
+        assertDoesNotThrow(() -> trainingService.saveWithValidation(createTrainingRequest));
         verify(trainingRepository).save(training);
         verify(trainingMetrics).recordNewTraining();
         verify(trainingMetrics).recordTrainingDuration(60L);
@@ -181,7 +181,7 @@ class TrainingServiceImplTest {
 
     @Test
     void save_ShouldThrowIllegalArgumentException_WhenRequestIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> trainingService.save(null));
+        assertThrows(IllegalArgumentException.class, () -> trainingService.saveWithValidation(null));
     }
 
     @Test
@@ -189,7 +189,7 @@ class TrainingServiceImplTest {
         when(traineeRepository.findByUsername("johndoe")).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> trainingService.save(createTrainingRequest));
+                () -> trainingService.saveWithValidation(createTrainingRequest));
 
         assertTrue(exception.getMessage().contains("Trainee not found"));
     }
@@ -200,7 +200,7 @@ class TrainingServiceImplTest {
         when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () -> trainingService.save(createTrainingRequest));
+                () -> trainingService.saveWithValidation(createTrainingRequest));
 
         assertTrue(exception.getMessage().contains("Trainer not found"));
     }
@@ -214,7 +214,7 @@ class TrainingServiceImplTest {
         when(trainingRepository.save(training)).thenThrow(new RuntimeException("Database error"));
 
         assertThrows(DatabaseOperationException.class,
-                () -> trainingService.save(createTrainingRequest));
+                () -> trainingService.saveWithValidation(createTrainingRequest));
     }
 
     @Test

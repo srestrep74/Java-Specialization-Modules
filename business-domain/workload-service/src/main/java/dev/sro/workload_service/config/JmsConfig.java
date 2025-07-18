@@ -21,13 +21,13 @@ import jakarta.jms.ConnectionFactory;
 @Configuration
 @EnableJms
 public class JmsConfig {
-    
+
     @Value("${spring.activemq.broker-url}")
     private String brokerUrl;
-    
+
     @Value("${spring.activemq.user}")
     private String username;
-    
+
     @Value("${spring.activemq.password}")
     private String password;
 
@@ -39,7 +39,7 @@ public class JmsConfig {
 
     @Value("${app.jms.redelivery-delay-max:5000}")
     private long redeliveryDelayMax;
-    
+
     @Bean
     public ConnectionFactory connectionFactory() {
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
@@ -57,26 +57,25 @@ public class JmsConfig {
         connectionFactory.setRedeliveryPolicy(redeliveryPolicy);
         return connectionFactory;
     }
-    
+
     @Bean
     public MessageConverter jacksonJmsMessageConverter() {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
-        
+
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         converter.setObjectMapper(objectMapper);
 
         converter.setTypeIdMappings(java.util.Map.of(
-            "dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest", 
-            dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest.class
-        ));
-        
+                "dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest",
+                dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest.class));
+
         return converter;
     }
-    
+
     @Bean
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory(
             ConnectionFactory connectionFactory, MessageConverter messageConverter) {
