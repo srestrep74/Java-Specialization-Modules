@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.RedeliveryPolicy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
+import dev.sro.workload_service.exception.messaging.JmsErrorHandler;
 import jakarta.jms.ConnectionFactory;
 
 @Configuration
@@ -28,6 +30,15 @@ public class JmsConfig {
     
     @Value("${spring.activemq.password}")
     private String password;
+
+    @Value("${app.jms.max-redeliveries:3}")
+    private int maxRedeliveries;
+
+    @Value("${app.jms.initial-redelivery-delay:2000}")
+    private long initialRedeliveryDelay;
+
+    @Value("${app.jms.redelivery-delay-max:5000}")
+    private long redeliveryDelayMax;
     
     @Bean
     public ConnectionFactory connectionFactory() {
@@ -35,6 +46,15 @@ public class JmsConfig {
         connectionFactory.setBrokerURL(brokerUrl);
         connectionFactory.setUserName(username);
         connectionFactory.setPassword(password);
+
+        RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
+        redeliveryPolicy.setMaximumRedeliveries(maxRedeliveries);
+        redeliveryPolicy.setInitialRedeliveryDelay(initialRedeliveryDelay);
+        redeliveryPolicy.setRedeliveryDelay(redeliveryDelayMax);
+        redeliveryPolicy.setUseExponentialBackOff(true);
+        redeliveryPolicy.setBackOffMultiplier(2.0);
+        redeliveryPolicy.setMaximumRedeliveryDelay(6000);
+        connectionFactory.setRedeliveryPolicy(redeliveryPolicy);
         return connectionFactory;
     }
     
@@ -64,6 +84,8 @@ public class JmsConfig {
         factory.setConnectionFactory(connectionFactory);
         factory.setMessageConverter(messageConverter);
         factory.setConcurrency("1-10");
+        factory.setSessionTransacted(true);
+        factory.setErrorHandler(new JmsErrorHandler());
         return factory;
     }
 }
