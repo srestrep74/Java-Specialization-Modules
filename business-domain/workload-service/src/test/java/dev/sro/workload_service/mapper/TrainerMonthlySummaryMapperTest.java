@@ -4,8 +4,8 @@ import dev.sro.workload_service.dtos.v1.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.entity.MonthlySummary;
 import dev.sro.workload_service.entity.Trainer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -14,10 +14,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class TrainerMonthlySummaryMapperTest {
 
-        private final TrainerMonthlySummaryMapper mapper = TrainerMonthlySummaryMapper.INSTANCE;
+    @Autowired
+    private TrainerMonthlySummaryMapper mapper;
 
         @Test
         void shouldMapMonthlySummaryToMonthSummary() {

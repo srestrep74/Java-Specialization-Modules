@@ -12,7 +12,7 @@ The **Gym Service** is the core business domain microservice responsible for:
 - **Training Sessions**: Scheduling, management, and tracking of training sessions
 - **Training Types**: Management of available training specializations
 - **Authentication & Authorization**: JWT-based security with role-based access control
-- **Workload Integration**: Synchronous communication with Workload Service for trainer workload tracking
+- **Workload Integration**: Asynchronous communication with Workload Service via ActiveMQ for trainer workload tracking
 
 ## 🎯 Business Domain
 
@@ -60,76 +60,84 @@ The **Gym Service** is the core business domain microservice responsible for:
   - Config Server: `http://localhost:8888`
   - Profile-based configurations (dev, prod, local)
 
+### Message Broker
+- **ActiveMQ**: Asynchronous messaging infrastructure
+  - Broker URL: `tcp://activemq:61616`
+  - Web Console: `http://localhost:8161` (admin/admin)
+  - Queue: `workload-queue` for trainer workload messages
+  - JMS Configuration: Point-to-point messaging with Jackson serialization
+
 ## 🔄 Circuit Breaker Pattern Implementation
 
 ### Overview
-The Circuit Breaker pattern is implemented using **Resilience4j** to provide fault tolerance when communicating with the Workload Service. This pattern prevents cascade failures and provides graceful degradation.
+The Circuit Breaker pattern is implemented using **Resilience4j** to provide fault tolerance when communicating with the ActiveMQ message broker. This pattern prevents cascade failures and provides graceful degradation when the messaging infrastructure is unavailable.
 
 ### How Circuit Breaker Works
 
 The circuit breaker operates in three states:
 
 1. **CLOSED** (Normal Operation)
-   - All requests pass through to the Workload Service
+   - All messages are sent to ActiveMQ broker successfully
    - Success/failure rates are monitored
    - If failure rate exceeds threshold, transitions to OPEN
 
 2. **OPEN** (Failure State)
-   - All requests are immediately rejected
+   - All message sending attempts are immediately rejected
    - Fallback method is executed (Outbox pattern activated)
    - After wait duration, transitions to HALF_OPEN
 
 3. **HALF_OPEN** (Recovery Testing)
-   - Limited number of test requests are allowed
+   - Limited number of test messages are allowed
    - If successful, transitions back to CLOSED
    - If failed, returns to OPEN state
 
 ### Circuit Breaker Configuration Details
 
-The circuit breaker is configured with specific thresholds and timing parameters:
-- **Sliding Window Size**: 10 requests for failure rate calculation
-- **Minimum Calls**: 5 calls required before state evaluation
-- **Failure Rate Threshold**: 50% failure rate triggers circuit opening
-- **Wait Duration**: 10 seconds before attempting recovery
-- **Half-Open Test Calls**: 3 permitted calls for testing recovery
+The circuit breaker is configured with specific thresholds and timing parameters for ActiveMQ communication:
+- **Sliding Window Size**: 10 message sending attempts for failure rate calculation
+- **Minimum Calls**: 3 calls required before state evaluation
+- **Failure Rate Threshold**: 60% failure rate triggers circuit opening
+- **Wait Duration**: 30 seconds before attempting recovery
+- **Half-Open Test Calls**: 2 permitted calls for testing recovery
 - **Slow Call Threshold**: 80% slow calls with 5-second duration limit
-- **Timeout Duration**: 15 seconds for individual requests
+- **Timeout Duration**: 15 seconds for individual message sending operations
+- **Recorded Exceptions**: JMSException, JmsException, ConnectException, IOException
 
-## 🌐 Feign Client Communication & Outbox Pattern
+## 🌐 ActiveMQ Asynchronous Communication & Outbox Pattern
 
-### Primary Feign Client Communication
-**OpenFeign** provides declarative HTTP client communication with the Workload Service through the `WorkloadServiceClient` interface. This client is configured with specific timeouts, connection settings, and integrates seamlessly with the circuit breaker pattern.
+### Primary ActiveMQ Message Producer
+**Spring JMS** provides asynchronous messaging communication with the Workload Service through the `WorkloadMessageProducer` component. This producer is configured with circuit breaker protection and integrates seamlessly with the outbox pattern for guaranteed message delivery.
 
 ### Outbox Pattern Implementation
 
-The service implements the **Outbox Pattern** to ensure reliable communication with the Workload Service, guaranteeing that workload updates are eventually delivered even when the target service is temporarily unavailable.
+The service implements the **Outbox Pattern** to ensure reliable communication with the Workload Service via ActiveMQ, guaranteeing that workload updates are eventually delivered even when the message broker is temporarily unavailable.
 
 #### How the Communication Flow Works
 
 1. **Normal Transaction Processing**: When a training session is created, updated, or deleted, the business logic performs the main database transaction (saving/updating the Training entity)
 
-2. **Immediate Feign Client Call**: After the successful database transaction, the `WorkloadNotificationService` immediately attempts to notify the Workload Service using the `WorkloadServiceClient` (primary Feign client)
+2. **Immediate Message Sending**: After the successful database transaction, the `WorkloadMessageProducer` immediately attempts to send a message to the `workload-queue` using JMS Template
 
-3. **Circuit Breaker & Fallback Activation**: If the Workload Service is unavailable, times out, or the circuit breaker is OPEN, the `WorkloadServiceClientFallback` is automatically triggered
+3. **Circuit Breaker & Fallback Activation**: If the ActiveMQ broker is unavailable, times out, or the circuit breaker is OPEN, the `fallbackSendWorkloadMessage` method is automatically triggered
 
 4. **Fallback Storage (Outbox Pattern)**: The fallback mechanism stores the workload data in the `PendingWorkload` table (outbox), ensuring no data is lost
 
-5. **Scheduled Retry Processing**: A background process (`WorkloadRelayService`) runs every 2 minutes, scanning the outbox table and attempting to process all pending workload entries using a separate Feign client (`WorkloadRelayClient`)
+5. **Scheduled Retry Processing**: A background process (`WorkloadRelayService`) runs every 2 minutes, scanning the outbox table and attempting to process all pending workload entries by resending messages to ActiveMQ
 
 #### Detailed Communication Flow
 
 **Scenario 1: Successful Communication**
 - Training operation completes in database
-- `WorkloadNotificationService` calls `WorkloadServiceClient` immediately
-- Workload Service responds successfully
+- `WorkloadMessageProducer` sends message to `workload-queue` immediately
+- ActiveMQ broker acknowledges message delivery
 - No outbox entry is created
 - Operation is complete
 
 **Scenario 2: Failed Communication with Fallback**
 - Training operation completes in database
-- `WorkloadNotificationService` calls `WorkloadServiceClient` immediately
-- Call fails (service down, timeout, circuit breaker open)
-- `WorkloadServiceClientFallback` is automatically executed
+- `WorkloadMessageProducer` attempts to send message to ActiveMQ
+- Message sending fails (broker down, timeout, circuit breaker open)
+- `fallbackSendWorkloadMessage` is automatically executed
 - Fallback saves workload data to `PendingWorkload` table (outbox)
 - User operation completes successfully (non-blocking)
 - Background service will retry later
@@ -137,36 +145,30 @@ The service implements the **Outbox Pattern** to ensure reliable communication w
 **Scenario 3: Recovery Processing**
 - `WorkloadRelayService` runs every 2 minutes
 - Scans `PendingWorkload` table for pending entries
-- Uses `WorkloadRelayClient` to attempt sending each pending workload
+- Attempts to resend each pending workload message to ActiveMQ
 - Successfully processed entries are removed from outbox
 - Failed attempts remain for next retry cycle
 
 #### Key Components in the Flow
 
-**WorkloadServiceClient (Primary Client)**
-- Main Feign client for immediate workload notifications
+**WorkloadMessageProducer (Primary Producer)**
+- Main JMS message producer for immediate workload notifications
 - Configured with circuit breaker and fallback mechanism
-- Used during normal business operations
+- Uses JmsTemplate for message sending operations
 - Directly integrated with the main transaction flow
 
-**WorkloadServiceClientFallback (Fallback Handler)**
-- Automatically activated when primary client fails
+**fallbackSendWorkloadMessage (Fallback Handler)**
+- Automatically activated when primary message sending fails
 - Stores workload data in the outbox table (PendingWorkload)
 - Handles duplicate prevention through unique constraints
 - Provides graceful degradation without blocking business operations
 - Logs critical errors if outbox storage fails
 
-**WorkloadNotificationService (Orchestrator)**
-- Coordinates workload notifications for training operations
-- Handles different action types (ADD, UPDATE, DELETE)
-- Manages complex update scenarios (date/duration changes)
-- Provides abstraction layer for workload communications
-
-**WorkloadRelayClient (Retry Client)**
-- Separate Feign client used exclusively for retry operations
-- Processes pending workloads from the outbox table
-- Operates independently of the main business flow
-- Used by the scheduled background service
+**JmsTemplate (Message Sending Infrastructure)**
+- Spring JMS template for ActiveMQ communication
+- Configured with Jackson message converter for JSON serialization
+- Handles connection management and message delivery
+- Supports point-to-point messaging to workload-queue
 
 **WorkloadRelayService (Background Processor)**
 - Scheduled service running every 2 minutes
@@ -176,7 +178,7 @@ The service implements the **Outbox Pattern** to ensure reliable communication w
 
 #### PendingWorkload Entity (Outbox Table)
 
-The outbox table stores all necessary information to reconstruct and replay the workload request:
+The outbox table stores all necessary information to reconstruct and replay the workload message:
 - **Trainer Information**: Username, first name, last name, and active status
 - **Training Details**: Training date and duration
 - **Action Type**: Operation type (ADD, DELETE, UPDATE)
@@ -185,14 +187,16 @@ The outbox table stores all necessary information to reconstruct and replay the 
 
 #### Benefits of This Implementation
 
-1. **Guaranteed Delivery**: Eventually consistent communication between services
-2. **Fault Tolerance**: Handles temporary network failures and service outages gracefully
+1. **Guaranteed Delivery**: Eventually consistent communication between services via ActiveMQ
+2. **Fault Tolerance**: Handles temporary broker failures and network outages gracefully
 3. **Data Consistency**: Maintains transactional integrity within the Gym Service domain
-4. **Non-Blocking Operations**: Business operations continue even when external service is down
-5. **Monitoring Capability**: Provides visibility into failed communications through the outbox table
-6. **Performance Optimization**: Immediate attempts for fast communication, background retry for resilience
+4. **Non-Blocking Operations**: Business operations continue even when message broker is down
+5. **Monitoring Capability**: Provides visibility into failed message deliveries through the outbox table
+6. **Performance Optimization**: Immediate message sending for fast communication, background retry for resilience
 7. **Idempotency Protection**: Unique constraints prevent duplicate workload processing
-8. **Audit Trail**: Maintains history of communication attempts with timestamps
+8. **Audit Trail**: Maintains history of message sending attempts with timestamps
+9. **Asynchronous Processing**: Decoupled communication allowing independent service scaling
+10. **Message Persistence**: ActiveMQ provides message durability and delivery guarantees
 
 #### Retry Strategy Details
 
@@ -206,12 +210,12 @@ The outbox table stores all necessary information to reconstruct and replay the 
 
 The Outbox pattern works seamlessly with the Circuit Breaker to provide multiple layers of resilience:
 
-1. **Circuit CLOSED State**: Normal Feign client communication with immediate success
-2. **Circuit OPEN State**: All requests immediately trigger fallback and go to outbox storage
-3. **Circuit HALF_OPEN State**: Some requests attempt direct communication, failures trigger fallback
+1. **Circuit CLOSED State**: Normal ActiveMQ message sending with immediate success
+2. **Circuit OPEN State**: All message sending attempts immediately trigger fallback and go to outbox storage
+3. **Circuit HALF_OPEN State**: Some message sending attempts are allowed, failures trigger fallback
 4. **Background Processing**: WorkloadRelayService continues processing regardless of circuit breaker state
 
-This implementation ensures that business operations are never blocked by external service availability, while guaranteeing eventual delivery of all workload updates through the outbox pattern.
+This implementation ensures that business operations are never blocked by message broker availability, while guaranteeing eventual delivery of all workload updates through the outbox pattern and ActiveMQ.
 
 ## 📊 Monitoring & Observability
 
@@ -219,22 +223,25 @@ This implementation ensures that business operations are never blocked by extern
 - **Database Health**: PostgreSQL connection status and query performance
 - **Redis Health**: Cache connectivity and response times
 - **Eureka Health**: Service discovery registration status
-- **Circuit Breaker Health**: Workload service communication status and state transitions
+- **Circuit Breaker Health**: ActiveMQ communication status and state transitions
 - **Outbox Health**: Pending workloads count and processing status
+- **ActiveMQ Health**: Message broker connectivity and queue status
 
 ### Metrics Collection
 The service collects comprehensive metrics for business operations and technical performance:
 - **Training Metrics**: Creation rates, duration distributions, and scheduling patterns
 - **Authentication Metrics**: Login attempts, success rates, and token generation
-- **Circuit Breaker Metrics**: State transitions, failure rates, and response times
+- **Circuit Breaker Metrics**: State transitions, failure rates, and response times for ActiveMQ communication
 - **Outbox Metrics**: Pending workload counts, processing success rates, and retry frequencies
 - **Database Metrics**: Connection pool utilization, query performance, and transaction rates
+- **JMS Metrics**: Message sending rates, queue depths, and broker connectivity
 
 ### Distributed Tracing
 - **Zipkin Integration**: End-to-end request tracing across service boundaries
 - **Correlation IDs**: Request tracking through synchronous and asynchronous processing
 - **B3 Propagation**: Trace context propagation for distributed system visibility
 - **Outbox Tracing**: Correlation between original requests and retry attempts
+- **JMS Tracing**: Message flow tracking through ActiveMQ broker
 
 ## 🏛️ Architecture Patterns
 
@@ -336,14 +343,14 @@ The service supports multiple configuration profiles for different deployment en
 ### Common Issues
 
 1. **Circuit Breaker Constantly Open**
-   - **Symptoms**: All workload service communications failing
-   - **Diagnosis**: Check Workload Service availability and network connectivity
-   - **Solution**: Verify service discovery registration and adjust threshold parameters
+   - **Symptoms**: All ActiveMQ message sending operations failing
+   - **Diagnosis**: Check ActiveMQ broker availability and network connectivity
+   - **Solution**: Verify broker connectivity and adjust threshold parameters
 
 2. **Accumulating Pending Workloads**
    - **Symptoms**: Growing number of entries in outbox table
-   - **Diagnosis**: Check WorkloadRelayService execution logs and target service status
-   - **Solution**: Verify scheduled task execution and target service availability
+   - **Diagnosis**: Check WorkloadRelayService execution logs and ActiveMQ broker status
+   - **Solution**: Verify scheduled task execution and broker availability
 
 3. **Database Performance Issues**
    - **Symptoms**: Slow response times and connection pool exhaustion
@@ -359,7 +366,7 @@ The service supports multiple configuration profiles for different deployment en
 - `/actuator/health` - Overall service health status
 - `/actuator/health/db` - Database connectivity and performance
 - `/actuator/health/redis` - Redis cache availability
-- `/actuator/health/circuitBreakers` - Circuit breaker status and metrics
+- `/actuator/health/circuitBreakers` - Circuit breaker status and metrics for ActiveMQ communication
 
 ### Monitoring Queries
 Database queries for operational monitoring:
@@ -372,10 +379,10 @@ Database queries for operational monitoring:
 
 ## 🏆 Key Features
 
-- ✅ **Circuit Breaker Pattern** with Resilience4j for fault tolerance
-- ✅ **Outbox Pattern** for guaranteed message delivery
-- ✅ **Feign Client** for declarative service communication
-- ✅ **Scheduled Retry Mechanism** for reliable inter-service communication
+- ✅ **Circuit Breaker Pattern** with Resilience4j for ActiveMQ fault tolerance
+- ✅ **Outbox Pattern** for guaranteed message delivery via ActiveMQ
+- ✅ **ActiveMQ Integration** for asynchronous inter-service communication
+- ✅ **Scheduled Retry Mechanism** for reliable message delivery
 - ✅ **Transactional Outbox** ensuring data consistency across operations
 - ✅ **JWT Authentication** with Redis-based token management
 - ✅ **Database per Service** pattern implementation

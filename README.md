@@ -19,6 +19,7 @@ The system follows Domain-Driven Design (DDD) principles and implements various 
 - **Configuration Management**: External configuration with Spring Cloud Config
 - **Circuit Breaker Pattern**: Resilience4j for fault tolerance
 - **Database per Service**: Each microservice has its own database
+- **Asynchronous Messaging**: ActiveMQ for decoupled inter-service communication
 
 ### Design Patterns & Best Practices
 - **Clean Architecture**: Clear separation of concerns and dependency inversion
@@ -58,7 +59,7 @@ The system follows Domain-Driven Design (DDD) principles and implements various 
 - **Eureka Server**: Service discovery
 - **Spring Cloud Gateway**: API gateway and routing
 - **Spring Cloud Config**: Centralized configuration
-- **OpenFeign**: Declarative HTTP client
+- **ActiveMQ**: Asynchronous messaging for inter-service communication
 - **Resilience4j**: Circuit breaker and resilience patterns
 
 ### Monitoring & Observability
@@ -117,6 +118,7 @@ This will start:
 - PostgreSQL (port 5432) + pgAdmin (port 5050)
 - MySQL (port 3307) + phpMyAdmin (port 8080)
 - Redis (port 6379) + RedisInsight (port 5540)
+- ActiveMQ (port 61616) + ActiveMQ Web Console (port 8161)
 - Prometheus (port 9090)
 - Grafana (port 3000)
 - Zipkin (port 9411)
@@ -139,6 +141,7 @@ This will start:
 - **API Gateway Health**: http://localhost:8083/actuator/health
 - **Gym Service Swagger**: http://localhost:8081/swagger-ui.html
 - **Workload Service Swagger**: http://localhost:8082/swagger-ui.html
+- **ActiveMQ Web Console**: http://localhost:8161 (admin/admin)
 - **Grafana**: http://localhost:3000 (admin/admin)
 - **Prometheus**: http://localhost:9090
 - **Zipkin**: http://localhost:9411
@@ -180,6 +183,8 @@ JWT_SECRET=your-secret-key
 - API Gateway: 8083
 - Gym Service: 8081
 - Workload Service: 8082
+- ActiveMQ: 61616
+- ActiveMQ Web Console: 8161
 
 ## 🛑 Stopping Services
 
@@ -244,7 +249,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - ✅ Metrics & Monitoring
 - ✅ Containerization
 - ✅ Health Checks
-- ✅ Inter-service Communication
+- ✅ Asynchronous Inter-service Communication (ActiveMQ)
 - ✅ Resilience Patterns
 - ✅ Clean Architecture
 - ✅ Test-Driven Development 
