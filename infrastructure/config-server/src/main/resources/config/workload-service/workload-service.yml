@@ -14,6 +14,23 @@ spring:
           batch_size: 20
         order_inserts: true
         order_updates: true
+  activemq:
+    broker-url: tcp://activemq:61616
+    user: admin
+    password: admin
+    packages:
+      trust-all: true
+  jms:
+    pub-sub-domain: false
+    template:
+      delivery-mode: persistent
+      receive-timeout: 10000
+
+app:
+  jms:
+    max-redeliveries: 3
+    initial-redelivery-delay: 2000
+    redelivery-delay-max: 5000
 
 eureka:
   instance:
@@ -63,6 +80,7 @@ logging:
     dev.sro.workload_service.infrastructure.repository: INFO
     dev.sro.workload_service.presentation.controller: INFO
     dev.sro.workload_service.application.mapper: WARN
+    dev.sro.workload_service.messaging: INFO
     
     org.springframework.web: INFO
     org.springframework.security: INFO
@@ -70,6 +88,9 @@ logging:
     org.aspectj: INFO
     org.springframework.cloud.sleuth: DEBUG
     org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.jms: DEBUG
+
+    org.apache.activemq: INFO
     
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
@@ -94,3 +115,6 @@ micrometer:
       type: B3
     brave:
       span-joining-supported: true
+    # Enable JMS tracing
+    jms:
+      enabled: true

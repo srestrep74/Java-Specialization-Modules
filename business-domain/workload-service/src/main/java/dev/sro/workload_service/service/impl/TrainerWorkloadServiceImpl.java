@@ -206,6 +206,10 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         if (request.actionType() == null) {
             throw new InvalidWorkloadDataException("actionType", "null", "Action type is required");
         }
+
+        if (request.trainingDuration() != null && request.trainingDuration() < 0) {
+            throw new IllegalArgumentException("Training duration must be positive");
+        }
     }
 
 }

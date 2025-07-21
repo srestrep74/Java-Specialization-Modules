@@ -5,12 +5,9 @@ import dev.sro.workload_service.entity.Trainer;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface TrainerMapper {
-
-    TrainerMapper INSTANCE = Mappers.getMapper(TrainerMapper.class);
 
     @Mapping(target = "trainingSessions", ignore = true)
     @Mapping(target = "monthlySummaries", ignore = true)

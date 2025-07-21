@@ -4,17 +4,18 @@ import dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.entity.Trainer;
 import dev.sro.workload_service.entity.enums.ActionType;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class TrainerMapperTest {
 
-    private final TrainerMapper mapper = TrainerMapper.INSTANCE;
+    @Autowired
+    private TrainerMapper mapper;
 
     @Test
     void shouldMapTrainerWorkloadRequestToTrainer() {

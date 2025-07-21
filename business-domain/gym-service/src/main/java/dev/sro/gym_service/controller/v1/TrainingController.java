@@ -109,13 +109,73 @@ public class TrainingController {
     public ResponseEntity<TrainingMutationResponse> createTraining(
             @Parameter(description = "Details of the training session to create") 
             @Valid @RequestBody CreateTrainingRequest createTrainingRequest) {
-        TrainerWorkloadResponse workloadResponse = trainingService.save(createTrainingRequest);
+        TrainerWorkloadResponse workloadResponse = trainingService.saveWithValidation(createTrainingRequest);
         
         String message = "Training created successfully.";
         String details = null;
 
         if (workloadResponse != null && workloadResponse.message().contains("queued")) {
             message = "Training created, but workload notification is delayed.";
+            details = workloadResponse.message();
+        }
+
+        return ResponseEntity.ok(new TrainingMutationResponse(message, details));
+    }
+
+    @Operation(
+        summary = "Create a new training session without validation (for DLQ testing)",
+        description = "Registers a new training session without validation to simulate sending corrupt messages. "
+            + "This endpoint bypasses validation and may send invalid data to the workload service for DLQ testing. "
+            + "Requires authentication with either TRAINEE or TRAINER role.",
+        operationId = "createTrainingWithoutValidation",
+        security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Training session created without validation",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = TrainingMutationResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required role (TRAINEE or TRAINER)",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        )
+    })
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('TRAINER')")
+    @PostMapping("/without-validation")
+    public ResponseEntity<TrainingMutationResponse> createTrainingWithoutValidation(
+            @Parameter(description = "Details of the training session to create (may contain invalid data)") 
+            @RequestBody CreateTrainingRequest createTrainingRequest) {
+        TrainerWorkloadResponse workloadResponse = trainingService.saveWithoutValidation(createTrainingRequest);
+        
+        String message = "Training created without validation (DLQ test).";
+        String details = null;
+
+        if (workloadResponse != null && workloadResponse.message().contains("queued")) {
+            message = "Training created without validation, but workload notification is delayed.";
             details = workloadResponse.message();
         }
 

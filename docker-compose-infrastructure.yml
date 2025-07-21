@@ -155,6 +155,30 @@ services:
     networks:
       - microservices-network
 
+  # ==========================================
+  # MESSAGING INFRASTRUCTURE
+  # ==========================================
+  activemq:
+    image: rmohr/activemq:5.15.9
+    container_name: activemq
+    ports:
+      - "61616:61616"  # JMS
+      - "8161:8161"    # Web Console
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: admin
+      ACTIVEMQ_ADMIN_PASSWORD: admin
+    volumes:
+      - activemq_data:/data/activemq
+      - activemq_log:/var/log/activemq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8161/admin/queues.jsp"]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
 # ==========================================
 # VOLUMES
 # ==========================================
@@ -170,6 +194,10 @@ volumes:
   prometheus_data:
     driver: local
   grafana_data:
+    driver: local
+  activemq_data:
+    driver: local
+  activemq_log:
     driver: local
 
 # ==========================================

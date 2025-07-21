@@ -1,0 +1,74 @@
+groups:
+  - name: dlq_alerts
+    rules:
+      # Alert cuando hay muchos mensajes llegando a DLQ
+      - alert: HighDLQMessageRate
+        expr: rate(dlq_messages_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: workload-service
+        annotations:
+          summary: "High DLQ message rate detected"
+          description: "{{ $value }} messages per second are being moved to DLQ for workload-service"
+          runbook_url: "https://wiki.company.com/runbooks/dlq-high-rate"
+
+      # Alert cuando hay errores procesando desde DLQ
+      - alert: DLQProcessingErrors
+        expr: rate(dlq_processing_errors_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: workload-service
+        annotations:
+          summary: "DLQ processing is failing"
+          description: "Messages are failing to be processed from DLQ. Rate: {{ $value }} errors/sec"
+          runbook_url: "https://wiki.company.com/runbooks/dlq-processing-errors"
+
+      # Alert cuando la tasa de éxito de DLQ es baja
+      - alert: LowDLQSuccessRate
+        expr: (rate(dlq_processing_success_total[5m]) / rate(dlq_messages_total[5m])) < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: workload-service
+        annotations:
+          summary: "Low DLQ processing success rate"
+          description: "DLQ processing success rate is {{ $value | humanizePercentage }}. Expected > 80%"
+          runbook_url: "https://wiki.company.com/runbooks/dlq-low-success-rate"
+
+      # Alert cuando hay muchos reintentos
+      - alert: HighDLQRetryRate
+        expr: rate(dlq_retry_attempts_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          service: workload-service
+        annotations:
+          summary: "High DLQ retry rate detected"
+          description: "{{ $value }} retry attempts per second. This indicates persistent processing issues"
+          runbook_url: "https://wiki.company.com/runbooks/dlq-high-retry-rate"
+
+      # Alert cuando el tiempo de procesamiento de DLQ es alto
+      - alert: HighDLQProcessingTime
+        expr: histogram_quantile(0.95, rate(dlq_processing_duration_seconds_bucket[5m])) > 30
+        for: 2m
+        labels:
+          severity: warning
+          service: workload-service
+        annotations:
+          summary: "High DLQ processing time"
+          description: "95th percentile DLQ processing time is {{ $value }} seconds. Expected < 30s"
+          runbook_url: "https://wiki.company.com/runbooks/dlq-high-processing-time"
+
+      # Alert cuando no hay mensajes siendo procesados desde DLQ
+      - alert: NoDLQProcessing
+        expr: rate(dlq_processing_success_total[10m]) == 0 and rate(dlq_messages_total[10m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: workload-service
+        annotations:
+          summary: "No DLQ processing activity"
+          description: "Messages are accumulating in DLQ but none are being processed"
+          runbook_url: "https://wiki.company.com/runbooks/dlq-no-processing" 

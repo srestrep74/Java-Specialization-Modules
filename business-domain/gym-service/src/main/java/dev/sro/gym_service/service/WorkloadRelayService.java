@@ -1,9 +1,9 @@
 package dev.sro.gym_service.service;
 
-import dev.sro.gym_service.client.WorkloadRelayClient;
 import dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest;
 import dev.sro.gym_service.entity.PendingWorkload;
 import dev.sro.gym_service.repository.PendingWorkloadRepository;
+import dev.sro.gym_service.messaging.WorkloadMessageProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +18,7 @@ import java.util.List;
 public class WorkloadRelayService {
 
     private final PendingWorkloadRepository pendingWorkloadRepository;
-    private final WorkloadRelayClient workloadRelayClient;
+    private final WorkloadMessageProducer workloadMessageProducer;
 
     @Scheduled(fixedRate = 120000)
     @Transactional
@@ -34,7 +34,7 @@ public class WorkloadRelayService {
         log.info("Found {} pending workloads. Attempting to process...", pending.size());
         for (PendingWorkload workload : pending) {
             try {
-                TrainerWorkloadRequest request = new TrainerWorkloadRequest(
+                TrainerWorkloadRequest message = new TrainerWorkloadRequest(
                         workload.getTrainerUsername(),
                         workload.getTrainerFirstname(),
                         workload.getTrainerLastname(),
@@ -42,7 +42,7 @@ public class WorkloadRelayService {
                         workload.getTrainingDate(),
                         workload.getTrainingDuration(),
                         TrainerWorkloadRequest.ActionType.valueOf(workload.getActionType().name()));
-                workloadRelayClient.processTrainerWorkload(request);
+                workloadMessageProducer.sendWorkloadMessage(message);
 
                 pendingWorkloadRepository.deleteById(workload.getId());
                 log.info("Successfully processed and removed workload for trainer: {}", workload.getTrainerUsername());

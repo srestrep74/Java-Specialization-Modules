@@ -1,10 +1,10 @@
 package dev.sro.gym_service.service.impl;
 
-import dev.sro.gym_service.client.WorkloadServiceClient;
 import dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest;
 import dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest.ActionType;
 import dev.sro.gym_service.dtos.v1.response.workload.TrainerWorkloadResponse;
 import dev.sro.gym_service.entity.Training;
+import dev.sro.gym_service.messaging.WorkloadMessageProducer;
 import dev.sro.gym_service.service.WorkloadNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class WorkloadNotificationServiceImpl implements WorkloadNotificationService {
 
-    private final WorkloadServiceClient workloadServiceClient;
+    private final WorkloadMessageProducer workloadMessageProducer;
 
     @Override
     public TrainerWorkloadResponse notifyTrainingCreated(Training training) {
@@ -38,7 +38,7 @@ public class WorkloadNotificationServiceImpl implements WorkloadNotificationServ
 
     @Override
     public TrainerWorkloadResponse sendWorkloadNotification(Training training, ActionType actionType) {
-        TrainerWorkloadRequest request = new TrainerWorkloadRequest(
+        TrainerWorkloadRequest message = new TrainerWorkloadRequest(
                 training.getTrainer().getUsername(),
                 training.getTrainer().getFirstName(),
                 training.getTrainer().getLastName(),
@@ -48,8 +48,8 @@ public class WorkloadNotificationServiceImpl implements WorkloadNotificationServ
                 actionType);
 
         try {
-            TrainerWorkloadResponse response = workloadServiceClient.processTrainerWorkload(request);
-            return response;
+            workloadMessageProducer.sendWorkloadMessage(message);
+            return new TrainerWorkloadResponse("Workload notification sent successfully", true);
         } catch (Exception e) {
             return new TrainerWorkloadResponse(
                     "Workload service temporarily unavailable. The operation has been queued and will be processed later.",
