@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "trainer_training_summaries")
+@CompoundIndex(name = "trainer_name_idx", def = "{'trainer_first_name': 1, 'trainer_last_name': 1}")
 @Data
 @Builder
 @NoArgsConstructor
@@ -34,8 +35,6 @@ public class TrainerTrainingSummary {
     @Indexed
     @Field("trainer_last_name")
     private String trainerLastName;
-    
-    @CompoundIndex(name = "trainer_name_idx", def = "{'trainer_first_name': 1, 'trainer_last_name': 1}")
     
     @Field("trainer_status")
     private Boolean trainerStatus;

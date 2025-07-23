@@ -31,17 +31,17 @@ public interface TrainerTrainingSummaryMapper {
     @Mapping(target = "years", expression = "java(mapYears(trainerSummary.getYears()))")
     TrainerMonthlySummaryResponse toResponse(TrainerTrainingSummary trainerSummary);
 
-    @Mapping(target = "trainerUsername", source = "trainerUsername")
-    @Mapping(target = "trainerFirstName", source = "trainerFirstName")
-    @Mapping(target = "trainerLastName", source = "trainerLastName")
-    @Mapping(target = "trainerStatus", source = "trainerStatus")
+    @Mapping(target = "trainerUsername", source = "trainerSummary.trainerUsername")
+    @Mapping(target = "trainerFirstName", source = "trainerSummary.trainerFirstName")
+    @Mapping(target = "trainerLastName", source = "trainerSummary.trainerLastName")
+    @Mapping(target = "trainerStatus", source = "trainerSummary.trainerStatus")
     @Mapping(target = "years", expression = "java(mapYearsForYear(trainerSummary.getYears(), year))")
     TrainerMonthlySummaryResponse toResponseForYear(TrainerTrainingSummary trainerSummary, Integer year);
 
-    @Mapping(target = "trainerUsername", source = "trainerUsername")
-    @Mapping(target = "trainerFirstName", source = "trainerFirstName")
-    @Mapping(target = "trainerLastName", source = "trainerLastName")
-    @Mapping(target = "trainerStatus", source = "trainerStatus")
+    @Mapping(target = "trainerUsername", source = "trainerSummary.trainerUsername")
+    @Mapping(target = "trainerFirstName", source = "trainerSummary.trainerFirstName")
+    @Mapping(target = "trainerLastName", source = "trainerSummary.trainerLastName")
+    @Mapping(target = "trainerStatus", source = "trainerSummary.trainerStatus")
     @Mapping(target = "years", expression = "java(mapYearsForYearAndMonth(trainerSummary.getYears(), year, month))")
     TrainerMonthlySummaryResponse toResponseForYearAndMonth(TrainerTrainingSummary trainerSummary, Integer year, Integer month);
 
