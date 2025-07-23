@@ -11,26 +11,15 @@ import java.util.Optional;
 
 @Repository
 public interface TrainingSessionRepository extends MongoRepository<TrainingSession, String> {
-    
-    /**
-     * Find training session by trainer and date
-     */
+
     Optional<TrainingSession> findByTrainerUsernameAndTrainingDate(String trainerUsername, LocalDate trainingDate);
-    
-    /**
-     * Find all training sessions for a trainer in a specific month
-     */
+
     @Query("{'trainerUsername': ?0, 'trainingDate': {$gte: ?1, $lt: ?2}}")
-    List<TrainingSession> findByTrainerUsernameAndTrainingDateBetween(String trainerUsername, LocalDate startDate, LocalDate endDate);
-    
-    /**
-     * Find all training sessions for a trainer in a specific year and month
-     */
+    List<TrainingSession> findByTrainerUsernameAndTrainingDateBetween(String trainerUsername, LocalDate startDate,
+            LocalDate endDate);
+
     @Query("{'trainerUsername': ?0, 'trainingDate': {$gte: ?1, $lt: ?2}}")
     List<TrainingSession> findByTrainerUsernameAndYearAndMonth(String trainerUsername, Integer year, Integer month);
-    
-    /**
-     * Check if training session exists for trainer and date
-     */
+
     boolean existsByTrainerUsernameAndTrainingDate(String trainerUsername, LocalDate trainingDate);
-} 
+}

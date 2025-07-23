@@ -207,27 +207,21 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
     }
 
     private void updateExistingTrainingSession(TrainerTrainingSummary trainerSummary, TrainerWorkloadRequest request, MonthSummary monthSummary) {
-        // Buscar la sesión existente en esa fecha específica
         Optional<TrainingSession> existingSession = trainingSessionRepository
                 .findByTrainerUsernameAndTrainingDate(request.trainerUsername(), request.trainingDate());
         
         if (existingSession.isPresent()) {
-            // Obtener la duración anterior
             Integer previousDuration = existingSession.get().getTrainingDuration();
             
-            // Calcular la nueva duración: restar la anterior y sumar la nueva
             Integer newDuration = monthSummary.getTrainingsSummaryDuration() - previousDuration + request.trainingDuration();
             
-            // Actualizar el resumen mensual
             monthSummary.setTrainingsSummaryDuration(newDuration);
             
-            // Actualizar la sesión individual
             TrainingSession session = existingSession.get();
             session.setTrainingDuration(request.trainingDuration());
             session.setUpdatedAt(LocalDateTime.now());
             trainingSessionRepository.save(session);
         } else {
-            // Si no existe sesión previa, simplemente establecer la nueva duración
             monthSummary.setTrainingsSummaryDuration(request.trainingDuration());
         }
     }

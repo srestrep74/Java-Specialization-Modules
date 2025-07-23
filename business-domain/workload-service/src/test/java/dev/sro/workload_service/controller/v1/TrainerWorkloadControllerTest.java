@@ -57,16 +57,23 @@ class TrainerWorkloadControllerTest {
                                 60,
                                 ActionType.ADD);
 
-                TrainerMonthlySummaryResponse.MonthSummary monthSummary = new TrainerMonthlySummaryResponse.MonthSummary(
-                                7, 300);
-                TrainerMonthlySummaryResponse.YearSummary yearSummary = new TrainerMonthlySummaryResponse.YearSummary(
-                                2024, List.of(monthSummary));
-                summaryResponse = new TrainerMonthlySummaryResponse(
-                                "test.trainer",
-                                "Test",
-                                "Trainer",
-                                true,
-                                List.of(yearSummary));
+                TrainerMonthlySummaryResponse.MonthData monthData = TrainerMonthlySummaryResponse.MonthData.builder()
+                                .month(7)
+                                .trainingsSummaryDuration(300)
+                                .build();
+
+                TrainerMonthlySummaryResponse.YearData yearData = TrainerMonthlySummaryResponse.YearData.builder()
+                                .year(2024)
+                                .months(List.of(monthData))
+                                .build();
+
+                summaryResponse = TrainerMonthlySummaryResponse.builder()
+                                .trainerUsername("test.trainer")
+                                .trainerFirstName("Test")
+                                .trainerLastName("Trainer")
+                                .trainerStatus(true)
+                                .years(List.of(yearData))
+                                .build();
         }
 
         @Test
@@ -199,5 +206,49 @@ class TrainerWorkloadControllerTest {
                 mockMvc.perform(get("/api/v1/workloads/trainers/{username}/monthly-summary/{year}/{month}",
                                 "test.trainer", 2024, 7))
                                 .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @WithMockUser(roles = "TRAINER")
+        void processTrainerWorkload_WithUpdateAction_ShouldReturnOk() throws Exception {
+                TrainerWorkloadRequest updateRequest = new TrainerWorkloadRequest(
+                                "test.trainer",
+                                "Test",
+                                "Trainer",
+                                true,
+                                LocalDate.of(2024, 7, 21),
+                                90,
+                                ActionType.UPDATE);
+
+                doNothing().when(trainerWorkloadService).processTrainerWorkload(any(TrainerWorkloadRequest.class));
+
+                mockMvc.perform(post("/api/v1/workloads")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updateRequest)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status", is(200)))
+                                .andExpect(jsonPath("$.message", is("Workload processed successfully")));
+        }
+
+        @Test
+        @WithMockUser(roles = "TRAINER")
+        void processTrainerWorkload_WithDeleteAction_ShouldReturnOk() throws Exception {
+                TrainerWorkloadRequest deleteRequest = new TrainerWorkloadRequest(
+                                "test.trainer",
+                                "Test",
+                                "Trainer",
+                                true,
+                                LocalDate.of(2024, 7, 21),
+                                60,
+                                ActionType.DELETE);
+
+                doNothing().when(trainerWorkloadService).processTrainerWorkload(any(TrainerWorkloadRequest.class));
+
+                mockMvc.perform(post("/api/v1/workloads")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(deleteRequest)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.status", is(200)))
+                                .andExpect(jsonPath("$.message", is("Workload processed successfully")));
         }
 }
