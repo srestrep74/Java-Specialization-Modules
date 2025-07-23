@@ -12,6 +12,6 @@ public record TrainerWorkloadRequest(
         ActionType actionType
 ) {
     public enum ActionType {
-        ADD, DELETE
+        ADD, DELETE, UPDATE
     }
 } 

@@ -8,7 +8,7 @@ public interface WorkloadNotificationService {
     
     TrainerWorkloadResponse notifyTrainingCreated(Training training);
     
-    void notifyTrainingUpdated(Training oldTraining, Training newTraining);
+    TrainerWorkloadResponse notifyTrainingUpdated(Training oldTraining, Training newTraining);
     
     TrainerWorkloadResponse notifyTrainingDeleted(Training training);
     

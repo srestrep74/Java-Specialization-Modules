@@ -21,7 +21,7 @@ logging:
     dev.sro.workload_service.infrastructure.repository: DEBUG
     dev.sro.workload_service.presentation.controller: INFO
     dev.sro.workload_service.application.mapper: WARN
-    
+     
     org.springframework.web: INFO
     org.springframework.security: INFO
     org.springframework.aop: INFO

@@ -1,9 +1,11 @@
 package dev.sro.workload_service.service.impl;
 
 import dev.sro.workload_service.repository.TrainerTrainingSummaryRepository;
+import dev.sro.workload_service.repository.TrainingSessionRepository;
 import dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.dtos.v1.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.entity.TrainerTrainingSummary;
+import dev.sro.workload_service.entity.TrainingSession;
 import dev.sro.workload_service.entity.YearSummary;
 import dev.sro.workload_service.entity.MonthSummary;
 import dev.sro.workload_service.entity.enums.ActionType;
@@ -11,12 +13,14 @@ import dev.sro.workload_service.exception.InvalidWorkloadDataException;
 import dev.sro.workload_service.exception.TrainerNotFoundException;
 import dev.sro.workload_service.exception.WorkloadProcessingException;
 import dev.sro.workload_service.mapper.TrainerTrainingSummaryMapper;
+import dev.sro.workload_service.mapper.TrainingSessionMapper;
 import dev.sro.workload_service.service.TrainerWorkloadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +28,9 @@ import java.time.LocalDateTime;
 public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
     private final TrainerTrainingSummaryRepository trainerTrainingSummaryRepository;
+    private final TrainingSessionRepository trainingSessionRepository;
     private final TrainerTrainingSummaryMapper trainerTrainingSummaryMapper;
+    private final TrainingSessionMapper trainingSessionMapper;
 
     @Override
     public void processTrainerWorkload(TrainerWorkloadRequest request) {
@@ -37,6 +43,9 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         try {
             TrainerTrainingSummary trainerSummary = getOrCreateTrainerSummary(request);
             updateTrainingSummary(trainerSummary, request);
+            
+            // Guardar la sesión individual
+            saveTrainingSession(request);
         } catch (InvalidWorkloadDataException e) {
             throw e;
         } catch (IllegalArgumentException e) {
@@ -156,6 +165,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
                 monthSummary.addDuration(request.trainingDuration());
             } else if (request.actionType() == ActionType.DELETE) {
                 monthSummary.subtractDuration(request.trainingDuration());
+            } else if (request.actionType() == ActionType.UPDATE) {
+                updateExistingTrainingSession(trainerSummary, request, monthSummary);
             }
 
             trainerSummary.setUpdatedAt(LocalDateTime.now());
@@ -185,6 +196,39 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
         if (request.trainingDuration() != null && request.trainingDuration() < 0) {
             throw new IllegalArgumentException("Training duration must be positive");
+        }
+    }
+
+    private void saveTrainingSession(TrainerWorkloadRequest request) {
+        TrainingSession trainingSession = trainingSessionMapper.toTrainingSession(request);
+        trainingSession.setCreatedAt(LocalDateTime.now());
+        trainingSession.setUpdatedAt(LocalDateTime.now());
+        trainingSessionRepository.save(trainingSession);
+    }
+
+    private void updateExistingTrainingSession(TrainerTrainingSummary trainerSummary, TrainerWorkloadRequest request, MonthSummary monthSummary) {
+        // Buscar la sesión existente en esa fecha específica
+        Optional<TrainingSession> existingSession = trainingSessionRepository
+                .findByTrainerUsernameAndTrainingDate(request.trainerUsername(), request.trainingDate());
+        
+        if (existingSession.isPresent()) {
+            // Obtener la duración anterior
+            Integer previousDuration = existingSession.get().getTrainingDuration();
+            
+            // Calcular la nueva duración: restar la anterior y sumar la nueva
+            Integer newDuration = monthSummary.getTrainingsSummaryDuration() - previousDuration + request.trainingDuration();
+            
+            // Actualizar el resumen mensual
+            monthSummary.setTrainingsSummaryDuration(newDuration);
+            
+            // Actualizar la sesión individual
+            TrainingSession session = existingSession.get();
+            session.setTrainingDuration(request.trainingDuration());
+            session.setUpdatedAt(LocalDateTime.now());
+            trainingSessionRepository.save(session);
+        } else {
+            // Si no existe sesión previa, simplemente establecer la nueva duración
+            monthSummary.setTrainingsSummaryDuration(request.trainingDuration());
         }
     }
 }
