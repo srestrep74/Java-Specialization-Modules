@@ -1,23 +1,27 @@
 package dev.sro.workload_service.dtos.v1.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
+@Builder
 public record TrainerMonthlySummaryResponse(
         String trainerUsername,
         String trainerFirstName,
         String trainerLastName,
         Boolean trainerStatus,
-        List<YearSummary> years
+        List<YearData> years
 ) {
-    public record YearSummary(
-            int year,
-            List<MonthSummary> months
+    @Builder
+    public record YearData(
+            Integer year,
+            List<MonthData> months
     ) {}
 
-    public record MonthSummary(
-            int month,
-            int trainingSummaryDuration
+    @Builder
+    public record MonthData(
+            Integer month,
+            Integer trainingsSummaryDuration
     ) {}
 } 

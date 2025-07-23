@@ -1,39 +1,30 @@
 package dev.sro.workload_service.service.impl;
 
-import dev.sro.workload_service.repository.MonthlySummaryRepository;
-import dev.sro.workload_service.repository.TrainerRepository;
-import dev.sro.workload_service.repository.TrainingSessionRepository;
+import dev.sro.workload_service.repository.TrainerTrainingSummaryRepository;
 import dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.dtos.v1.response.TrainerMonthlySummaryResponse;
-import dev.sro.workload_service.entity.MonthlySummary;
-import dev.sro.workload_service.entity.Trainer;
-import dev.sro.workload_service.entity.TrainingSession;
+import dev.sro.workload_service.entity.TrainerTrainingSummary;
+import dev.sro.workload_service.entity.YearSummary;
+import dev.sro.workload_service.entity.MonthSummary;
 import dev.sro.workload_service.entity.enums.ActionType;
 import dev.sro.workload_service.exception.InvalidWorkloadDataException;
 import dev.sro.workload_service.exception.TrainerNotFoundException;
 import dev.sro.workload_service.exception.WorkloadProcessingException;
-import dev.sro.workload_service.mapper.TrainerMapper;
-import dev.sro.workload_service.mapper.TrainerMonthlySummaryMapper;
-import dev.sro.workload_service.mapper.TrainingSessionMapper;
+import dev.sro.workload_service.mapper.TrainerTrainingSummaryMapper;
 import dev.sro.workload_service.service.TrainerWorkloadService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
 
-    private final TrainerRepository trainerRepository;
-    private final TrainingSessionRepository trainingSessionRepository;
-    private final MonthlySummaryRepository monthlySummaryRepository;
-    private final TrainerMapper trainerMapper;
-    private final TrainingSessionMapper trainingSessionMapper;
-    private final TrainerMonthlySummaryMapper trainerMonthlySummaryMapper;
+    private final TrainerTrainingSummaryRepository trainerTrainingSummaryRepository;
+    private final TrainerTrainingSummaryMapper trainerTrainingSummaryMapper;
 
     @Override
     public void processTrainerWorkload(TrainerWorkloadRequest request) {
@@ -44,13 +35,8 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         validateWorkloadRequest(request);
 
         try {
-            Trainer trainer = getOrCreateTrainer(request);
-
-            TrainingSession trainingSession = trainingSessionMapper.toTrainingSession(request);
-            trainingSession.setTrainer(trainer);
-            trainingSessionRepository.save(trainingSession);
-
-            updateMonthlySummary(trainer, request);
+            TrainerTrainingSummary trainerSummary = getOrCreateTrainerSummary(request);
+            updateTrainingSummary(trainerSummary, request);
         } catch (InvalidWorkloadDataException e) {
             throw e;
         } catch (IllegalArgumentException e) {
@@ -68,12 +54,11 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
 
         try {
-            Trainer trainer = trainerRepository.findByUsername(trainerUsername)
+            TrainerTrainingSummary trainerSummary = trainerTrainingSummaryRepository
+                    .findByTrainerUsername(trainerUsername)
                     .orElseThrow(() -> new TrainerNotFoundException(trainerUsername));
 
-            List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainer_Username(trainerUsername);
-
-            return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
+            return trainerTrainingSummaryMapper.toResponse(trainerSummary);
         } catch (TrainerNotFoundException e) {
             throw e;
         } catch (IllegalArgumentException e) {
@@ -94,13 +79,11 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
 
         try {
-            Trainer trainer = trainerRepository.findByUsername(trainerUsername)
+            TrainerTrainingSummary trainerSummary = trainerTrainingSummaryRepository
+                    .findByTrainerUsername(trainerUsername)
                     .orElseThrow(() -> new TrainerNotFoundException(trainerUsername));
 
-            List<MonthlySummary> summaries = monthlySummaryRepository.findByTrainer_UsernameAndYear(trainerUsername,
-                    year);
-
-            return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
+            return trainerTrainingSummaryMapper.toResponseForYear(trainerSummary, year);
         } catch (TrainerNotFoundException e) {
             throw e;
         } catch (IllegalArgumentException e) {
@@ -124,14 +107,11 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
 
         try {
-            Trainer trainer = trainerRepository.findByUsername(trainerUsername)
+            TrainerTrainingSummary trainerSummary = trainerTrainingSummaryRepository
+                    .findByTrainerUsername(trainerUsername)
                     .orElseThrow(() -> new TrainerNotFoundException(trainerUsername));
 
-            Optional<MonthlySummary> summaryOpt = monthlySummaryRepository
-                    .findByTrainer_UsernameAndYearAndMonth(trainerUsername, year, month);
-
-            List<MonthlySummary> summaries = summaryOpt.map(List::of).orElse(List.of());
-            return trainerMonthlySummaryMapper.toResponse(trainer, summaries);
+            return trainerTrainingSummaryMapper.toResponseForYearAndMonth(trainerSummary, year, month);
         } catch (TrainerNotFoundException e) {
             throw e;
         } catch (IllegalArgumentException e) {
@@ -141,51 +121,47 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
         }
     }
 
-    private Trainer getOrCreateTrainer(TrainerWorkloadRequest request) {
+    private TrainerTrainingSummary getOrCreateTrainerSummary(TrainerWorkloadRequest request) {
         try {
-            return trainerRepository.findByUsername(request.trainerUsername())
-                    .map(trainer -> {
-                        trainer.updateProfile(
+            return trainerTrainingSummaryRepository.findByTrainerUsername(request.trainerUsername())
+                    .map(trainerSummary -> {
+                        trainerSummary.updateProfile(
                                 request.trainerFirstName(),
                                 request.trainerLastName(),
                                 request.isActive());
-                        return trainerRepository.save(trainer);
+                        trainerSummary.setUpdatedAt(LocalDateTime.now());
+                        return trainerTrainingSummaryRepository.save(trainerSummary);
                     })
                     .orElseGet(() -> {
-                        Trainer newTrainer = trainerMapper.toTrainer(request);
-                        return trainerRepository.save(newTrainer);
+                        TrainerTrainingSummary newTrainerSummary = trainerTrainingSummaryMapper
+                                .toTrainerTrainingSummary(request);
+                        newTrainerSummary.setCreatedAt(LocalDateTime.now());
+                        newTrainerSummary.setUpdatedAt(LocalDateTime.now());
+                        return trainerTrainingSummaryRepository.save(newTrainerSummary);
                     });
         } catch (Exception e) {
-            throw new WorkloadProcessingException(request.trainerUsername(), "getOrCreateTrainer", e);
+            throw new WorkloadProcessingException(request.trainerUsername(), "getOrCreateTrainerSummary", e);
         }
     }
 
-    private void updateMonthlySummary(Trainer trainer, TrainerWorkloadRequest request) {
+    private void updateTrainingSummary(TrainerTrainingSummary trainerSummary, TrainerWorkloadRequest request) {
         try {
             Integer year = request.trainingDate().getYear();
             Integer month = request.trainingDate().getMonthValue();
 
-            MonthlySummary summary = monthlySummaryRepository
-                    .findByTrainer_UsernameAndYearAndMonth(trainer.getUsername(), year, month)
-                    .orElseGet(() -> {
-                        MonthlySummary newSummary = MonthlySummary.builder()
-                                .trainer(trainer)
-                                .year(year)
-                                .month(month)
-                                .totalDuration(0)
-                                .build();
-                        return monthlySummaryRepository.save(newSummary);
-                    });
+            YearSummary yearSummary = trainerSummary.findOrCreateYear(year);
+            MonthSummary monthSummary = yearSummary.findOrCreateMonth(month);
 
             if (request.actionType() == ActionType.ADD) {
-                summary.addDuration(request.trainingDuration());
+                monthSummary.addDuration(request.trainingDuration());
             } else if (request.actionType() == ActionType.DELETE) {
-                summary.subtractDuration(request.trainingDuration());
+                monthSummary.subtractDuration(request.trainingDuration());
             }
 
-            monthlySummaryRepository.save(summary);
+            trainerSummary.setUpdatedAt(LocalDateTime.now());
+            trainerTrainingSummaryRepository.save(trainerSummary);
         } catch (Exception e) {
-            throw new WorkloadProcessingException(trainer.getUsername(), "updateMonthlySummary", e);
+            throw new WorkloadProcessingException(trainerSummary.getTrainerUsername(), "updateTrainingSummary", e);
         }
     }
 
@@ -211,5 +187,4 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             throw new IllegalArgumentException("Training duration must be positive");
         }
     }
-
 }
