@@ -7,10 +7,11 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import dev.sro.gym_service.config.properties.JwtProperties;
 
 import java.security.Key;
 import java.util.Date;
@@ -25,21 +26,17 @@ import java.util.UUID;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
-
-    @Value("${jwt.expiration}")
-    private long expiration;
-
-    @Value("${jwt.refresh-expiration:604800000}") 
-    private long refreshExpiration;
-
+    private final JwtProperties jwtProperties;
     private Key signingKey;
+
+    public JwtUtil(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     @PostConstruct
     public void init() {
         try {
-            byte[] decodedKey = Base64.getDecoder().decode(secret);
+            byte[] decodedKey = Base64.getDecoder().decode(jwtProperties.secret());
             if (decodedKey.length < 64) {
                 throw new IllegalArgumentException("Secret key must be at least 64 bytes long");
             }
@@ -97,7 +94,7 @@ public class JwtUtil {
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
-        return createToken(claims, userDetails.getUsername(), expiration);
+        return createToken(claims, userDetails.getUsername(), jwtProperties.expiration());
     }
     
     public String generateToken(UserDetails userDetails, Map<String, Object> claims, long expirationTime) {
@@ -110,7 +107,7 @@ public class JwtUtil {
 
     public String generateRefreshToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        return createRefreshToken(claims, userDetails.getUsername(), refreshExpiration);
+        return createRefreshToken(claims, userDetails.getUsername(), jwtProperties.refreshExpiration());
     }
 
     public List<String> extractRoles(String token) {
@@ -126,7 +123,7 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails, Map<String, Object> claims) {
-        return createToken(claims, userDetails.getUsername(), expiration);
+        return createToken(claims, userDetails.getUsername(), jwtProperties.expiration());
     }
 
     private String createToken(Map<String, Object> claims, String subject, long expiration) {

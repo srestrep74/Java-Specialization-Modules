@@ -44,7 +44,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             TrainerTrainingSummary trainerSummary = getOrCreateTrainerSummary(request);
             updateTrainingSummary(trainerSummary, request);
             
-            // Guardar la sesión individual
             saveTrainingSession(request);
         } catch (InvalidWorkloadDataException e) {
             throw e;
@@ -216,11 +215,6 @@ public class TrainerWorkloadServiceImpl implements TrainerWorkloadService {
             Integer newDuration = monthSummary.getTrainingsSummaryDuration() - previousDuration + request.trainingDuration();
             
             monthSummary.setTrainingsSummaryDuration(newDuration);
-            
-            TrainingSession session = existingSession.get();
-            session.setTrainingDuration(request.trainingDuration());
-            session.setUpdatedAt(LocalDateTime.now());
-            trainingSessionRepository.save(session);
         } else {
             monthSummary.setTrainingsSummaryDuration(request.trainingDuration());
         }

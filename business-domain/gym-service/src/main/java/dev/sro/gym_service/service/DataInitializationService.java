@@ -1,10 +1,9 @@
 package dev.sro.gym_service.service;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import dev.sro.gym_service.config.properties.StorageProperties;
 import dev.sro.gym_service.exception.StorageInitializationException;
 import dev.sro.gym_service.util.storage.InitialData;
 import dev.sro.gym_service.util.storage.JsonFileReader;
@@ -16,18 +15,17 @@ import jakarta.annotation.PostConstruct;
 public class DataInitializationService {
 
     private final DataSeedService dataSeedService;
+    private final StorageProperties storageProperties;
 
-    @Value("${storage.init.file}")
-    Resource initDataFile;
-
-    public DataInitializationService(DataSeedService dataSeedService) {
+    public DataInitializationService(DataSeedService dataSeedService, StorageProperties storageProperties) {
         this.dataSeedService = dataSeedService;
+        this.storageProperties = storageProperties;
     }
 
     @PostConstruct
     public void initializeData() {
         try {
-            InitialData initialData = JsonFileReader.readJsonFile(initDataFile, InitialData.class);
+            InitialData initialData = JsonFileReader.readJsonFile(storageProperties.initFile(), InitialData.class);
 
             initialData.getTrainingTypes().forEach(this.dataSeedService::seedTrainingType);
             initialData.getTrainers().forEach(this.dataSeedService::seedTrainer);

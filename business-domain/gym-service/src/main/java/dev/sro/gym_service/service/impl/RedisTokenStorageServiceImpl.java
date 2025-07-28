@@ -1,7 +1,7 @@
 package dev.sro.gym_service.service.impl;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import dev.sro.gym_service.service.TokenStorageService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,18 +17,11 @@ import java.util.concurrent.TimeUnit;
 public class RedisTokenStorageServiceImpl implements TokenStorageService {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final JwtProperties jwtProperties;
 
-    @Value("${jwt.blacklist.prefix}")
-    private String blacklistKeyPrefix;
-    
-    @Value("${jwt.refresh.prefix}")
-    private String refreshTokensKeyPrefix;
-    
-    @Value("${jwt.refresh.expiry}")
-    private int refreshTokenExpiryDays;
-
-    public RedisTokenStorageServiceImpl(RedisTemplate<String, String> redisTemplate) {
+    public RedisTokenStorageServiceImpl(RedisTemplate<String, String> redisTemplate, JwtProperties jwtProperties) {
         this.redisTemplate = redisTemplate;
+        this.jwtProperties = jwtProperties;
     }
 
     @Override
@@ -37,7 +30,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = blacklistKeyPrefix + tokenId;
+        String key = jwtProperties.blacklistPrefix() + tokenId;
 
         Duration timeToExpiry = Duration.between(Instant.now(), expiryDate);
         if (timeToExpiry.isNegative() || timeToExpiry.isZero()) {
@@ -53,7 +46,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return false;
         }
 
-        String key = blacklistKeyPrefix + tokenId;
+        String key = jwtProperties.blacklistPrefix() + tokenId;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 
@@ -63,11 +56,11 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
         
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refreshPrefix() + username;
         redisTemplate.opsForSet().add(key, tokenId);
         
         if (redisTemplate.getExpire(key) < 0) {
-            redisTemplate.expire(key, refreshTokenExpiryDays, TimeUnit.DAYS);
+            redisTemplate.expire(key, jwtProperties.refreshExpiry(), TimeUnit.DAYS);
         }
     }
 
@@ -77,7 +70,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return Collections.emptySet();
         }
         
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refreshPrefix() + username;
         Set<String> tokens = redisTemplate.opsForSet().members(key);
         return tokens != null ? tokens : Collections.emptySet();
     }
@@ -88,7 +81,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
         
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refreshPrefix() + username;
         redisTemplate.opsForSet().remove(key, tokenId);
     }
 
@@ -98,7 +91,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
         
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refreshPrefix() + username;
         redisTemplate.delete(key);
     }
 } 

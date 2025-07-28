@@ -1,5 +1,6 @@
 package dev.sro.gym_service.config;
 
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -10,6 +11,7 @@ import java.util.Locale;
 
 @Configuration
 @EnableScheduling
+@EnableConfigurationProperties
 public class AppConfig {
 
     @Bean
