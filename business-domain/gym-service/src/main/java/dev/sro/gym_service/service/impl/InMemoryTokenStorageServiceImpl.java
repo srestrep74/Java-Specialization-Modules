@@ -34,7 +34,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = jwtProperties.blacklistPrefix() + tokenId;
+        String key = jwtProperties.blacklist().prefix() + tokenId;
         blacklistedTokens.put(key, expiryDate);
     }
 
@@ -44,7 +44,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return false;
         }
 
-        String key = jwtProperties.blacklistPrefix() + tokenId;
+        String key = jwtProperties.blacklist().prefix() + tokenId;
         Instant expiryDate = blacklistedTokens.get(key);
 
         if (expiryDate == null) {
@@ -65,7 +65,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         userRefreshTokens.computeIfAbsent(key, k -> new HashSet<>()).add(tokenId);
     }
 
@@ -75,7 +75,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return Collections.emptySet();
         }
 
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         Set<String> tokens = userRefreshTokens.get(key);
         return tokens != null ? new HashSet<>(tokens) : Collections.emptySet();
     }
@@ -86,7 +86,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         Set<String> tokens = userRefreshTokens.get(key);
         if (tokens != null) {
             tokens.remove(tokenId);
@@ -99,11 +99,11 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         userRefreshTokens.remove(key);
     }
 
-    @Scheduled(fixedDelayString = "#{@jwtProperties.blacklistCleanupInterval()}")
+    @Scheduled(fixedDelayString = "#{@jwtProperties.blacklist().cleanupInterval()}")
     public void cleanupExpiredTokens() {
         Instant now = Instant.now();
         blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));

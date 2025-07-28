@@ -235,10 +235,10 @@ public class TrainingServiceImpl implements TrainingService {
                     .findByTraineeAndTrainerAndTrainingDate(trainee, trainer, updateTrainingRequest.trainingDate())
                     .orElseThrow(() -> new ResourceNotFoundException("Training not found for update"));
 
-            Training training = trainingUpdateMapper.toEntity(updateTrainingRequest, trainer, trainee,
-                    trainer.getTrainingType());
-            training.setDuration(existingTraining.getDuration());
-            Training savedTraining = trainingRepository.save(training);
+            existingTraining.setDuration(updateTrainingRequest.duration());
+            existingTraining.setTrainingName(updateTrainingRequest.trainingName());
+            
+            Training savedTraining = trainingRepository.save(existingTraining);
 
             trainingMetrics.recordTrainingDuration(savedTraining.getDuration());
             traineeTrainingMetrics.recordTraineeTrainingDuration(savedTraining.getDuration());

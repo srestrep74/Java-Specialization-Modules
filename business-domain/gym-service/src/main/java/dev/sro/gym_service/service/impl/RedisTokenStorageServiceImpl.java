@@ -30,7 +30,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = jwtProperties.blacklistPrefix() + tokenId;
+        String key = jwtProperties.blacklist().prefix() + tokenId;  
 
         Duration timeToExpiry = Duration.between(Instant.now(), expiryDate);
         if (timeToExpiry.isNegative() || timeToExpiry.isZero()) {
@@ -46,7 +46,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return false;
         }
 
-        String key = jwtProperties.blacklistPrefix() + tokenId;
+        String key = jwtProperties.blacklist().prefix() + tokenId;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
 
@@ -56,11 +56,11 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
         
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         redisTemplate.opsForSet().add(key, tokenId);
         
         if (redisTemplate.getExpire(key) < 0) {
-            redisTemplate.expire(key, jwtProperties.refreshExpiry(), TimeUnit.DAYS);
+            redisTemplate.expire(key, jwtProperties.refresh().expiry(), TimeUnit.DAYS);
         }
     }
 
@@ -70,7 +70,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return Collections.emptySet();
         }
         
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         Set<String> tokens = redisTemplate.opsForSet().members(key);
         return tokens != null ? tokens : Collections.emptySet();
     }
@@ -81,7 +81,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
         
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         redisTemplate.opsForSet().remove(key, tokenId);
     }
 
@@ -91,7 +91,7 @@ public class RedisTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
         
-        String key = jwtProperties.refreshPrefix() + username;
+        String key = jwtProperties.refresh().prefix() + username;
         redisTemplate.delete(key);
     }
 } 

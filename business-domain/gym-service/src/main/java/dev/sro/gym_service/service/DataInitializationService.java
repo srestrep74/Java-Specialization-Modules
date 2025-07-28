@@ -25,7 +25,7 @@ public class DataInitializationService {
     @PostConstruct
     public void initializeData() {
         try {
-            InitialData initialData = JsonFileReader.readJsonFile(storageProperties.initFile(), InitialData.class);
+            InitialData initialData = JsonFileReader.readJsonFile(storageProperties.init().file(), InitialData.class);
 
             initialData.getTrainingTypes().forEach(this.dataSeedService::seedTrainingType);
             initialData.getTrainers().forEach(this.dataSeedService::seedTrainer);

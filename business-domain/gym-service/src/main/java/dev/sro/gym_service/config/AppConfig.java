@@ -7,11 +7,19 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 
+import dev.sro.gym_service.config.properties.JmsProperties;
+import dev.sro.gym_service.config.properties.JwtProperties;
+import dev.sro.gym_service.config.properties.StorageProperties;
+
 import java.util.Locale;
 
 @Configuration
 @EnableScheduling
-@EnableConfigurationProperties
+@EnableConfigurationProperties({
+    JwtProperties.class,
+    JmsProperties.class,
+    StorageProperties.class
+})
 public class AppConfig {
 
     @Bean

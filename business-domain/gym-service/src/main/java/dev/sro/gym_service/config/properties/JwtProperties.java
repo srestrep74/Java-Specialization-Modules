@@ -1,16 +1,15 @@
 package dev.sro.gym_service.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(prefix = "jwt")
 public record JwtProperties(
     String secret,
     long expiration,
     long refreshExpiration,
-    String blacklistPrefix,
-    String refreshPrefix,
-    int refreshExpiry,
-    String blacklistCleanupInterval
+    @NestedConfigurationProperty BlacklistProperties blacklist,
+    @NestedConfigurationProperty RefreshProperties refresh
 ) {
     public JwtProperties {
         if (secret == null || secret.trim().isEmpty()) {
@@ -22,17 +21,39 @@ public record JwtProperties(
         if (refreshExpiration <= 0) {
             throw new IllegalArgumentException("refreshExpiration must be positive");
         }
-        if (blacklistPrefix == null || blacklistPrefix.trim().isEmpty()) {
-            throw new IllegalArgumentException("blacklistPrefix cannot be null or empty");
+        if (blacklist == null) {
+            throw new IllegalArgumentException("blacklist cannot be null");
         }
-        if (refreshPrefix == null || refreshPrefix.trim().isEmpty()) {
-            throw new IllegalArgumentException("refreshPrefix cannot be null or empty");
+        if (refresh == null) {
+            throw new IllegalArgumentException("refresh cannot be null");
         }
-        if (refreshExpiry <= 0) {
-            throw new IllegalArgumentException("refreshExpiry must be positive");
+    }
+
+    public record BlacklistProperties(
+        String prefix,
+        String cleanupInterval
+    ) {
+        public BlacklistProperties {
+            if (prefix == null || prefix.trim().isEmpty()) {
+                throw new IllegalArgumentException("blacklist prefix cannot be null or empty");
+            }
+            if (cleanupInterval == null || cleanupInterval.trim().isEmpty()) {
+                throw new IllegalArgumentException("blacklist cleanup interval cannot be null or empty");
+            }
         }
-        if (blacklistCleanupInterval == null || blacklistCleanupInterval.trim().isEmpty()) {
-            throw new IllegalArgumentException("blacklistCleanupInterval cannot be null or empty");
+    }
+
+    public record RefreshProperties(
+        String prefix,
+        int expiry
+    ) {
+        public RefreshProperties {
+            if (prefix == null || prefix.trim().isEmpty()) {
+                throw new IllegalArgumentException("refresh prefix cannot be null or empty");
+            }
+            if (expiry <= 0) {
+                throw new IllegalArgumentException("refresh expiry must be positive");
+            }
         }
     }
 } 
