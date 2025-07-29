@@ -78,6 +78,12 @@ jwt:
   expiration: 120000
   refresh-expiration: 604800000
 
+# Login Security Configuration (Test)
+security:
+  login:
+    max-attempts: 3
+    lock-time-minutes: 5
+
 # Storage configuration
 storage:
   init:
