@@ -4,10 +4,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "spring.activemq")
 public record JmsProperties(
-    String brokerUrl,
-    String user,
-    String password
-) {
+        String brokerUrl,
+        String user,
+        String password) {
     public JmsProperties {
         if (brokerUrl == null || brokerUrl.trim().isEmpty()) {
             throw new IllegalArgumentException("brokerUrl cannot be null or empty");
@@ -19,4 +18,4 @@ public record JmsProperties(
             throw new IllegalArgumentException("password cannot be null or empty");
         }
     }
-} 
+}

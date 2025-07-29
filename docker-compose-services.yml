@@ -136,6 +136,12 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      # MongoDB configuration
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE=workload_db
+      - MONGODB_USERNAME=admin
+      - MONGODB_PASSWORD=admin123
       # Database configuration
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/workload_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=workload_user
@@ -154,9 +160,32 @@ services:
         condition: service_healthy
       gateway-server:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     networks:
       - microservices-network
     restart: unless-stopped
+
+  # MongoDB
+  mongodb:
+    image: mongo:7.0
+    container_name: workload-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: workload_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+    networks:
+      - microservices-network
 
 # ==========================================
 # NETWORKS
@@ -164,4 +193,11 @@ services:
 networks:
   microservices-network:
     external: true
-    name: springcoretask1_microservices-network  
+    name: springcoretask1_microservices-network
+
+# ==========================================
+# VOLUMES
+# ==========================================
+volumes:
+  mongodb_data:
+    driver: local  

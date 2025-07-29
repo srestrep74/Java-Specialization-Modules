@@ -1,5 +1,6 @@
 package dev.sro.gym_service.controller;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.trainer.RegisterTrainerRequest;
@@ -43,8 +44,19 @@ class TrainingControllerWebTestClientTest {
 
                 @Bean
                 @Primary
-                public InMemoryTokenStorageServiceImpl tokenStorageService() {
-                        return mock(InMemoryTokenStorageServiceImpl.class);
+                public JwtProperties jwtProperties() {
+                        return new JwtProperties(
+                                        "5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==",
+                                        120000L,
+                                        604800000L,
+                                        new JwtProperties.BlacklistProperties("blacklisted_token:", "60000"),
+                                        new JwtProperties.RefreshProperties("user:refresh_tokens:", 30));
+                }
+
+                @Bean
+                @Primary
+                public InMemoryTokenStorageServiceImpl tokenStorageService(JwtProperties jwtProperties) {
+                        return new InMemoryTokenStorageServiceImpl(jwtProperties);
                 }
 
                 @Bean

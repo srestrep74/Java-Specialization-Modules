@@ -5,12 +5,11 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 @ConfigurationProperties(prefix = "jwt")
 public record JwtProperties(
-    String secret,
-    long expiration,
-    long refreshExpiration,
-    @NestedConfigurationProperty BlacklistProperties blacklist,
-    @NestedConfigurationProperty RefreshProperties refresh
-) {
+        String secret,
+        long expiration,
+        long refreshExpiration,
+        @NestedConfigurationProperty BlacklistProperties blacklist,
+        @NestedConfigurationProperty RefreshProperties refresh) {
     public JwtProperties {
         if (secret == null || secret.trim().isEmpty()) {
             throw new IllegalArgumentException("secret cannot be null or empty");
@@ -30,9 +29,8 @@ public record JwtProperties(
     }
 
     public record BlacklistProperties(
-        String prefix,
-        String cleanupInterval
-    ) {
+            String prefix,
+            String cleanupInterval) {
         public BlacklistProperties {
             if (prefix == null || prefix.trim().isEmpty()) {
                 throw new IllegalArgumentException("blacklist prefix cannot be null or empty");
@@ -44,9 +42,8 @@ public record JwtProperties(
     }
 
     public record RefreshProperties(
-        String prefix,
-        int expiry
-    ) {
+            String prefix,
+            int expiry) {
         public RefreshProperties {
             if (prefix == null || prefix.trim().isEmpty()) {
                 throw new IllegalArgumentException("refresh prefix cannot be null or empty");
@@ -56,4 +53,4 @@ public record JwtProperties(
             }
         }
     }
-} 
+}

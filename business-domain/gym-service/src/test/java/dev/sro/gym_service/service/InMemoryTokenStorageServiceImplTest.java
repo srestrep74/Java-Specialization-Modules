@@ -1,14 +1,15 @@
 package dev.sro.gym_service.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import dev.sro.gym_service.service.impl.InMemoryTokenStorageServiceImpl;
 
@@ -21,7 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @ExtendWith(MockitoExtension.class)
 class InMemoryTokenStorageServiceImplTest {
 
-    @Spy
+    @Mock
+    private JwtProperties jwtProperties;
+
     @InjectMocks
     private InMemoryTokenStorageServiceImpl tokenStorageService;
 
@@ -32,9 +35,10 @@ class InMemoryTokenStorageServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(tokenStorageService, "blacklistKeyPrefix", blacklistPrefix);
-        ReflectionTestUtils.setField(tokenStorageService, "refreshTokensKeyPrefix", refreshPrefix);
-        ReflectionTestUtils.setField(tokenStorageService, "refreshTokenExpiryDays", 7);
+        lenient().when(jwtProperties.blacklist()).thenReturn(
+                new JwtProperties.BlacklistProperties(blacklistPrefix, "300000"));
+        lenient().when(jwtProperties.refresh()).thenReturn(
+                new JwtProperties.RefreshProperties(refreshPrefix, 7));
     }
 
     @Test
@@ -79,13 +83,25 @@ class InMemoryTokenStorageServiceImplTest {
         Instant pastExpiry = Instant.now().minusSeconds(10);
         Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
         blacklistedTokens.put(blacklistPrefix + tokenId, pastExpiry);
-        ReflectionTestUtils.setField(tokenStorageService, "blacklistedTokens", blacklistedTokens);
+
+        try {
+            java.lang.reflect.Field field = InMemoryTokenStorageServiceImpl.class.getDeclaredField("blacklistedTokens");
+            field.setAccessible(true);
+            field.set(tokenStorageService, blacklistedTokens);
+        } catch (Exception e) {
+            fail("Failed to set blacklistedTokens field for testing");
+        }
 
         assertFalse(tokenStorageService.isTokenBlacklisted(tokenId));
 
-        Map<String, Instant> updatedBlacklist = (Map<String, Instant>) ReflectionTestUtils.getField(tokenStorageService,
-                "blacklistedTokens");
-        assertFalse(updatedBlacklist.containsKey(blacklistPrefix + tokenId));
+        try {
+            java.lang.reflect.Field field = InMemoryTokenStorageServiceImpl.class.getDeclaredField("blacklistedTokens");
+            field.setAccessible(true);
+            Map<String, Instant> updatedBlacklist = (Map<String, Instant>) field.get(tokenStorageService);
+            assertFalse(updatedBlacklist.containsKey(blacklistPrefix + tokenId));
+        } catch (Exception e) {
+            fail("Failed to get blacklistedTokens field for verification");
+        }
     }
 
     @Test
@@ -191,13 +207,25 @@ class InMemoryTokenStorageServiceImplTest {
         Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
         blacklistedTokens.put(blacklistPrefix + "valid-token", futureExpiry);
         blacklistedTokens.put(blacklistPrefix + "expired-token", pastExpiry);
-        ReflectionTestUtils.setField(tokenStorageService, "blacklistedTokens", blacklistedTokens);
+
+        try {
+            java.lang.reflect.Field field = InMemoryTokenStorageServiceImpl.class.getDeclaredField("blacklistedTokens");
+            field.setAccessible(true);
+            field.set(tokenStorageService, blacklistedTokens);
+        } catch (Exception e) {
+            fail("Failed to set blacklistedTokens field for testing");
+        }
 
         tokenStorageService.cleanupExpiredTokens();
 
-        Map<String, Instant> updatedBlacklist = (Map<String, Instant>) ReflectionTestUtils.getField(tokenStorageService,
-                "blacklistedTokens");
-        assertTrue(updatedBlacklist.containsKey(blacklistPrefix + "valid-token"));
-        assertFalse(updatedBlacklist.containsKey(blacklistPrefix + "expired-token"));
+        try {
+            java.lang.reflect.Field field = InMemoryTokenStorageServiceImpl.class.getDeclaredField("blacklistedTokens");
+            field.setAccessible(true);
+            Map<String, Instant> updatedBlacklist = (Map<String, Instant>) field.get(tokenStorageService);
+            assertTrue(updatedBlacklist.containsKey(blacklistPrefix + "valid-token"));
+            assertFalse(updatedBlacklist.containsKey(blacklistPrefix + "expired-token"));
+        } catch (Exception e) {
+            fail("Failed to get blacklistedTokens field for verification");
+        }
     }
 }

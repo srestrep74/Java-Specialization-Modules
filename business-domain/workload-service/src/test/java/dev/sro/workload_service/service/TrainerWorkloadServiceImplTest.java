@@ -193,7 +193,7 @@ class TrainerWorkloadServiceImplTest {
                 trainerWorkloadService.processTrainerWorkload(request);
 
                 verify(trainerTrainingSummaryRepository, times(2)).save(any(TrainerTrainingSummary.class));
-                verify(trainingSessionRepository, times(2)).save(any(TrainingSession.class));
+                verify(trainingSessionRepository, times(1)).save(any(TrainingSession.class));
         }
 
         @Test

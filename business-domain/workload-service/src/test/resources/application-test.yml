@@ -5,6 +5,16 @@ spring:
   config:
     import: ""
   
+  # ActiveMQ Configuration for tests
+  activemq:
+    broker-url: vm://embedded?broker.persistent=false
+    user: admin
+    password: admin
+    packages:
+      trust-all: true
+  jms:
+    pub-sub-domain: false
+  
   # MongoDB Configuration (Test)
   data:
     mongodb:
@@ -13,7 +23,7 @@ spring:
       database: workload_test_db
       username: admin
       password: admin123
-      authentication-database: admin
+      authentication-database: admin  
       auto-index-creation: false
       clean-on-startup: true
     # Disable Redis for tests
@@ -30,6 +40,13 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: false
+
+# JMS Redelivery Configuration for tests
+app:
+  jms:
+    max-redeliveries: 3
+    initial-redelivery-delay: 2000
+    redelivery-delay-max: 5000
 
 logging:
   level:

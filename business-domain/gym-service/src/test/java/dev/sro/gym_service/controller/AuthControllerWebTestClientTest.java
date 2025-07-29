@@ -1,5 +1,6 @@
 package dev.sro.gym_service.controller;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import dev.sro.gym_service.dtos.v1.request.auth.ChangePasswordRequest;
 import dev.sro.gym_service.dtos.v1.request.auth.LoginRequest;
 import dev.sro.gym_service.dtos.v1.request.auth.RefreshTokenRequest;
@@ -40,15 +41,20 @@ class AuthControllerWebTestClientTest {
 
                 @Bean
                 @Primary
-                public InMemoryTokenStorageServiceImpl tokenStorageService() {
-                        InMemoryTokenStorageServiceImpl mock = mock(InMemoryTokenStorageServiceImpl.class);
-                        when(mock.isTokenBlacklisted(any())).thenReturn(false);
-                        doNothing().when(mock).blacklistToken(any(), any());
-                        doNothing().when(mock).storeRefreshToken(any(), any());
-                        doNothing().when(mock).removeRefreshToken(any(), any());
-                        doNothing().when(mock).clearUserRefreshTokens(any());
-                        when(mock.getUserRefreshTokens(any())).thenReturn(java.util.Set.of());
-                        return mock;
+                public JwtProperties jwtProperties() {
+                        return new JwtProperties(
+                                        "5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==",
+                                        120000L,
+                                        604800000L,
+                                        new JwtProperties.BlacklistProperties("blacklisted_token:", "60000"),
+                                        new JwtProperties.RefreshProperties("user:refresh_tokens:", 30));
+                }
+
+                @Bean
+                @Primary
+                public InMemoryTokenStorageServiceImpl tokenStorageService(JwtProperties jwtProperties) {
+                        InMemoryTokenStorageServiceImpl service = new InMemoryTokenStorageServiceImpl(jwtProperties);
+                        return service;
                 }
 
                 @Bean

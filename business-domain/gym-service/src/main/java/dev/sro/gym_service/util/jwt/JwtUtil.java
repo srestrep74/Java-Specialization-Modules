@@ -96,7 +96,7 @@ public class JwtUtil {
                 .collect(Collectors.toList()));
         return createToken(claims, userDetails.getUsername(), jwtProperties.expiration());
     }
-    
+
     public String generateToken(UserDetails userDetails, Map<String, Object> claims, long expirationTime) {
         claims.put("roles", userDetails.getAuthorities()
                 .stream()
