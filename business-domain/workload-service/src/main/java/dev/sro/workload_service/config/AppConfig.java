@@ -6,12 +6,14 @@ import org.springframework.context.annotation.Configuration;
 
 import dev.sro.workload_service.config.properties.JmsProperties;
 import dev.sro.workload_service.config.properties.JmsRedeliveryProperties;
+import dev.sro.workload_service.config.properties.JwtProperties;
 
 @Configuration
 @EnableDiscoveryClient
 @EnableConfigurationProperties({
     JmsProperties.class,
-    JmsRedeliveryProperties.class
+    JmsRedeliveryProperties.class,
+    JwtProperties.class
 })
 public class AppConfig {
 

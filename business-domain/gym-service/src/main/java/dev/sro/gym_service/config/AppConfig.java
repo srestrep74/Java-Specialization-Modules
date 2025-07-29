@@ -9,6 +9,7 @@ import org.springframework.web.servlet.i18n.FixedLocaleResolver;
 
 import dev.sro.gym_service.config.properties.JmsProperties;
 import dev.sro.gym_service.config.properties.JwtProperties;
+import dev.sro.gym_service.config.properties.LoginProperties;
 import dev.sro.gym_service.config.properties.StorageProperties;
 
 import java.util.Locale;
@@ -18,7 +19,8 @@ import java.util.Locale;
 @EnableConfigurationProperties({
     JwtProperties.class,
     JmsProperties.class,
-    StorageProperties.class
+    StorageProperties.class,
+    LoginProperties.class
 })
 public class AppConfig {
 
