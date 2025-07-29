@@ -1,5 +1,6 @@
 package dev.sro.gym_service.util.jwt;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 
@@ -17,6 +17,9 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtUtilTest {
+
+    @Mock
+    private JwtProperties jwtProperties;
 
     @InjectMocks
     private JwtUtil jwtUtil;
@@ -28,10 +31,17 @@ class JwtUtilTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(jwtUtil, "secret",
-                "dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9ydGVzdGluZ2p3dHRva2Vuc2FuZGl0c2hvdWxkYmVhdGxlYXN0NjRieXRlc2xvbmc=");
-        ReflectionTestUtils.setField(jwtUtil, "expiration", 3600000L);
-        ReflectionTestUtils.setField(jwtUtil, "refreshExpiration", 86400000L);
+        lenient().when(jwtProperties.secret()).thenReturn(
+            "dGhpc2lzYXZlcnlsb25nc2VjcmV0a2V5Zm9ydGVzdGluZ2p3dHRva2Vuc2FuZGl0c2hvdWxkYmVhdGxlYXN0NjRieXRlc2xvbmc="
+        );
+        lenient().when(jwtProperties.expiration()).thenReturn(3600000L);
+        lenient().when(jwtProperties.refreshExpiration()).thenReturn(86400000L);
+        lenient().when(jwtProperties.blacklist()).thenReturn(
+            new JwtProperties.BlacklistProperties("blacklist:", "300000")
+        );
+        lenient().when(jwtProperties.refresh()).thenReturn(
+            new JwtProperties.RefreshProperties("refresh:", 86400)
+        );
 
         jwtUtil.init();
 
@@ -94,10 +104,10 @@ class JwtUtilTest {
 
     @Test
     void isTokenExpired_ShouldReturnTrue_WhenTokenIsExpired() throws Exception {
-        long originalExpiration = (long) ReflectionTestUtils.getField(jwtUtil, "expiration");
-        ReflectionTestUtils.setField(jwtUtil, "expiration", 1L);
+        when(jwtProperties.expiration()).thenReturn(1L);
+        jwtUtil.init();
+        
         String token = jwtUtil.generateToken(userDetails);
-        ReflectionTestUtils.setField(jwtUtil, "expiration", originalExpiration);
 
         Thread.sleep(10);
 

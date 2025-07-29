@@ -53,8 +53,12 @@ springdoc:
     enabled: false
 
 jwt:
+  secret: ${JWT_SECRET}
+  expiration: 1800000
+  refresh-expiration: 604800000
   blacklist:
     prefix: "blacklisted_token:"
+    cleanup-interval: 3600000
   refresh:
     prefix: "user:refresh_tokens:"
     expiry: 30

@@ -218,6 +218,43 @@ public class TrainingServiceImpl implements TrainingService {
 
     @Override
     @Transactional
+    public TrainerWorkloadResponse updateTraining(UpdateTrainingRequest updateTrainingRequest) {
+        if (updateTrainingRequest == null) {
+            throw new IllegalArgumentException("UpdateTrainingRequest cannot be null");
+        }
+
+        try {
+            Trainee trainee = traineeRepository.findByUsername(updateTrainingRequest.traineeUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainee not found with username: " + updateTrainingRequest.traineeUsername()));
+            Trainer trainer = trainerRepository.findByUsername(updateTrainingRequest.trainerUsername())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Trainer not found with username: " + updateTrainingRequest.trainerUsername()));
+
+            Training existingTraining = trainingRepository
+                    .findByTraineeAndTrainerAndTrainingDate(trainee, trainer, updateTrainingRequest.trainingDate())
+                    .orElseThrow(() -> new ResourceNotFoundException("Training not found for update"));
+
+            existingTraining.setDuration(updateTrainingRequest.duration());
+            existingTraining.setTrainingName(updateTrainingRequest.trainingName());
+            
+            Training savedTraining = trainingRepository.save(existingTraining);
+
+            trainingMetrics.recordTrainingDuration(savedTraining.getDuration());
+            traineeTrainingMetrics.recordTraineeTrainingDuration(savedTraining.getDuration());
+            trainerTrainingMetrics.recordTrainerTrainingDuration(savedTraining.getDuration());
+
+            // Notify workload service about training update
+            return workloadNotificationService.notifyTrainingUpdated(existingTraining, savedTraining);
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Error updating Training", e);
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteById(Long id) {
         if (id == null) {
             throw new IllegalArgumentException("Training id cannot be null");

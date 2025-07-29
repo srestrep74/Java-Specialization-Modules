@@ -1,7 +1,7 @@
 package dev.sro.gym_service.service.impl;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import dev.sro.gym_service.service.TokenStorageService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -17,15 +17,11 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
 
     private final Map<String, Instant> blacklistedTokens = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> userRefreshTokens = new ConcurrentHashMap<>();
+    private final JwtProperties jwtProperties;
 
-    @Value("${jwt.blacklist.prefix}")
-    private String blacklistKeyPrefix;
-
-    @Value("${jwt.refresh.prefix}")
-    private String refreshTokensKeyPrefix;
-
-    @Value("${jwt.refresh.expiry}")
-    private int refreshTokenExpiryDays;
+    public InMemoryTokenStorageServiceImpl(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     @Override
     public void blacklistToken(String tokenId, Instant expiryDate) {
@@ -38,7 +34,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = blacklistKeyPrefix + tokenId;
+        String key = jwtProperties.blacklist().prefix() + tokenId;
         blacklistedTokens.put(key, expiryDate);
     }
 
@@ -48,7 +44,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return false;
         }
 
-        String key = blacklistKeyPrefix + tokenId;
+        String key = jwtProperties.blacklist().prefix() + tokenId;
         Instant expiryDate = blacklistedTokens.get(key);
 
         if (expiryDate == null) {
@@ -69,7 +65,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refresh().prefix() + username;
         userRefreshTokens.computeIfAbsent(key, k -> new HashSet<>()).add(tokenId);
     }
 
@@ -79,7 +75,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return Collections.emptySet();
         }
 
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refresh().prefix() + username;
         Set<String> tokens = userRefreshTokens.get(key);
         return tokens != null ? new HashSet<>(tokens) : Collections.emptySet();
     }
@@ -90,7 +86,7 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refresh().prefix() + username;
         Set<String> tokens = userRefreshTokens.get(key);
         if (tokens != null) {
             tokens.remove(tokenId);
@@ -103,11 +99,11 @@ public class InMemoryTokenStorageServiceImpl implements TokenStorageService {
             return;
         }
 
-        String key = refreshTokensKeyPrefix + username;
+        String key = jwtProperties.refresh().prefix() + username;
         userRefreshTokens.remove(key);
     }
 
-    @Scheduled(fixedDelayString = "${jwt.blacklist.cleanup-interval}")
+    @Scheduled(fixedDelayString = "#{@jwtProperties.blacklist().cleanupInterval()}")
     public void cleanupExpiredTokens() {
         Instant now = Instant.now();
         blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));

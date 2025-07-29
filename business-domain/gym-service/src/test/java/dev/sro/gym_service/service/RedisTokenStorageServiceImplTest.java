@@ -3,6 +3,7 @@ package dev.sro.gym_service.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import dev.sro.gym_service.config.properties.JwtProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import dev.sro.gym_service.service.impl.RedisTokenStorageServiceImpl;
 
@@ -34,6 +34,9 @@ class RedisTokenStorageServiceImplTest {
     @Mock
     private SetOperations<String, String> setOperations;
 
+    @Mock
+    private JwtProperties jwtProperties;
+
     @InjectMocks
     private RedisTokenStorageServiceImpl tokenStorageService;
 
@@ -44,9 +47,12 @@ class RedisTokenStorageServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(tokenStorageService, "blacklistKeyPrefix", blacklistPrefix);
-        ReflectionTestUtils.setField(tokenStorageService, "refreshTokensKeyPrefix", refreshPrefix);
-        ReflectionTestUtils.setField(tokenStorageService, "refreshTokenExpiryDays", 7);
+        lenient().when(jwtProperties.blacklist()).thenReturn(
+            new JwtProperties.BlacklistProperties(blacklistPrefix, "300000")
+        );
+        lenient().when(jwtProperties.refresh()).thenReturn(
+            new JwtProperties.RefreshProperties(refreshPrefix, 7)
+        );
 
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         lenient().when(redisTemplate.opsForSet()).thenReturn(setOperations);

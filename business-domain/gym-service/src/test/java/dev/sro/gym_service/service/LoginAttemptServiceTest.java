@@ -1,16 +1,17 @@
 package dev.sro.gym_service.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import dev.sro.gym_service.config.properties.LoginProperties;
 import dev.sro.gym_service.service.impl.auth.LoginAttemptService;
 import dev.sro.gym_service.util.LoginAttemptInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -19,7 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @ExtendWith(MockitoExtension.class)
 class LoginAttemptServiceTest {
 
-    @Spy
+    @Mock
+    private LoginProperties loginProperties;
+
     @InjectMocks
     private LoginAttemptService loginAttemptService;
 
@@ -27,8 +30,8 @@ class LoginAttemptServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(loginAttemptService, "maxAttempts", 3);
-        ReflectionTestUtils.setField(loginAttemptService, "lockTimeMinutes", 5);
+        lenient().when(loginProperties.maxAttempts()).thenReturn(3);
+        lenient().when(loginProperties.lockTimeMinutes()).thenReturn(5);
     }
 
     @Test
@@ -91,6 +94,7 @@ class LoginAttemptServiceTest {
         int duration = loginAttemptService.getBlockDuration();
 
         assertEquals(5, duration);
+        verify(loginProperties).lockTimeMinutes();
     }
 
     @Test
@@ -98,6 +102,7 @@ class LoginAttemptServiceTest {
         int maxAttempts = loginAttemptService.getMaxAttempts();
 
         assertEquals(3, maxAttempts);
+        verify(loginProperties).maxAttempts();
     }
 
     @Test
@@ -123,15 +128,24 @@ class LoginAttemptServiceTest {
 
     @Test
     void cleanExpiredRecords_ShouldRemoveExpiredEntries() {
-        Map<String, LoginAttemptInfo> attemptsCache = new ConcurrentHashMap<>();
-        attemptsCache.put("expireduser", new LoginAttemptInfo(2, LocalDateTime.now().minusMinutes(6)));
-        attemptsCache.put(testUsername, new LoginAttemptInfo(1, LocalDateTime.now()));
+        LoginAttemptService testService = new LoginAttemptService(loginProperties);
 
-        ReflectionTestUtils.setField(loginAttemptService, "attemptsCache", attemptsCache);
-
-        loginAttemptService.getAttempts("anyuser");
-
-        assertEquals(0, loginAttemptService.getAttempts("expireduser"));
-        assertEquals(1, loginAttemptService.getAttempts(testUsername));
+        try {
+            java.lang.reflect.Field attemptsCacheField = LoginAttemptService.class.getDeclaredField("attemptsCache");
+            attemptsCacheField.setAccessible(true);
+            
+            Map<String, LoginAttemptInfo> attemptsCache = new ConcurrentHashMap<>();
+            attemptsCache.put("expireduser", new LoginAttemptInfo(2, LocalDateTime.now().minusMinutes(6)));
+            attemptsCache.put(testUsername, new LoginAttemptInfo(1, LocalDateTime.now()));
+            
+            attemptsCacheField.set(testService, attemptsCache);
+            
+            testService.getAttempts("anyuser");
+            
+            assertEquals(0, testService.getAttempts("expireduser"));
+            assertEquals(1, testService.getAttempts(testUsername));
+        } catch (Exception e) {
+            fail("Failed to set up test: " + e.getMessage());
+        }
     }
 }

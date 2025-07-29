@@ -6,7 +6,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.RedeliveryPolicy;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
@@ -15,6 +14,8 @@ import org.springframework.jms.support.converter.MappingJackson2MessageConverter
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
 
+import dev.sro.workload_service.config.properties.JmsProperties;
+import dev.sro.workload_service.config.properties.JmsRedeliveryProperties;
 import dev.sro.workload_service.exception.messaging.JmsErrorHandler;
 import jakarta.jms.ConnectionFactory;
 
@@ -22,35 +23,25 @@ import jakarta.jms.ConnectionFactory;
 @EnableJms
 public class JmsConfig {
 
-    @Value("${spring.activemq.broker-url}")
-    private String brokerUrl;
+    private final JmsProperties jmsProperties;
+    private final JmsRedeliveryProperties jmsRedeliveryProperties;
 
-    @Value("${spring.activemq.user}")
-    private String username;
-
-    @Value("${spring.activemq.password}")
-    private String password;
-
-    @Value("${app.jms.max-redeliveries:3}")
-    private int maxRedeliveries;
-
-    @Value("${app.jms.initial-redelivery-delay:2000}")
-    private long initialRedeliveryDelay;
-
-    @Value("${app.jms.redelivery-delay-max:5000}")
-    private long redeliveryDelayMax;
+    public JmsConfig(JmsProperties jmsProperties, JmsRedeliveryProperties jmsRedeliveryProperties) {
+        this.jmsProperties = jmsProperties;
+        this.jmsRedeliveryProperties = jmsRedeliveryProperties;
+    }
 
     @Bean
     public ConnectionFactory connectionFactory() {
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
-        connectionFactory.setBrokerURL(brokerUrl);
-        connectionFactory.setUserName(username);
-        connectionFactory.setPassword(password);
+        connectionFactory.setBrokerURL(jmsProperties.brokerUrl());
+        connectionFactory.setUserName(jmsProperties.user());
+        connectionFactory.setPassword(jmsProperties.password());
 
         RedeliveryPolicy redeliveryPolicy = new RedeliveryPolicy();
-        redeliveryPolicy.setMaximumRedeliveries(maxRedeliveries);
-        redeliveryPolicy.setInitialRedeliveryDelay(initialRedeliveryDelay);
-        redeliveryPolicy.setRedeliveryDelay(redeliveryDelayMax);
+        redeliveryPolicy.setMaximumRedeliveries(jmsRedeliveryProperties.maxRedeliveries());
+        redeliveryPolicy.setInitialRedeliveryDelay(jmsRedeliveryProperties.initialRedeliveryDelay());
+        redeliveryPolicy.setRedeliveryDelay(jmsRedeliveryProperties.redeliveryDelayMax());
         redeliveryPolicy.setUseExponentialBackOff(true);
         redeliveryPolicy.setBackOffMultiplier(2.0);
         redeliveryPolicy.setMaximumRedeliveryDelay(6000);
@@ -69,7 +60,7 @@ public class JmsConfig {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         converter.setObjectMapper(objectMapper);
 
-        converter.setTypeIdMappings(java.util.Map.of(
+        converter.setTypeIdMappings(java.util.Map.<String, Class<?>>of(
                 "dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest",
                 dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest.class));
 

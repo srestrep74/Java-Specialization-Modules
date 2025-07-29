@@ -26,6 +26,16 @@ spring:
     init:
       mode: always
   
+  # ActiveMQ Configuration for tests
+  activemq:
+    broker-url: vm://embedded?broker.persistent=false
+    user: admin
+    password: admin
+    packages:
+      trust-all: true
+  jms:
+    pub-sub-domain: false
+  
   # Disable Redis for tests
   data:
     redis:

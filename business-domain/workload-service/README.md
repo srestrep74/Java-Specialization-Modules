@@ -16,29 +16,69 @@ The **Workload Service** is a dedicated analytics microservice responsible for:
 ## 🎯 Business Domain
 
 ### Core Entities
-- **Trainer**: Basic trainer information with workload tracking capabilities
-- **TrainingSession**: Individual training sessions with duration and metadata
-- **MonthlySummary**: Aggregated monthly data per trainer with training statistics
-- **ActionType**: Enumeration for workload operations (ADD, DELETE, UPDATE)
+
+#### TrainerTrainingSummary (MongoDB Document)
+- **Collection**: `trainer_training_summaries`
+- **Purpose**: Main document storing trainer workload summaries with hierarchical year/month structure
+- **Key Fields**:
+  - `trainerUsername`: Unique identifier for the trainer
+  - `trainerFirstName` & `trainerLastName`: Trainer identification (indexed)
+  - `trainerStatus`: Boolean indicating if trainer is active
+  - `years`: List of YearSummary objects for historical data
+  - `createdAt` & `updatedAt`: Timestamps for audit trail
+- **Indexes**: Compound index on `trainer_first_name` and `trainer_last_name`
+- **Business Logic**: Contains methods for profile updates and year management
+
+#### TrainingSession (MongoDB Document)
+- **Collection**: `training_sessions`
+- **Purpose**: Individual training session records with metadata
+- **Key Fields**:
+  - `trainerUsername`: Reference to the trainer (indexed)
+  - `trainingDate`: Date of the training session
+  - `trainingDuration`: Duration in minutes
+  - `actionType`: Type of operation (ADD, DELETE, UPDATE)
+  - `createdAt` & `updatedAt`: Timestamps for audit trail
+- **Business Logic**: Helper methods to extract year and month from training date
+
+#### YearSummary (Embedded Document)
+- **Purpose**: Aggregated data for a specific year within a trainer's summary
+- **Key Fields**:
+  - `year`: The year being summarized
+  - `months`: List of MonthSummary objects for monthly breakdown
+- **Business Logic**: Methods to find or create month summaries
+
+#### MonthSummary (Embedded Document)
+- **Purpose**: Aggregated data for a specific month within a year
+- **Key Fields**:
+  - `month`: The month number (1-12)
+  - `trainingsSummaryDuration`: Total duration in minutes for the month
+- **Business Logic**: Methods to add or subtract duration with validation
+
+#### ActionType (Enumeration)
+- **Values**: `ADD`, `DELETE`, `UPDATE`
+- **Purpose**: Defines the type of workload operation being processed
 
 ### Key Business Rules
-- Each trainer has associated training sessions tracked over time
-- Monthly summaries are automatically calculated based on training sessions
-- Workload data is aggregated by year and month for reporting purposes
+- Each trainer has a single `TrainerTrainingSummary` document with hierarchical year/month structure
+- Training sessions are stored as individual documents in the `training_sessions` collection
+- Monthly summaries are automatically calculated and embedded within year summaries
+- Workload data is aggregated by year and month for efficient reporting
 - Training session durations contribute to monthly workload calculations
-- Historical data is maintained for trend analysis and reporting
-- Data consistency is maintained through transactional operations
+- Historical data is preserved in the hierarchical structure for trend analysis
+- Data consistency is maintained through MongoDB's document model and embedded relationships
+- Indexes optimize queries for trainer lookups and date-based filtering
 
 ## 🛠️ Infrastructure & Dependencies
 
 ### Database Layer
-- **Primary Database**: MySQL
-  - Port: `3307` (to avoid conflicts with standard MySQL)
+- **Primary Database**: MongoDB
+  - Port: `27017`
   - Database: `workload_db`
-  - User: `workload_user`
-  - Connection Pool: HikariCP
-  - JPA/Hibernate for ORM
-- **Administration**: phpMyAdmin (port `8080`)
+  - User: `admin`
+  - Password: `admin123`
+  - Connection Pool: MongoDB driver connection pooling
+  - Spring Data MongoDB for data access
+- **Administration**: Mongo Express (port `8084`)
 
 ### Service Discovery
 - **Eureka Client**: Registers with Eureka Server
@@ -122,7 +162,7 @@ The service currently implements a monitoring and metrics approach for DLQ messa
 **Planned DLQ Processing Logic**
 The architecture is designed to support advanced DLQ processing capabilities:
 
-- **Database Persistence**: Store failed messages in dedicated error tracking tables
+- **Database Persistence**: Store failed messages in dedicated error tracking collections
 - **Email Notifications**: Alert administrators about critical processing failures
 - **Manual Reprocessing**: Admin interface for reviewing and reprocessing failed messages
 - **Data Reconciliation**: Tools for identifying and resolving data inconsistencies
@@ -233,7 +273,7 @@ Asynchronous message processing is implemented through dedicated consumer compon
 ## 📊 Monitoring & Observability
 
 ### Health Checks
-- **Database Health**: MySQL connection status and query performance
+- **Database Health**: MongoDB connection status and query performance
 - **Eureka Health**: Service discovery registration status
 - **Application Health**: Service availability and response times
 - **Data Integrity Health**: Validation of summary calculations and consistency
@@ -266,7 +306,7 @@ The service supports multiple configuration profiles:
 - **Testing Environment**: Isolated configuration for automated testing
 
 ### Key Configuration Areas
-- **Database Connections**: MySQL connection pooling and performance tuning
+- **Database Connections**: MongoDB connection pooling and performance tuning
 - **Service Discovery**: Eureka client registration and health check configuration
 - **Processing Parameters**: Batch sizes and aggregation thresholds
 - **Security Settings**: API access control and validation parameters
@@ -275,7 +315,7 @@ The service supports multiple configuration profiles:
 
 ### Unit Testing
 - **Service Layer Testing**: Business logic validation with mocked dependencies
-- **Repository Testing**: Data access layer validation with embedded databases
+- **Repository Testing**: Data access layer validation with embedded MongoDB
 - **Controller Testing**: API endpoint testing with MockMvc framework
 - **Mapper Testing**: Data transformation validation and edge case handling
 
@@ -341,7 +381,7 @@ Database queries for operational monitoring:
 ## 📈 Performance Optimizations
 
 ### Database Optimizations
-- **Connection Pooling**: Optimized HikariCP configuration for concurrent operations
+- **Connection Pooling**: Optimized MongoDB driver configuration for concurrent operations
 - **Query Optimization**: Efficient aggregation queries for summary calculations
 - **Indexing Strategy**: Strategic indexes for frequent query patterns
 - **Batch Processing**: Optimized batch operations for bulk data updates
@@ -383,7 +423,7 @@ Database queries for operational monitoring:
 - ✅ **Dead Letter Queue (DLQ)** handling with comprehensive error management
 - ✅ **Monthly Summary Generation** with automated calculations
 - ✅ **RESTful API** for reporting and data retrieval
-- ✅ **Database per Service** pattern implementation
+- ✅ **Database per Service** pattern implementation with MongoDB
 - ✅ **Comprehensive Health Checks** and operational monitoring
 - ✅ **Distributed Tracing** with Zipkin integration
 - ✅ **DLQ Metrics** with Prometheus monitoring

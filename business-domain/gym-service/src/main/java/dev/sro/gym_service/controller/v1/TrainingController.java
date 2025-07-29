@@ -4,12 +4,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
+import dev.sro.gym_service.dtos.v1.request.training.UpdateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.response.training.TrainingMutationResponse;
 import dev.sro.gym_service.dtos.v1.response.workload.TrainerWorkloadResponse;
 import dev.sro.gym_service.service.TrainingService;
@@ -252,6 +254,83 @@ public class TrainingController {
 
         if (workloadResponse != null && workloadResponse.message().contains("queued")) {
             message = "Training deleted, but workload notification is delayed.";
+            details = workloadResponse.message();
+        }
+
+        return ResponseEntity.ok(new TrainingMutationResponse(message, details));
+    }
+
+    @Operation(
+        summary = "Update an existing training session",
+        description = "Updates an existing training session with new details. "
+            + "Requires valid trainee and trainer usernames, training name, date and duration. "
+            + "Requires authentication with either TRAINEE or TRAINER role. "
+            + "The trainer specified must be assigned to the trainee for the training session to be updated successfully.",
+        operationId = "updateTraining",
+        security = { @SecurityRequirement(name = "bearerAuth") }
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Training session updated successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = TrainingMutationResponse.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid input data",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Unauthorized - Authentication token missing or invalid",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Forbidden - User does not have required role (TRAINEE or TRAINER)",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Training session not found",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ApiStandardError.class)
+            )
+        )
+    })
+    @PreAuthorize("hasRole('TRAINEE') or hasRole('TRAINER')")
+    @PutMapping
+    public ResponseEntity<TrainingMutationResponse> updateTraining(
+            @Parameter(description = "Details of the training session to update") 
+            @Valid @RequestBody UpdateTrainingRequest updateTrainingRequest) {
+        TrainerWorkloadResponse workloadResponse = trainingService.updateTraining(updateTrainingRequest);
+        
+        String message = "Training updated successfully.";
+        String details = null;
+
+        if (workloadResponse != null && workloadResponse.message().contains("queued")) {
+            message = "Training updated, but workload notification is delayed.";
             details = workloadResponse.message();
         }
 

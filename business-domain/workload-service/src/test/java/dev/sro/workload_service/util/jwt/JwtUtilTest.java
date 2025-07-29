@@ -1,5 +1,9 @@
 package dev.sro.workload_service.util.jwt;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import dev.sro.workload_service.config.properties.JwtProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -7,8 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.security.Key;
 import java.util.Base64;
@@ -16,10 +20,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(MockitoExtension.class)
 class JwtUtilTest {
+
+    @Mock
+    private JwtProperties jwtProperties;
 
     @InjectMocks
     private JwtUtil jwtUtil;
@@ -36,7 +41,7 @@ class JwtUtilTest {
         this.secret = Base64.getEncoder().encodeToString(key.getEncoded());
         this.signingKey = key;
 
-        ReflectionTestUtils.setField(jwtUtil, "secret", this.secret);
+        lenient().when(jwtProperties.secret()).thenReturn(this.secret);
         jwtUtil.init();
 
         username = "testUser";
@@ -120,7 +125,9 @@ class JwtUtilTest {
         Key shortKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         String shortSecret = Base64.getEncoder().encodeToString(shortKey.getEncoded());
 
-        ReflectionTestUtils.setField(jwtUtil, "secret", shortSecret);
-        assertThrows(IllegalStateException.class, () -> jwtUtil.init());
+        when(jwtProperties.secret()).thenReturn(shortSecret);
+        
+        JwtUtil testJwtUtil = new JwtUtil(jwtProperties);
+        assertThrows(IllegalStateException.class, () -> testJwtUtil.init());
     }
 }

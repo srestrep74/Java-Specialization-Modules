@@ -6,17 +6,17 @@ import static org.mockito.ArgumentMatchers.any;
 
 import dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.dtos.v1.response.TrainerMonthlySummaryResponse;
-import dev.sro.workload_service.entity.MonthlySummary;
-import dev.sro.workload_service.entity.Trainer;
+import dev.sro.workload_service.entity.TrainerTrainingSummary;
 import dev.sro.workload_service.entity.TrainingSession;
+import dev.sro.workload_service.entity.YearSummary;
+import dev.sro.workload_service.entity.MonthSummary;
 import dev.sro.workload_service.entity.enums.ActionType;
+import dev.sro.workload_service.exception.InvalidWorkloadDataException;
 import dev.sro.workload_service.exception.TrainerNotFoundException;
 import dev.sro.workload_service.exception.WorkloadProcessingException;
-import dev.sro.workload_service.mapper.TrainerMapper;
-import dev.sro.workload_service.mapper.TrainerMonthlySummaryMapper;
+import dev.sro.workload_service.mapper.TrainerTrainingSummaryMapper;
 import dev.sro.workload_service.mapper.TrainingSessionMapper;
-import dev.sro.workload_service.repository.MonthlySummaryRepository;
-import dev.sro.workload_service.repository.TrainerRepository;
+import dev.sro.workload_service.repository.TrainerTrainingSummaryRepository;
 import dev.sro.workload_service.repository.TrainingSessionRepository;
 import dev.sro.workload_service.service.impl.TrainerWorkloadServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -35,348 +36,416 @@ import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
 class TrainerWorkloadServiceImplTest {
 
-    @Mock
-    private TrainerRepository trainerRepository;
-    @Mock
-    private TrainingSessionRepository trainingSessionRepository;
-    @Mock
-    private MonthlySummaryRepository monthlySummaryRepository;
-    @Mock
-    private TrainerMapper trainerMapper;
-    @Mock
-    private TrainingSessionMapper trainingSessionMapper;
-    @Mock
-    private TrainerMonthlySummaryMapper trainerMonthlySummaryMapper;
+        @Mock
+        private TrainerTrainingSummaryRepository trainerTrainingSummaryRepository;
+        @Mock
+        private TrainingSessionRepository trainingSessionRepository;
+        @Mock
+        private TrainerTrainingSummaryMapper trainerTrainingSummaryMapper;
+        @Mock
+        private TrainingSessionMapper trainingSessionMapper;
 
-    @InjectMocks
-    private TrainerWorkloadServiceImpl trainerWorkloadService;
+        @InjectMocks
+        private TrainerWorkloadServiceImpl trainerWorkloadService;
 
-    private TrainerWorkloadRequest request;
-    private Trainer trainer;
-    private TrainingSession trainingSession;
-    private MonthlySummary monthlySummary;
+        private TrainerWorkloadRequest request;
+        private TrainerTrainingSummary trainerSummary;
+        private TrainingSession trainingSession;
+        private YearSummary yearSummary;
+        private MonthSummary monthSummary;
 
-    @BeforeEach
-    void setUp() {
-        request = new TrainerWorkloadRequest(
-                "test.trainer",
-                "Test",
-                "Trainer",
-                true,
-                LocalDate.of(2024, 1, 15),
-                60,
-                ActionType.ADD);
+        @BeforeEach
+        void setUp() {
+                request = new TrainerWorkloadRequest(
+                                "test.trainer",
+                                "Test",
+                                "Trainer",
+                                true,
+                                LocalDate.of(2024, 1, 15),
+                                60,
+                                ActionType.ADD);
 
-        trainer = Trainer.builder()
-                .username("test.trainer")
-                .firstName("Test")
-                .lastName("Trainer")
-                .isActive(true)
-                .build();
+                monthSummary = MonthSummary.builder()
+                                .month(1)
+                                .trainingsSummaryDuration(60)
+                                .build();
 
-        trainingSession = TrainingSession.builder()
-                .trainer(trainer)
-                .trainingDate(request.trainingDate())
-                .trainingDuration(request.trainingDuration())
-                .actionType(request.actionType())
-                .build();
+                yearSummary = YearSummary.builder()
+                                .year(2024)
+                                .months(List.of(monthSummary))
+                                .build();
 
-        monthlySummary = MonthlySummary.builder()
-                .trainer(trainer)
-                .year(2024)
-                .month(1)
-                .totalDuration(60)
-                .build();
-    }
+                trainerSummary = TrainerTrainingSummary.builder()
+                                .id("trainer-123")
+                                .trainerUsername("test.trainer")
+                                .trainerFirstName("Test")
+                                .trainerLastName("Trainer")
+                                .trainerStatus(true)
+                                .years(List.of(yearSummary))
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
 
-    @Test
-    @DisplayName("processTrainerWorkload should process workload for a new trainer")
-    void processTrainerWorkload_ForNewTrainer() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.empty());
-        when(trainerMapper.toTrainer(request)).thenReturn(trainer);
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(trainer);
-        when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth("test.trainer", 2024, 1))
-                .thenReturn(Optional.empty());
-        when(monthlySummaryRepository.save(any(MonthlySummary.class))).thenReturn(monthlySummary);
+                trainingSession = TrainingSession.builder()
+                                .id("session-123")
+                                .trainerUsername("test.trainer")
+                                .trainingDate(request.trainingDate())
+                                .trainingDuration(request.trainingDuration())
+                                .actionType(request.actionType())
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
+        }
 
-        assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
+        @Test
+        @DisplayName("processTrainerWorkload should process workload for a new trainer")
+        void processTrainerWorkload_ForNewTrainer() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.empty());
+                when(trainerTrainingSummaryMapper.toTrainerTrainingSummary(request)).thenReturn(trainerSummary);
+                when(trainerTrainingSummaryRepository.save(any(TrainerTrainingSummary.class)))
+                                .thenReturn(trainerSummary);
+                when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
+                when(trainingSessionRepository.save(any(TrainingSession.class))).thenReturn(trainingSession);
 
-        verify(trainerRepository).findByUsername("test.trainer");
-        verify(trainerMapper).toTrainer(request);
-        verify(trainingSessionRepository).save(any(TrainingSession.class));
-        verify(monthlySummaryRepository, times(2)).save(any(MonthlySummary.class));
-    }
+                assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-    @Test
-    @DisplayName("processTrainerWorkload should process workload for an existing trainer")
-    void processTrainerWorkload_ForExistingTrainer() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(trainer);
-        when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth("test.trainer", 2024, 1))
-                .thenReturn(Optional.of(monthlySummary));
+                verify(trainerTrainingSummaryRepository).findByTrainerUsername("test.trainer");
+                verify(trainerTrainingSummaryMapper).toTrainerTrainingSummary(request);
+                verify(trainerTrainingSummaryRepository, times(2)).save(any(TrainerTrainingSummary.class));
+                verify(trainingSessionRepository).save(any(TrainingSession.class));
+        }
 
-        assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
+        @Test
+        @DisplayName("processTrainerWorkload should process workload for an existing trainer")
+        void processTrainerWorkload_ForExistingTrainer() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryRepository.save(any(TrainerTrainingSummary.class)))
+                                .thenReturn(trainerSummary);
+                when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
+                when(trainingSessionRepository.save(any(TrainingSession.class))).thenReturn(trainingSession);
 
-        verify(trainerRepository).findByUsername("test.trainer");
-        verify(trainerMapper, never()).toTrainer(any());
-        verify(trainingSessionRepository).save(any(TrainingSession.class));
-        verify(monthlySummaryRepository).save(any(MonthlySummary.class));
-    }
+                assertDoesNotThrow(() -> trainerWorkloadService.processTrainerWorkload(request));
 
-    @Test
-    @DisplayName("processTrainerWorkload should subtract duration for DELETE action")
-    void processTrainerWorkload_DeleteAction() {
-        request = new TrainerWorkloadRequest(
-                "test.trainer", "Test", "Trainer", true,
-                LocalDate.of(2024, 1, 15), 30, ActionType.DELETE);
-        trainingSession.setActionType(ActionType.DELETE);
+                verify(trainerTrainingSummaryRepository).findByTrainerUsername("test.trainer");
+                verify(trainerTrainingSummaryMapper, never()).toTrainerTrainingSummary(any());
+                verify(trainerTrainingSummaryRepository, times(2)).save(any(TrainerTrainingSummary.class));
+                verify(trainingSessionRepository).save(any(TrainingSession.class));
+        }
 
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(trainer);
-        when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth("test.trainer", 2024, 1))
-                .thenReturn(Optional.of(monthlySummary));
+        @Test
+        @DisplayName("processTrainerWorkload should subtract duration for DELETE action")
+        void processTrainerWorkload_DeleteAction() {
+                request = new TrainerWorkloadRequest(
+                                "test.trainer", "Test", "Trainer", true,
+                                LocalDate.of(2024, 1, 15), 30, ActionType.DELETE);
 
-        trainerWorkloadService.processTrainerWorkload(request);
+                TrainingSession deleteSession = TrainingSession.builder()
+                                .id("session-123")
+                                .trainerUsername("test.trainer")
+                                .trainingDate(request.trainingDate())
+                                .trainingDuration(request.trainingDuration())
+                                .actionType(ActionType.DELETE)
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
 
-        assertEquals(30, monthlySummary.getTotalDuration());
-        verify(monthlySummaryRepository).save(monthlySummary);
-    }
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryRepository.save(any(TrainerTrainingSummary.class)))
+                                .thenReturn(trainerSummary);
+                when(trainingSessionMapper.toTrainingSession(request)).thenReturn(deleteSession);
+                when(trainingSessionRepository.save(any(TrainingSession.class))).thenReturn(deleteSession);
 
-    @Test
-    @DisplayName("processTrainerWorkload should update existing trainer's profile")
-    void processTrainerWorkload_UpdateTrainerProfile() {
-        TrainerWorkloadRequest updateRequest = new TrainerWorkloadRequest(
-                "test.trainer", "UpdatedFirstName", "UpdatedLastName", false,
-                LocalDate.of(2024, 1, 15), 30, ActionType.ADD);
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(trainer);
-        when(trainingSessionMapper.toTrainingSession(updateRequest)).thenReturn(new TrainingSession());
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth(anyString(), anyInt(), anyInt()))
-                .thenReturn(Optional.of(monthlySummary));
+                trainerWorkloadService.processTrainerWorkload(request);
 
-        trainerWorkloadService.processTrainerWorkload(updateRequest);
+                verify(trainerTrainingSummaryRepository, times(2)).save(any(TrainerTrainingSummary.class));
+        }
 
-        verify(trainerRepository).save(trainer);
-        assertEquals("UpdatedFirstName", trainer.getFirstName());
-        assertEquals("UpdatedLastName", trainer.getLastName());
-        assertFalse(trainer.getIsActive());
-    }
+        @Test
+        @DisplayName("processTrainerWorkload should handle UPDATE action")
+        void processTrainerWorkload_UpdateAction() {
+                request = new TrainerWorkloadRequest(
+                                "test.trainer", "Test", "Trainer", true,
+                                LocalDate.of(2024, 1, 15), 90, ActionType.UPDATE);
 
-    @Test
-    @DisplayName("processTrainerWorkload should create new monthly summary if not exists")
-    void processTrainerWorkload_CreatesNewSummary() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(trainer);
-        when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth("test.trainer", 2024, 1))
-                .thenReturn(Optional.empty());
+                TrainingSession updateSession = TrainingSession.builder()
+                                .id("session-123")
+                                .trainerUsername("test.trainer")
+                                .trainingDate(request.trainingDate())
+                                .trainingDuration(90)
+                                .actionType(ActionType.UPDATE)
+                                .createdAt(LocalDateTime.now())
+                                .updatedAt(LocalDateTime.now())
+                                .build();
 
-        when(monthlySummaryRepository.save(any(MonthlySummary.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryRepository.save(any(TrainerTrainingSummary.class)))
+                                .thenReturn(trainerSummary);
+                when(trainingSessionMapper.toTrainingSession(request)).thenReturn(updateSession);
+                when(trainingSessionRepository.findByTrainerUsernameAndTrainingDate("test.trainer",
+                                request.trainingDate()))
+                                .thenReturn(Optional.of(updateSession));
+                when(trainingSessionRepository.save(any(TrainingSession.class))).thenReturn(updateSession);
 
-        trainerWorkloadService.processTrainerWorkload(request);
+                trainerWorkloadService.processTrainerWorkload(request);
 
-        verify(monthlySummaryRepository, times(2)).save(any(MonthlySummary.class));
-    }
+                verify(trainerTrainingSummaryRepository, times(2)).save(any(TrainerTrainingSummary.class));
+                verify(trainingSessionRepository, times(1)).save(any(TrainingSession.class));
+        }
 
-    @Test
-    @DisplayName("processTrainerWorkload should throw WorkloadProcessingException when getOrCreateTrainer fails")
-    void processTrainerWorkload_FailsOnGetOrCreateTrainer() {
-        when(trainerRepository.findByUsername(request.trainerUsername())).thenReturn(Optional.empty());
-        when(trainerMapper.toTrainer(request)).thenReturn(trainer);
-        when(trainerRepository.save(any(Trainer.class))).thenThrow(new RuntimeException("DB error on save trainer"));
+        @Test
+        @DisplayName("processTrainerWorkload should update existing trainer's profile")
+        void processTrainerWorkload_UpdateTrainerProfile() {
+                TrainerWorkloadRequest updateRequest = new TrainerWorkloadRequest(
+                                "test.trainer", "UpdatedFirstName", "UpdatedLastName", false,
+                                LocalDate.of(2024, 1, 15), 30, ActionType.ADD);
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryRepository.save(any(TrainerTrainingSummary.class)))
+                                .thenReturn(trainerSummary);
+                when(trainingSessionMapper.toTrainingSession(updateRequest)).thenReturn(new TrainingSession());
+                when(trainingSessionRepository.save(any(TrainingSession.class))).thenReturn(trainingSession);
 
-        assertThrows(WorkloadProcessingException.class, () -> trainerWorkloadService.processTrainerWorkload(request));
-    }
+                trainerWorkloadService.processTrainerWorkload(updateRequest);
 
-    @Test
-    @DisplayName("processTrainerWorkload should throw WorkloadProcessingException when updateMonthlySummary fails")
-    void processTrainerWorkload_FailsOnUpdateMonthlySummary() {
-        when(trainerRepository.findByUsername(request.trainerUsername())).thenReturn(Optional.of(trainer));
-        when(trainerRepository.save(any(Trainer.class))).thenReturn(trainer);
-        when(trainingSessionMapper.toTrainingSession(request)).thenReturn(trainingSession);
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth(anyString(), anyInt(), anyInt()))
-                .thenReturn(Optional.of(monthlySummary));
-        doThrow(new RuntimeException("DB error on save summary")).when(monthlySummaryRepository).save(monthlySummary);
+                verify(trainerTrainingSummaryRepository, times(2)).save(any(TrainerTrainingSummary.class));
+        }
 
-        assertThrows(WorkloadProcessingException.class, () -> trainerWorkloadService.processTrainerWorkload(request));
-    }
+        @Test
+        @DisplayName("processTrainerWorkload should throw WorkloadProcessingException when getOrCreateTrainer fails")
+        void processTrainerWorkload_FailsOnGetOrCreateTrainer() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername(request.trainerUsername()))
+                                .thenReturn(Optional.empty());
+                when(trainerTrainingSummaryMapper.toTrainerTrainingSummary(request)).thenReturn(trainerSummary);
+                when(trainerTrainingSummaryRepository.save(any(TrainerTrainingSummary.class)))
+                                .thenThrow(new RuntimeException("DB error on save trainer"));
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary should return summary for existing trainer")
-    void getTrainerMonthlySummary_ExistingTrainer() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(monthlySummaryRepository.findByTrainer_Username("test.trainer")).thenReturn(List.of(monthlySummary));
-        when(trainerMonthlySummaryMapper.toResponse(trainer, List.of(monthlySummary)))
-                .thenReturn(mock(TrainerMonthlySummaryResponse.class));
+                assertThrows(WorkloadProcessingException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(request));
+        }
 
-        TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer");
+        @Test
+        @DisplayName("getTrainerMonthlySummary should return summary for existing trainer")
+        void getTrainerMonthlySummary_ExistingTrainer() {
+                TrainerMonthlySummaryResponse expectedResponse = TrainerMonthlySummaryResponse.builder()
+                                .trainerUsername("test.trainer")
+                                .trainerFirstName("Test")
+                                .trainerLastName("Trainer")
+                                .trainerStatus(true)
+                                .years(Collections.emptyList())
+                                .build();
 
-        assertNotNull(response);
-        verify(trainerRepository).findByUsername("test.trainer");
-        verify(monthlySummaryRepository).findByTrainer_Username("test.trainer");
-    }
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryMapper.toResponse(trainerSummary)).thenReturn(expectedResponse);
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary should return empty summary for trainer with no sessions")
-    void getTrainerMonthlySummary_TrainerWithNoSessions() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(monthlySummaryRepository.findByTrainer_Username("test.trainer")).thenReturn(Collections.emptyList());
-        when(trainerMonthlySummaryMapper.toResponse(trainer, Collections.emptyList()))
-                .thenReturn(new TrainerMonthlySummaryResponse("test.trainer", "Test", "Trainer", true,
-                        Collections.emptyList()));
+                TrainerMonthlySummaryResponse response = trainerWorkloadService
+                                .getTrainerMonthlySummary("test.trainer");
 
-        TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer");
+                assertNotNull(response);
+                assertEquals("test.trainer", response.trainerUsername());
+                verify(trainerTrainingSummaryRepository).findByTrainerUsername("test.trainer");
+                verify(trainerTrainingSummaryMapper).toResponse(trainerSummary);
+        }
 
-        assertNotNull(response);
-        assertTrue(response.years().isEmpty());
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary should throw TrainerNotFoundException for non-existing trainer")
+        void getTrainerMonthlySummary_NonExistingTrainer() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("unknown.trainer"))
+                                .thenReturn(Optional.empty());
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary should throw TrainerNotFoundException for non-existing trainer")
-    void getTrainerMonthlySummary_NonExistingTrainer() {
-        when(trainerRepository.findByUsername("unknown.trainer")).thenReturn(Optional.empty());
+                assertThrows(TrainerNotFoundException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("unknown.trainer"));
+        }
 
-        assertThrows(TrainerNotFoundException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("unknown.trainer"));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary should throw IllegalArgumentException for null username")
+        void getTrainerMonthlySummary_NullUsername() {
+                assertThrows(IllegalArgumentException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary(null));
+        }
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary should throw IllegalArgumentException for null username")
-    void getTrainerMonthlySummary_NullUsername() {
-        assertThrows(IllegalArgumentException.class, () -> trainerWorkloadService.getTrainerMonthlySummary(null));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary by year should return summary")
+        void getTrainerMonthlySummary_ByYear() {
+                TrainerMonthlySummaryResponse expectedResponse = TrainerMonthlySummaryResponse.builder()
+                                .trainerUsername("test.trainer")
+                                .trainerFirstName("Test")
+                                .trainerLastName("Trainer")
+                                .trainerStatus(true)
+                                .years(Collections.emptyList())
+                                .build();
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year should return summary")
-    void getTrainerMonthlySummary_ByYear() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYear("test.trainer", 2024))
-                .thenReturn(List.of(monthlySummary));
-        when(trainerMonthlySummaryMapper.toResponse(trainer, List.of(monthlySummary)))
-                .thenReturn(mock(TrainerMonthlySummaryResponse.class));
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryMapper.toResponseForYear(trainerSummary, 2024)).thenReturn(expectedResponse);
 
-        TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024);
+                TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer",
+                                2024);
 
-        assertNotNull(response);
-        verify(monthlySummaryRepository).findByTrainer_UsernameAndYear("test.trainer", 2024);
-    }
+                assertNotNull(response);
+                verify(trainerTrainingSummaryRepository).findByTrainerUsername("test.trainer");
+                verify(trainerTrainingSummaryMapper).toResponseForYear(trainerSummary, 2024);
+        }
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year should throw IllegalArgumentException for invalid year")
-    void getTrainerMonthlySummary_InvalidYear() {
-        assertThrows(IllegalArgumentException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 999));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary by year should throw IllegalArgumentException for invalid year")
+        void getTrainerMonthlySummary_InvalidYear() {
+                assertThrows(IllegalArgumentException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 999));
+        }
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year and month should return summary")
-    void getTrainerMonthlySummary_ByYearAndMonth() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth("test.trainer", 2024, 1))
-                .thenReturn(Optional.of(monthlySummary));
-        when(trainerMonthlySummaryMapper.toResponse(trainer, List.of(monthlySummary)))
-                .thenReturn(mock(TrainerMonthlySummaryResponse.class));
+        @Test
+        @DisplayName("getTrainerMonthlySummary by year and month should return summary")
+        void getTrainerMonthlySummary_ByYearAndMonth() {
+                TrainerMonthlySummaryResponse expectedResponse = TrainerMonthlySummaryResponse.builder()
+                                .trainerUsername("test.trainer")
+                                .trainerFirstName("Test")
+                                .trainerLastName("Trainer")
+                                .trainerStatus(true)
+                                .years(Collections.emptyList())
+                                .build();
 
-        TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024,
-                1);
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenReturn(Optional.of(trainerSummary));
+                when(trainerTrainingSummaryMapper.toResponseForYearAndMonth(trainerSummary, 2024, 1))
+                                .thenReturn(expectedResponse);
 
-        assertNotNull(response);
-        verify(monthlySummaryRepository).findByTrainer_UsernameAndYearAndMonth("test.trainer", 2024, 1);
-    }
+                TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer",
+                                2024, 1);
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by month should throw IllegalArgumentException for invalid month")
-    void getTrainerMonthlySummary_InvalidMonth() {
-        assertThrows(IllegalArgumentException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024, 13));
-    }
+                assertNotNull(response);
+                verify(trainerTrainingSummaryRepository).findByTrainerUsername("test.trainer");
+                verify(trainerTrainingSummaryMapper).toResponseForYearAndMonth(trainerSummary, 2024, 1);
+        }
 
-    @Test
-    @DisplayName("processTrainerWorkload should throw WorkloadProcessingException on repository failure")
-    void processTrainerWorkload_RepositoryFailure() {
-        when(trainerRepository.findByUsername(request.trainerUsername()))
-                .thenThrow(new RuntimeException("Database error"));
+        @Test
+        @DisplayName("getTrainerMonthlySummary by month should throw IllegalArgumentException for invalid month")
+        void getTrainerMonthlySummary_InvalidMonth() {
+                assertThrows(IllegalArgumentException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024, 13));
+        }
 
-        assertThrows(WorkloadProcessingException.class, () -> trainerWorkloadService.processTrainerWorkload(request));
-    }
+        @Test
+        @DisplayName("processTrainerWorkload should throw WorkloadProcessingException on repository failure")
+        void processTrainerWorkload_RepositoryFailure() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername(request.trainerUsername()))
+                                .thenThrow(new RuntimeException("Database error"));
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary should throw WorkloadProcessingException on repository failure")
-    void getTrainerMonthlySummary_RepositoryFailure() {
-        when(trainerRepository.findByUsername("test.trainer")).thenThrow(new RuntimeException("Database error"));
+                assertThrows(WorkloadProcessingException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(request));
+        }
 
-        assertThrows(WorkloadProcessingException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer"));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary should throw WorkloadProcessingException on repository failure")
+        void getTrainerMonthlySummary_RepositoryFailure() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenThrow(new RuntimeException("Database error"));
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year should throw WorkloadProcessingException on failure")
-    void getTrainerMonthlySummary_ByYear_RepositoryFailure() {
-        when(trainerRepository.findByUsername("test.trainer")).thenThrow(new RuntimeException("Database error"));
+                assertThrows(WorkloadProcessingException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer"));
+        }
 
-        assertThrows(WorkloadProcessingException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary by year should throw WorkloadProcessingException on failure")
+        void getTrainerMonthlySummary_ByYear_RepositoryFailure() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenThrow(new RuntimeException("Database error"));
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by month/year should throw WorkloadProcessingException on failure")
-    void getTrainerMonthlySummary_ByYearAndMonth_RepositoryFailure() {
-        when(trainerRepository.findByUsername("test.trainer")).thenThrow(new RuntimeException("Database error"));
+                assertThrows(WorkloadProcessingException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024));
+        }
 
-        assertThrows(WorkloadProcessingException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024, 1));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary by month/year should throw WorkloadProcessingException on failure")
+        void getTrainerMonthlySummary_ByYearAndMonth_RepositoryFailure() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("test.trainer"))
+                                .thenThrow(new RuntimeException("Database error"));
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year should throw TrainerNotFoundException")
-    void getTrainerMonthlySummary_ByYear_TrainerNotFound() {
-        when(trainerRepository.findByUsername("unknown.trainer")).thenReturn(Optional.empty());
-        assertThrows(TrainerNotFoundException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("unknown.trainer", 2024));
-    }
+                assertThrows(WorkloadProcessingException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2024, 1));
+        }
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year/month should throw TrainerNotFoundException")
-    void getTrainerMonthlySummary_ByYearAndMonth_TrainerNotFound() {
-        when(trainerRepository.findByUsername("unknown.trainer")).thenReturn(Optional.empty());
-        assertThrows(TrainerNotFoundException.class,
-                () -> trainerWorkloadService.getTrainerMonthlySummary("unknown.trainer", 2024, 1));
-    }
+        @Test
+        @DisplayName("getTrainerMonthlySummary by year should throw TrainerNotFoundException")
+        void getTrainerMonthlySummary_ByYear_TrainerNotFound() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("unknown.trainer"))
+                                .thenReturn(Optional.empty());
+                assertThrows(TrainerNotFoundException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("unknown.trainer", 2024));
+        }
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year should return empty summary for no data")
-    void getTrainerMonthlySummary_ByYear_NoData() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYear("test.trainer", 2023))
-                .thenReturn(Collections.emptyList());
-        when(trainerMonthlySummaryMapper.toResponse(trainer, Collections.emptyList()))
-                .thenReturn(new TrainerMonthlySummaryResponse("test.trainer", "Test", "Trainer", true,
-                        Collections.emptyList()));
+        @Test
+        @DisplayName("getTrainerMonthlySummary by year/month should throw TrainerNotFoundException")
+        void getTrainerMonthlySummary_ByYearAndMonth_TrainerNotFound() {
+                when(trainerTrainingSummaryRepository.findByTrainerUsername("unknown.trainer"))
+                                .thenReturn(Optional.empty());
+                assertThrows(TrainerNotFoundException.class,
+                                () -> trainerWorkloadService.getTrainerMonthlySummary("unknown.trainer", 2024, 1));
+        }
 
-        TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2023);
+        @Test
+        @DisplayName("processTrainerWorkload should validate request data")
+        void processTrainerWorkload_ValidatesRequest() {
+                TrainerWorkloadRequest invalidRequest = new TrainerWorkloadRequest(
+                                "", null, null, true, null, -1, null);
 
-        assertNotNull(response);
-        assertTrue(response.years().isEmpty());
-    }
+                assertThrows(InvalidWorkloadDataException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(invalidRequest));
+        }
 
-    @Test
-    @DisplayName("getTrainerMonthlySummary by year/month should return empty summary for no data")
-    void getTrainerMonthlySummary_ByYearAndMonth_NoData() {
-        when(trainerRepository.findByUsername("test.trainer")).thenReturn(Optional.of(trainer));
-        when(monthlySummaryRepository.findByTrainer_UsernameAndYearAndMonth("test.trainer", 2023, 5))
-                .thenReturn(Optional.empty());
-        when(trainerMonthlySummaryMapper.toResponse(trainer, Collections.emptyList()))
-                .thenReturn(new TrainerMonthlySummaryResponse("test.trainer", "Test", "Trainer", true,
-                        Collections.emptyList()));
+        @Test
+        @DisplayName("processTrainerWorkload should validate trainer username")
+        void processTrainerWorkload_ValidatesTrainerUsername() {
+                TrainerWorkloadRequest invalidRequest = new TrainerWorkloadRequest(
+                                "", "Test", "Trainer", true, LocalDate.of(2024, 1, 15), 60, ActionType.ADD);
 
-        TrainerMonthlySummaryResponse response = trainerWorkloadService.getTrainerMonthlySummary("test.trainer", 2023,
-                5);
+                InvalidWorkloadDataException exception = assertThrows(InvalidWorkloadDataException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(invalidRequest));
 
-        assertNotNull(response);
-        assertTrue(response.years().isEmpty());
-    }
+                assertTrue(exception.getMessage().contains("trainerUsername"));
+                assertTrue(exception.getMessage().contains("Trainer username is required"));
+        }
+
+        @Test
+        @DisplayName("processTrainerWorkload should validate training duration")
+        void processTrainerWorkload_ValidatesTrainingDuration() {
+                TrainerWorkloadRequest invalidRequest = new TrainerWorkloadRequest(
+                                "test.trainer", "Test", "Trainer", true, LocalDate.of(2024, 1, 15), -1, ActionType.ADD);
+
+                InvalidWorkloadDataException exception = assertThrows(InvalidWorkloadDataException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(invalidRequest));
+
+                assertTrue(exception.getMessage().contains("trainingDuration"));
+                assertTrue(exception.getMessage().contains("Training duration must be positive"));
+        }
+
+        @Test
+        @DisplayName("processTrainerWorkload should validate training date")
+        void processTrainerWorkload_ValidatesTrainingDate() {
+                TrainerWorkloadRequest invalidRequest = new TrainerWorkloadRequest(
+                                "test.trainer", "Test", "Trainer", true, null, 60, ActionType.ADD);
+
+                InvalidWorkloadDataException exception = assertThrows(InvalidWorkloadDataException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(invalidRequest));
+
+                assertTrue(exception.getMessage().contains("trainingDate"));
+                assertTrue(exception.getMessage().contains("Training date is required"));
+        }
+
+        @Test
+        @DisplayName("processTrainerWorkload should validate action type")
+        void processTrainerWorkload_ValidatesActionType() {
+                TrainerWorkloadRequest invalidRequest = new TrainerWorkloadRequest(
+                                "test.trainer", "Test", "Trainer", true, LocalDate.of(2024, 1, 15), 60, null);
+
+                InvalidWorkloadDataException exception = assertThrows(InvalidWorkloadDataException.class,
+                                () -> trainerWorkloadService.processTrainerWorkload(invalidRequest));
+
+                assertTrue(exception.getMessage().contains("actionType"));
+                assertTrue(exception.getMessage().contains("Action type is required"));
+        }
 }

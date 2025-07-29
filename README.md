@@ -45,9 +45,10 @@ The system follows Domain-Driven Design (DDD) principles and implements various 
 
 ### Data & Persistence
 - **PostgreSQL**: Primary database for Gym Service
-- **MySQL**: Database for Workload Service
-- **Spring Data JPA**: Data access layer
-- **Hibernate**: ORM framework
+- **MongoDB**: Document database for Workload Service
+- **Spring Data JPA**: Data access layer for PostgreSQL
+- **Spring Data MongoDB**: Data access layer for MongoDB
+- **Hibernate**: ORM framework for PostgreSQL
 - **Redis**: JWT token storage and caching
 
 ### Infrastructure & DevOps
@@ -82,7 +83,7 @@ The system follows Domain-Driven Design (DDD) principles and implements various 
 
 ### Database Management
 - **pgAdmin**: PostgreSQL administration
-- **phpMyAdmin**: MySQL administration
+- **Mongo Express**: MongoDB administration interface
 - **RedisInsight**: Redis management interface
 
 ## 📋 System Requirements
@@ -116,7 +117,7 @@ docker-compose -f docker-compose-infrastructure.yml up -d
 
 This will start:
 - PostgreSQL (port 5432) + pgAdmin (port 5050)
-- MySQL (port 3307) + phpMyAdmin (port 8080)
+- MongoDB (port 27017) + Mongo Express (port 8084)
 - Redis (port 6379) + RedisInsight (port 5540)
 - ActiveMQ (port 61616) + ActiveMQ Web Console (port 8161)
 - Prometheus (port 9090)
@@ -145,6 +146,7 @@ This will start:
 - **Grafana**: http://localhost:3000 (admin/admin)
 - **Prometheus**: http://localhost:9090
 - **Zipkin**: http://localhost:9411
+- **Mongo Express**: http://localhost:8084 (admin/admin123)
 
 ## 📊 Service Endpoints
 
@@ -167,9 +169,9 @@ POSTGRES_DB=jpa_epam
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 
-MYSQL_DATABASE=workload_db
-MYSQL_USER=workload_user
-MYSQL_PASSWORD=workload_pass
+MONGODB_DATABASE=workload_db
+MONGODB_USERNAME=admin
+MONGODB_PASSWORD=admin123
 
 # Service Configuration
 EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
@@ -185,6 +187,8 @@ JWT_SECRET=your-secret-key
 - Workload Service: 8082
 - ActiveMQ: 61616
 - ActiveMQ Web Console: 8161
+- MongoDB: 27017
+- Mongo Express: 8084
 
 ## 🛑 Stopping Services
 
@@ -244,7 +248,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - ✅ Circuit Breaker Pattern
 - ✅ Distributed Configuration
 - ✅ JWT Authentication
-- ✅ Database per Service
+- ✅ Database per Service (PostgreSQL + MongoDB)
 - ✅ Distributed Tracing
 - ✅ Metrics & Monitoring
 - ✅ Containerization

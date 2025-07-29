@@ -21,14 +21,8 @@ public class WorkloadNotificationServiceImpl implements WorkloadNotificationServ
     }
 
     @Override
-    public void notifyTrainingUpdated(Training oldTraining, Training newTraining) {
-        if (!oldTraining.getTrainingDate().equals(newTraining.getTrainingDate()) ||
-                oldTraining.getDuration() != newTraining.getDuration()) {
-
-            sendWorkloadNotification(oldTraining, ActionType.DELETE);
-
-            sendWorkloadNotification(newTraining, ActionType.ADD);
-        }
+    public TrainerWorkloadResponse notifyTrainingUpdated(Training oldTraining, Training newTraining) {
+        return sendWorkloadNotification(newTraining, ActionType.UPDATE);
     }
 
     @Override

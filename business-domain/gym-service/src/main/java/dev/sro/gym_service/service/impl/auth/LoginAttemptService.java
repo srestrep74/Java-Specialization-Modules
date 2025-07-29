@@ -1,8 +1,8 @@
 package dev.sro.gym_service.service.impl.auth;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import dev.sro.gym_service.config.properties.LoginProperties;
 import dev.sro.gym_service.util.LoginAttemptInfo;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,13 +12,12 @@ import java.time.LocalDateTime;
 @Service
 public class LoginAttemptService {
 
-    @Value("${security.login.max-attempts:3}")
-    private int maxAttempts;
-
-    @Value("${security.login.lock-time-minutes:5}")
-    private int lockTimeMinutes;
-
+    private final LoginProperties loginProperties;
     private final Map<String, LoginAttemptInfo> attemptsCache = new ConcurrentHashMap<>();
+
+    public LoginAttemptService(LoginProperties loginProperties) {
+        this.loginProperties = loginProperties;
+    }
 
     public int registerFailedAttempt(String username) {
         cleanExpiredRecords();
@@ -49,7 +48,7 @@ public class LoginAttemptService {
         cleanExpiredRecords();
 
         LoginAttemptInfo info = attemptsCache.get(username);
-        return info != null && info.getAttempts() >= maxAttempts;
+        return info != null && info.getAttempts() >= loginProperties.maxAttempts();
     }
 
     public void resetAttempts(String username) {
@@ -59,16 +58,16 @@ public class LoginAttemptService {
     }
 
     public int getBlockDuration() {
-        return lockTimeMinutes;
+        return loginProperties.lockTimeMinutes();
     }
 
     public int getMaxAttempts() {
-        return maxAttempts;
+        return loginProperties.maxAttempts();
     }
 
     public int getRemainingAttempts(String username) {
         int attempts = getAttempts(username);
-        int remaining = maxAttempts - attempts;
+        int remaining = loginProperties.maxAttempts() - attempts;
         return Math.max(remaining, 0);
     }
 
@@ -76,7 +75,7 @@ public class LoginAttemptService {
         LocalDateTime now = LocalDateTime.now();
         attemptsCache.entrySet().removeIf(entry -> {
             LocalDateTime blockedTime = entry.getValue().getTimestamp();
-            return blockedTime.plusMinutes(lockTimeMinutes).isBefore(now);
+            return blockedTime.plusMinutes(loginProperties.lockTimeMinutes()).isBefore(now);
         });
     }
 }

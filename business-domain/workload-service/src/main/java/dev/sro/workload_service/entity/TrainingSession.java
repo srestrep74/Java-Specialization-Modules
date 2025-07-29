@@ -1,18 +1,20 @@
 package dev.sro.workload_service.entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import dev.sro.workload_service.entity.enums.ActionType;
 
-@Entity
-@Table(name = "training_sessions")
+@Document(collection = "training_sessions")
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,39 +22,26 @@ import dev.sro.workload_service.entity.enums.ActionType;
 public class TrainingSession {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_username", nullable = false)
-    private Trainer trainer;
+    @Indexed
+    @Field("trainer_username")
+    private String trainerUsername;
     
-    @Column(name = "training_date", nullable = false)
+    @Field("training_date")
     private LocalDate trainingDate;
     
-    @Column(name = "training_duration", nullable = false)
+    @Field("training_duration")
     private Integer trainingDuration; // in minutes
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "action_type", nullable = false)
+    @Field("action_type")
     private ActionType actionType;
     
-    @Column(name = "created_at", nullable = false)
+    @Field("created_at")
     private LocalDateTime createdAt;
     
-    @Column(name = "updated_at", nullable = false)
+    @Field("updated_at")
     private LocalDateTime updatedAt;
-    
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
     
     public int getYear() {
         return trainingDate.getYear();

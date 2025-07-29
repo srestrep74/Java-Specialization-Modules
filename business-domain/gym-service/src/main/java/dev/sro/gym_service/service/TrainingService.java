@@ -27,6 +27,8 @@ public interface TrainingService {
 
     TrainingSummaryResponse update(UpdateTrainingRequest updateTrainingRequest);
 
+    TrainerWorkloadResponse updateTraining(UpdateTrainingRequest updateTrainingRequest);
+
     List<TraineeTrainingResponse> findTrainingsByTraineeWithFilters(TraineeTrainingFilter filterDTO, String sortField,
             String sortDirection);
 

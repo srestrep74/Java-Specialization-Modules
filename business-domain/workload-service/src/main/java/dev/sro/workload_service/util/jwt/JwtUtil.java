@@ -1,12 +1,12 @@
 package dev.sro.workload_service.util.jwt;
 
+import dev.sro.workload_service.config.properties.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -20,15 +20,17 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
-    private String secret;
-
+    private final JwtProperties jwtProperties;
     private Key signingKey;
+
+    public JwtUtil(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     @PostConstruct
     public void init() {
         try {
-            byte[] decodedKey = Base64.getDecoder().decode(secret);
+            byte[] decodedKey = Base64.getDecoder().decode(jwtProperties.secret());
             if (decodedKey.length < 64) {
                 throw new IllegalArgumentException("Secret key must be at least 64 bytes long");
             }

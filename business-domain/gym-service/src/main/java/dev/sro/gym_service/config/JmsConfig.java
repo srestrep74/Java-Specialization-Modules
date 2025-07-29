@@ -1,7 +1,6 @@
 package dev.sro.gym_service.config;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
@@ -15,29 +14,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import dev.sro.gym_service.config.properties.JmsProperties;
 import jakarta.jms.ConnectionFactory;
 
 @Configuration
 @EnableJms
 public class JmsConfig {
 
-    @Value("${spring.activemq.broker-url}")
-    private String brokerUrl;
-
-    @Value("${spring.activemq.user}")
-    private String username;
-
-    @Value("${spring.activemq.password}")
-    private String password;
-
+    private final JmsProperties jmsProperties;
     private static final String WORKLOAD_QUEUE = "workload-queue";
+
+    public JmsConfig(JmsProperties jmsProperties) {
+        this.jmsProperties = jmsProperties;
+    }
 
     @Bean
     public ConnectionFactory connectionFactory() {
         ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory();
-        connectionFactory.setBrokerURL(brokerUrl);
-        connectionFactory.setUserName(username);
-        connectionFactory.setPassword(password);
+        connectionFactory.setBrokerURL(jmsProperties.brokerUrl());
+        connectionFactory.setUserName(jmsProperties.user());
+        connectionFactory.setPassword(jmsProperties.password());
         return connectionFactory;
     }
 
