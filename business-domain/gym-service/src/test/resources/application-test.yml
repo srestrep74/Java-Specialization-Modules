@@ -51,6 +51,30 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: false
+    # Disable Eureka client for component tests
+    discovery:
+      enabled: false
+    # Disable config server for tests
+    config:
+      enabled: false
+      discovery:
+        enabled: false
+      retry:
+        enabled: false
+      fail-fast: false
+      request-read-timeout: 5000
+      connect-timeout: 5000
+
+# Disable Eureka client
+eureka:
+  client:
+    enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: false
+    fetch-registry: false
+  instance:
+    prefer-ip-address: true
 
 feign:
   client:
