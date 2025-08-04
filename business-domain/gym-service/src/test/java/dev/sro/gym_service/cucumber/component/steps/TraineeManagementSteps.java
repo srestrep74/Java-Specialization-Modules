@@ -25,10 +25,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TraineeManagementSteps {
-
-    @Autowired
-    private WebTestClient webTestClient;
+public class TraineeManagementSteps extends CommonHttpSteps {
 
     @Autowired
     private TraineeTestContext testContext;
@@ -189,34 +186,22 @@ public class TraineeManagementSteps {
         RegisterTraineeRequest request = testContext.getCurrentRegistrationRequest();
         assertNotNull(request, "Registration request should be set before making POST request");
 
-        webTestClient.post()
-                .uri(endpoint)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
-                .consumeWith(response -> {
-                    testContext.setLastResponseStatus(response.getStatus().value());
-                    testContext.setLastResponse(response.getResponseBody());
-                });
+        sendPostRequest(endpoint, request, new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {}, 
+            (status, responseBody) -> {
+                testContext.setLastResponseStatus(status);
+                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+            });
     }
 
     @When("I send a GET request to {string}")
     public void iSendAGetRequestTo(String endpoint) {
         String token = testContext.getAccessToken();
         
-        var request = webTestClient.get().uri(endpoint);
-        
-        if (token != null) {
-            request = request.header("Authorization", "Bearer " + token);
-        }
-        
-        request.exchange()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {})
-                .consumeWith(response -> {
-                    testContext.setLastResponseStatus(response.getStatus().value());
-                    testContext.setLastResponse(response.getResponseBody());
-                });
+        sendGetRequest(endpoint, token, new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {}, 
+            (status, responseBody) -> {
+                testContext.setLastResponseStatus(status);
+                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+            });
     }
 
     @When("I send a PUT request to {string}")
@@ -226,39 +211,22 @@ public class TraineeManagementSteps {
         
         String token = testContext.getAccessToken();
         
-        var webRequest = webTestClient.put()
-                .uri(endpoint)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request);
-        
-        if (token != null) {
-            webRequest = webRequest.header("Authorization", "Bearer " + token);
-        }
-        
-        webRequest.exchange()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {})
-                .consumeWith(response -> {
-                    testContext.setLastResponseStatus(response.getStatus().value());
-                    testContext.setLastResponse(response.getResponseBody());
-                });
+        sendPutRequest(endpoint, request, token, new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {}, 
+            (status, responseBody) -> {
+                testContext.setLastResponseStatus(status);
+                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+            });
     }
 
     @When("I send a DELETE request to {string}")
     public void iSendADeleteRequestTo(String endpoint) {
         String token = testContext.getAccessToken();
         
-        var request = webTestClient.delete().uri(endpoint);
-        
-        if (token != null) {
-            request = request.header("Authorization", "Bearer " + token);
-        }
-        
-        request.exchange()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<Void>>() {})
-                .consumeWith(response -> {
-                    testContext.setLastResponseStatus(response.getStatus().value());
-                    testContext.setLastResponse(response.getResponseBody());
-                });
+        sendDeleteRequest(endpoint, token, new ParameterizedTypeReference<ApiStandardResponse<Void>>() {}, 
+            (status, responseBody) -> {
+                testContext.setLastResponseStatus(status);
+                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+            });
     }
 
     // Then steps for assertions
