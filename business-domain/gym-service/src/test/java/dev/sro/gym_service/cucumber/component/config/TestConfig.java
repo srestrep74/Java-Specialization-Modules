@@ -1,12 +1,6 @@
 package dev.sro.gym_service.cucumber.component.config;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.TestPropertySource;
 
 @TestConfiguration
@@ -27,7 +21,4 @@ import org.springframework.test.context.TestPropertySource;
     "spring.cloud.config.connect-timeout=5000"
 })
 public class TestConfig {
-    
-    // This configuration ensures that external dependencies are disabled
-    // and the application can run in isolation for component tests
-} 
+}

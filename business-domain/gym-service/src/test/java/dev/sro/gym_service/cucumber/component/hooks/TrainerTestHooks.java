@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class TrainerTestHooks {
 
     @Autowired
-    private TrainerTestContext testContext;
+    private TrainerTestContext testContext; 
 
     @Before
     public void setUp() {
@@ -19,4 +19,4 @@ public class TrainerTestHooks {
     public void tearDown() {
         testContext.clear();
     }
-} 
+}

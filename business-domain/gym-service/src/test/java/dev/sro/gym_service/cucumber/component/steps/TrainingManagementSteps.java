@@ -21,7 +21,6 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -44,7 +43,6 @@ public class TrainingManagementSteps extends CommonHttpSteps {
         testContext.clear();
     }
 
-    // Background steps
     @Given("the gym service is running for training tests")
     public void theGymServiceIsRunningForTrainingTests() {
         assertNotNull(webTestClient);
@@ -52,43 +50,40 @@ public class TrainingManagementSteps extends CommonHttpSteps {
 
     @Given("I have a valid authentication token for training")
     public void iHaveAValidAuthenticationTokenForTraining() {
-        // Create a test trainee and authenticate to get a valid token
         RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
                 "Test",
                 "Trainee",
                 LocalDate.of(1990, 1, 1),
-                "Test Address"
-        );
-        
+                "Test Address");
+
         webTestClient.post()
                 .uri("/api/v1/trainees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(traineeRequest)
                 .exchange()
                 .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                })
                 .consumeWith(response -> {
                     ApiStandardResponse<RegisterTraineeResponse> apiResponse = response.getResponseBody();
                     assertNotNull(apiResponse);
                     assertNotNull(apiResponse.data());
-                    
+
                     RegisterTraineeResponse traineeResponse = apiResponse.data();
                     String username = traineeResponse.username();
                     String password = traineeResponse.plainPassword();
-                    
+
                     assertNotNull(username, "Username should not be null");
                     assertNotNull(password, "Password should not be null");
-                    
+
                     testContext.setCurrentCredentials(username, password);
                     testContext.setTestData("traineeUsername", username);
-                    
-                    // Create a test trainer
+
                     RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
                             "Test",
                             "Trainer",
-                            1L
-                    );
-                    
+                            1L);
+
                     webTestClient.post()
                             .uri("/api/v1/trainers")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -101,8 +96,7 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                                 assertNotNull(trainer);
                                 testContext.setTestData("trainerUsername", trainer.username());
                             });
-                    
-                    // Authenticate to get token
+
                     LoginRequest loginRequest = new LoginRequest(username, password);
                     ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
                             .uri("/api/v1/auth/login")
@@ -110,7 +104,8 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                             .bodyValue(loginRequest)
                             .exchange()
                             .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {})
+                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            })
                             .returnResult()
                             .getResponseBody();
 
@@ -125,31 +120,28 @@ public class TrainingManagementSteps extends CommonHttpSteps {
         testContext.setAccessToken(null);
     }
 
-    // Given steps for data setup
     @Given("I want to create a new training with the following details:")
     public void iWantToCreateANewTrainingWithTheFollowingDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
-        // Use dynamic usernames from context if available, otherwise use the ones from the table
+
         String traineeUsername = (String) testContext.getTestData("traineeUsername");
         String trainerUsername = (String) testContext.getTestData("trainerUsername");
-        
+
         if (traineeUsername == null) {
             traineeUsername = data.get("traineeUsername");
         }
         if (trainerUsername == null) {
             trainerUsername = data.get("trainerUsername");
         }
-        
+
         CreateTrainingRequest request = new CreateTrainingRequest(
                 traineeUsername,
                 trainerUsername,
                 data.get("trainingName"),
                 LocalDate.parse(data.get("trainingDate")),
-                Integer.parseInt(data.get("duration"))
-        );
-        
+                Integer.parseInt(data.get("duration")));
+
         testContext.setCurrentCreateRequest(request);
     }
 
@@ -157,17 +149,18 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void iWantToCreateANewTrainingWithInvalidDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         CreateTrainingRequest request = new CreateTrainingRequest(
                 data.get("traineeUsername"),
                 data.get("trainerUsername"),
                 data.get("trainingName"),
-                data.get("trainingDate") != null && !data.get("trainingDate").isEmpty() 
-                    ? LocalDate.parse(data.get("trainingDate")) : null,
-                data.get("duration") != null && !data.get("duration").isEmpty() 
-                    ? Integer.parseInt(data.get("duration")) : 0
-        );
-        
+                data.get("trainingDate") != null && !data.get("trainingDate").isEmpty()
+                        ? LocalDate.parse(data.get("trainingDate"))
+                        : null,
+                data.get("duration") != null && !data.get("duration").isEmpty()
+                        ? Integer.parseInt(data.get("duration"))
+                        : 0);
+
         testContext.setCurrentCreateRequest(request);
     }
 
@@ -175,37 +168,33 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void iWantToCreateANewTrainingWithNonExistentUsers(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
-        // For negative tests, always use the exact usernames from the table
-        // Don't use context usernames to ensure we test with non-existent users
+
         CreateTrainingRequest request = new CreateTrainingRequest(
                 data.get("traineeUsername"),
                 data.get("trainerUsername"),
                 data.get("trainingName"),
                 LocalDate.parse(data.get("trainingDate")),
-                Integer.parseInt(data.get("duration"))
-        );
-        
+                Integer.parseInt(data.get("duration")));
+
         testContext.setCurrentCreateRequest(request);
     }
 
     @Given("a training exists with trainee {string} and trainer {string}")
     public void aTrainingExistsWithTraineeAndTrainer(String traineeUsername, String trainerUsername) {
-        // Create trainee if it doesn't exist
         RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
                 "Test",
                 "Trainee",
                 LocalDate.of(1990, 1, 1),
-                "Test Address"
-        );
-        
+                "Test Address");
+
         webTestClient.post()
                 .uri("/api/v1/trainees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(traineeRequest)
                 .exchange()
                 .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                })
                 .consumeWith(response -> {
                     ApiStandardResponse<RegisterTraineeResponse> apiResponse = response.getResponseBody();
                     assertNotNull(apiResponse);
@@ -215,13 +204,11 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                     testContext.setTestData("traineePassword", traineePassword);
                 });
 
-        // Create trainer if it doesn't exist
         RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
                 "Test",
                 "Trainer",
-                1L
-        );
-        
+                1L);
+
         webTestClient.post()
                 .uri("/api/v1/trainers")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -234,12 +221,10 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                     assertNotNull(trainerResponse);
                     String trainerUsernameCreated = trainerResponse.username();
                     testContext.setTestData("trainerUsername", trainerUsernameCreated);
-                    
-                    // Now create a training between the trainee and trainer
+
                     String traineeUsernameFromContext = (String) testContext.getTestData("traineeUsername");
                     String traineePassword = (String) testContext.getTestData("traineePassword");
-                    
-                    // Authenticate as trainee to get token
+
                     LoginRequest loginRequest = new LoginRequest(traineeUsernameFromContext, traineePassword);
                     ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
                             .uri("/api/v1/auth/login")
@@ -247,33 +232,32 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                             .bodyValue(loginRequest)
                             .exchange()
                             .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {})
+                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            })
                             .returnResult()
                             .getResponseBody();
-                    
+
                     assertNotNull(loginResponse);
                     String token = loginResponse.data().token();
-                    
-                                         // Create training
-                     LocalDate trainingDate = LocalDate.now();
-                     CreateTrainingRequest trainingRequest = new CreateTrainingRequest(
-                             traineeUsernameFromContext,
-                             trainerUsernameCreated,
-                             "Zumba",
-                             trainingDate,
-                             60
-                     );
-                     
-                     webTestClient.post()
-                             .uri("/api/v1/trainings")
-                             .contentType(MediaType.APPLICATION_JSON)
-                             .header("Authorization", "Bearer " + token)
-                             .bodyValue(trainingRequest)
-                             .exchange()
-                             .expectStatus().isOk();
-                     
-                     // Store the training date for later use
-                     testContext.setTestData("trainingDate", trainingDate);
+
+                    LocalDate trainingDate = LocalDate.now();
+                    CreateTrainingRequest trainingRequest = new CreateTrainingRequest(
+                            traineeUsernameFromContext,
+                            trainerUsernameCreated,
+                            "Zumba",
+                            trainingDate,
+                            60);
+
+                    webTestClient.post()
+                            .uri("/api/v1/trainings")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + token)
+                            .bodyValue(trainingRequest)
+                            .exchange()
+                            .expectStatus().isOk();
+
+                    // Store the training date for later use
+                    testContext.setTestData("trainingDate", trainingDate);
                 });
     }
 
@@ -281,33 +265,30 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void iWantToUpdateTheTrainingWithTheFollowingDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
-        // Use dynamic usernames from context if available, otherwise use the ones from the table
+
         String traineeUsername = (String) testContext.getTestData("traineeUsername");
         String trainerUsername = (String) testContext.getTestData("trainerUsername");
-        
+
         if (traineeUsername == null) {
             traineeUsername = data.get("traineeUsername");
         }
         if (trainerUsername == null) {
             trainerUsername = data.get("trainerUsername");
         }
-        
-        // Use training date from context if available, otherwise use the one from the table
+
         LocalDate trainingDate = (LocalDate) testContext.getTestData("trainingDate");
         if (trainingDate == null) {
             trainingDate = LocalDate.parse(data.get("trainingDate"));
         }
-        
+
         UpdateTrainingRequest request = new UpdateTrainingRequest(
                 data.get("trainingName"),
                 trainingDate,
                 Integer.parseInt(data.get("duration")),
                 trainerUsername,
                 traineeUsername,
-                data.get("trainingType")
-        );
-        
+                data.get("trainingType"));
+
         testContext.setCurrentUpdateRequest(request);
     }
 
@@ -315,18 +296,15 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void iWantToUpdateTheTrainingWithNonExistentUsers(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
-        // For negative tests, always use the exact usernames from the table
-        // Don't use context usernames to ensure we test with non-existent users
+
         UpdateTrainingRequest request = new UpdateTrainingRequest(
                 data.get("trainingName"),
                 LocalDate.parse(data.get("trainingDate")),
                 Integer.parseInt(data.get("duration")),
                 data.get("trainerUsername"),
                 data.get("traineeUsername"),
-                data.get("trainingType")
-        );
-        
+                data.get("trainingType"));
+
         testContext.setCurrentUpdateRequest(request);
     }
 
@@ -334,30 +312,27 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void iWantToDeleteTheTrainingWithTheFollowingDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
-        // Use dynamic usernames from context if available, otherwise use the ones from the table
+
         String traineeUsername = (String) testContext.getTestData("traineeUsername");
         String trainerUsername = (String) testContext.getTestData("trainerUsername");
-        
+
         if (traineeUsername == null) {
             traineeUsername = data.get("traineeUsername");
         }
         if (trainerUsername == null) {
             trainerUsername = data.get("trainerUsername");
         }
-        
-        // Use training date from context if available, otherwise use the one from the table
+
         LocalDate trainingDate = (LocalDate) testContext.getTestData("trainingDate");
         if (trainingDate == null) {
             trainingDate = LocalDate.parse(data.get("trainingDate"));
         }
-        
+
         DeleteTrainingRequest request = new DeleteTrainingRequest(
                 traineeUsername,
                 trainerUsername,
-                trainingDate
-        );
-        
+                trainingDate);
+
         testContext.setCurrentDeleteRequest(request);
     }
 
@@ -365,19 +340,15 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void iWantToDeleteTheTrainingWithNonExistentUsers(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
-        // For negative tests, always use the exact usernames from the table
-        // Don't use context usernames to ensure we test with non-existent users
+
         DeleteTrainingRequest request = new DeleteTrainingRequest(
                 data.get("traineeUsername"),
                 data.get("trainerUsername"),
-                LocalDate.parse(data.get("trainingDate"))
-        );
-        
+                LocalDate.parse(data.get("trainingDate")));
+
         testContext.setCurrentDeleteRequest(request);
     }
 
-    // When steps for actions - using unique names
     @When("I send a POST request to create training at {string}")
     public void iSendAPostRequestToCreateTraining(String endpoint) {
         CreateTrainingRequest request = testContext.getCurrentCreateRequest();
@@ -385,11 +356,11 @@ public class TrainingManagementSteps extends CommonHttpSteps {
 
         String token = testContext.getAccessToken();
 
-        sendPostRequest(endpoint, request, token, TrainingMutationResponse.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+        sendPostRequest(endpoint, request, token, TrainingMutationResponse.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
     @When("I send a PUT request to update training at {string}")
@@ -399,11 +370,11 @@ public class TrainingManagementSteps extends CommonHttpSteps {
 
         String token = testContext.getAccessToken();
 
-        sendPutRequest(endpoint, request, token, TrainingMutationResponse.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+        sendPutRequest(endpoint, request, token, TrainingMutationResponse.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
     @When("I send a DELETE request to delete training at {string}")
@@ -413,14 +384,13 @@ public class TrainingManagementSteps extends CommonHttpSteps {
 
         String token = testContext.getAccessToken();
 
-        sendDeleteRequest(endpoint, request, token, TrainingMutationResponse.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+        sendDeleteRequest(endpoint, request, token, TrainingMutationResponse.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
-    // Then steps for assertions - using unique names
     @Then("the training response status should be {int}")
     public void theTrainingResponseStatusShouldBe(int expectedStatus) {
         assertEquals(expectedStatus, testContext.getLastResponseStatus());
@@ -460,4 +430,4 @@ public class TrainingManagementSteps extends CommonHttpSteps {
     public void theResponseShouldContainATrainingAuthorizationError() {
         assertEquals(403, testContext.getLastResponseStatus());
     }
-} 
+}

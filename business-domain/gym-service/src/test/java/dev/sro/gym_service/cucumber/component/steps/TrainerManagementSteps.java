@@ -20,7 +20,6 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,7 +42,6 @@ public class TrainerManagementSteps extends CommonHttpSteps {
         testContext.clear();
     }
 
-    // Background steps
     @Given("the gym service is running for trainer tests")
     public void theGymServiceIsRunningForTrainerTests() {
         assertNotNull(webTestClient);
@@ -51,9 +49,8 @@ public class TrainerManagementSteps extends CommonHttpSteps {
 
     @Given("I have a valid authentication token for trainer")
     public void iHaveAValidAuthenticationTokenForTrainer() {
-        // Create a test trainer and authenticate to get a valid token
         RegisterTrainerRequest request = testContext.createValidRegistrationRequest();
-        
+
         webTestClient.post()
                 .uri("/api/v1/trainers")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -64,13 +61,12 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                 .consumeWith(response -> {
                     RegisterTrainerResponse trainerResponse = response.getResponseBody();
                     assertNotNull(trainerResponse);
-                    
+
                     String username = trainerResponse.username();
                     String password = trainerResponse.plainPassword();
-                    
+
                     testContext.setCurrentCredentials(username, password);
-                    
-                    // Authenticate to get token
+
                     LoginRequest loginRequest = new LoginRequest(username, password);
                     ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
                             .uri("/api/v1/auth/login")
@@ -78,7 +74,8 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                             .bodyValue(loginRequest)
                             .exchange()
                             .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {})
+                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            })
                             .returnResult()
                             .getResponseBody();
 
@@ -95,34 +92,32 @@ public class TrainerManagementSteps extends CommonHttpSteps {
 
     @Given("I have a valid authentication token without trainer role")
     public void iHaveAValidAuthenticationTokenWithoutTrainerRole() {
-        // Create a trainee (which has TRAINEE role, not TRAINER role) and authenticate
         RegisterTraineeRequest traineeRequest = new RegisterTraineeRequest(
                 "Test",
                 "Trainee",
                 LocalDate.of(1990, 1, 1),
-                "Test Address"
-        );
-        
+                "Test Address");
+
         webTestClient.post()
                 .uri("/api/v1/trainees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(traineeRequest)
                 .exchange()
                 .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                })
                 .consumeWith(response -> {
                     ApiStandardResponse<RegisterTraineeResponse> apiResponse = response.getResponseBody();
                     assertNotNull(apiResponse);
                     assertNotNull(apiResponse.data());
-                    
+
                     RegisterTraineeResponse traineeResponse = apiResponse.data();
                     String username = traineeResponse.username();
                     String password = traineeResponse.plainPassword();
-                    
+
                     assertNotNull(username, "Username should not be null");
                     assertNotNull(password, "Password should not be null");
-                    
-                    // Authenticate to get token (this will have TRAINEE role, not TRAINER)
+
                     LoginRequest loginRequest = new LoginRequest(username, password);
                     ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
                             .uri("/api/v1/auth/login")
@@ -130,7 +125,8 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                             .bodyValue(loginRequest)
                             .exchange()
                             .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {})
+                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            })
                             .returnResult()
                             .getResponseBody();
 
@@ -140,18 +136,16 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                 });
     }
 
-    // Given steps for data setup
     @Given("I want to register a new trainer with the following details:")
     public void iWantToRegisterANewTrainerWithTheFollowingDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         RegisterTrainerRequest request = new RegisterTrainerRequest(
                 data.get("firstName"),
                 data.get("lastName"),
-                Long.parseLong(data.get("trainingTypeId"))
-        );
-        
+                Long.parseLong(data.get("trainingTypeId")));
+
         testContext.setCurrentRegistrationRequest(request);
     }
 
@@ -159,26 +153,24 @@ public class TrainerManagementSteps extends CommonHttpSteps {
     public void iWantToRegisterANewTrainerWithInvalidDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         RegisterTrainerRequest request = new RegisterTrainerRequest(
                 data.get("firstName"),
                 data.get("lastName"),
-                data.get("trainingTypeId") != null && !data.get("trainingTypeId").isEmpty() 
-                    ? Long.parseLong(data.get("trainingTypeId")) : null
-        );
-        
+                data.get("trainingTypeId") != null && !data.get("trainingTypeId").isEmpty()
+                        ? Long.parseLong(data.get("trainingTypeId"))
+                        : null);
+
         testContext.setCurrentRegistrationRequest(request);
     }
 
     @Given("a trainer exists with username {string}")
     public void aTrainerExistsWithUsername(String username) {
-        // Create a trainer if it doesn't exist
         RegisterTrainerRequest request = new RegisterTrainerRequest(
                 "Test",
                 "Trainer",
-                1L
-        );
-        
+                1L);
+
         webTestClient.post()
                 .uri("/api/v1/trainers")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -203,14 +195,13 @@ public class TrainerManagementSteps extends CommonHttpSteps {
     public void iWantToUpdateTheTrainerWithTheFollowingDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         UpdateTrainerProfileRequest request = new UpdateTrainerProfileRequest(
                 data.get("firstName"),
                 data.get("lastName"),
                 Long.parseLong(data.get("trainingTypeId")),
-                Boolean.parseBoolean(data.get("active"))
-        );
-        
+                Boolean.parseBoolean(data.get("active")));
+
         testContext.setCurrentUpdateRequest(request);
     }
 
@@ -226,68 +217,67 @@ public class TrainerManagementSteps extends CommonHttpSteps {
         testContext.setCurrentActivationRequest(request);
     }
 
-    // When steps for actions - using unique names
     @When("I send a POST request to register trainer at {string}")
     public void iSendAPostRequestToRegisterTrainer(String endpoint) {
         RegisterTrainerRequest request = testContext.getCurrentRegistrationRequest();
         assertNotNull(request, "Registration request should be set before making POST request");
 
-        sendPostRequest(endpoint, request, RegisterTrainerResponse.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+        sendPostRequest(endpoint, request, RegisterTrainerResponse.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
     @When("I send a GET request to retrieve trainer profile at {string}")
     public void iSendAGetRequestToRetrieveTrainerProfile(String endpoint) {
         String token = testContext.getAccessToken();
-        
-        sendGetRequest(endpoint, token, TrainerProfileResponse.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+
+        sendGetRequest(endpoint, token, TrainerProfileResponse.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
     @When("I send a PUT request to update trainer profile at {string}")
     public void iSendAPutRequestToUpdateTrainerProfile(String endpoint) {
         UpdateTrainerProfileRequest request = testContext.getCurrentUpdateRequest();
         assertNotNull(request, "Update request should be set before making PUT request");
-        
+
         String token = testContext.getAccessToken();
-        
-        sendPutRequest(endpoint, request, token, TrainerProfileResponse.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+
+        sendPutRequest(endpoint, request, token, TrainerProfileResponse.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
     @When("I send a PATCH request to update trainer activation at {string}")
     public void iSendAPatchRequestToUpdateTrainerActivation(String endpoint) {
         UpdateTrainerActivation request = testContext.getCurrentActivationRequest();
         assertNotNull(request, "Activation request should be set before making PATCH request");
-        
+
         String token = testContext.getAccessToken();
-        
-        sendPatchRequest(endpoint, request, token, Void.class, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse(null);
-            });
+
+        sendPatchRequest(endpoint, request, token, Void.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse(null);
+                });
     }
 
     @When("I send a GET request to retrieve trainer trainings at {string}")
     public void iSendAGetRequestToRetrieveTrainerTrainings(String endpoint) {
         String token = testContext.getAccessToken();
-        
+
         var request = webTestClient.get().uri(endpoint);
-        
+
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
         }
-        
+
         request.exchange()
                 .expectBodyList(Object.class)
                 .consumeWith(response -> {
@@ -296,7 +286,6 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                 });
     }
 
-    // Then steps for assertions - using unique names
     @Then("the trainer response status should be {int}")
     public void theTrainerResponseStatusShouldBe(int expectedStatus) {
         assertEquals(expectedStatus, testContext.getLastResponseStatus());
@@ -361,4 +350,4 @@ public class TrainerManagementSteps extends CommonHttpSteps {
     public void theResponseShouldContainATrainerAuthorizationError() {
         assertEquals(403, testContext.getLastResponseStatus());
     }
-} 
+}

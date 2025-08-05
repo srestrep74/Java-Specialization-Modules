@@ -3,9 +3,6 @@ package dev.sro.gym_service.cucumber.component;
 import dev.sro.gym_service.dtos.v1.request.auth.LoginRequest;
 import dev.sro.gym_service.dtos.v1.request.trainee.RegisterTraineeRequest;
 import dev.sro.gym_service.dtos.v1.request.trainee.UpdateTraineeProfileRequest;
-import dev.sro.gym_service.dtos.v1.response.auth.LoginResponse;
-import dev.sro.gym_service.dtos.v1.response.trainee.RegisterTraineeResponse;
-import dev.sro.gym_service.dtos.v1.response.trainee.TraineeProfileResponse;
 import dev.sro.gym_service.util.response.ApiStandardResponse;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +12,7 @@ import java.util.Map;
 
 @Component
 public class TraineeTestContext {
-    
+
     private String accessToken;
     private String currentUsername;
     private String currentPassword;
@@ -24,113 +21,102 @@ public class TraineeTestContext {
     private ApiStandardResponse<?> lastResponse;
     private int lastResponseStatus;
     private Map<String, Object> testData = new HashMap<>();
-    
-    // Authentication
+
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
     }
-    
+
     public String getAccessToken() {
         return accessToken;
     }
-    
+
     public boolean hasValidToken() {
         return accessToken != null && !accessToken.isEmpty();
     }
-    
-    // Trainee credentials
+
     public void setCurrentCredentials(String username, String password) {
         this.currentUsername = username;
         this.currentPassword = password;
     }
-    
+
     public String getCurrentUsername() {
         return currentUsername;
     }
-    
+
     public String getCurrentPassword() {
         return currentPassword;
     }
-    
-    // Registration request
+
     public void setCurrentRegistrationRequest(RegisterTraineeRequest request) {
         this.currentRegistrationRequest = request;
     }
-    
+
     public RegisterTraineeRequest getCurrentRegistrationRequest() {
         return currentRegistrationRequest;
     }
-    
-    // Update request
+
     public void setCurrentUpdateRequest(UpdateTraineeProfileRequest request) {
         this.currentUpdateRequest = request;
     }
-    
+
     public UpdateTraineeProfileRequest getCurrentUpdateRequest() {
         return currentUpdateRequest;
     }
-    
-    // Response handling
+
     public void setLastResponse(ApiStandardResponse<?> response) {
         this.lastResponse = response;
     }
-    
+
     public ApiStandardResponse<?> getLastResponse() {
         return lastResponse;
     }
-    
+
     public void setLastResponseStatus(int status) {
         this.lastResponseStatus = status;
     }
-    
+
     public int getLastResponseStatus() {
         return lastResponseStatus;
     }
-    
-    // Generic test data storage
+
     public void setTestData(String key, Object value) {
         testData.put(key, value);
     }
-    
+
     @SuppressWarnings("unchecked")
     public <T> T getTestData(String key) {
         return (T) testData.get(key);
     }
-    
-    // Helper methods for creating test data
+
     public RegisterTraineeRequest createValidRegistrationRequest() {
         return new RegisterTraineeRequest(
                 "John",
                 "Doe",
                 LocalDate.of(1990, 5, 15),
-                "123 Main St, New York"
-        );
+                "123 Main St, New York");
     }
-    
+
     public RegisterTraineeRequest createInvalidRegistrationRequest() {
         return new RegisterTraineeRequest(
                 "",
                 "",
                 null,
-                ""
-        );
+                "");
     }
-    
+
     public UpdateTraineeProfileRequest createValidUpdateRequest() {
         return new UpdateTraineeProfileRequest(
                 "John Updated",
                 "Doe Updated",
                 LocalDate.of(1991, 6, 16),
                 "456 Updated St, Boston",
-                true
-        );
+                true);
     }
-    
+
     public LoginRequest createLoginRequest() {
         return new LoginRequest(currentUsername, currentPassword);
     }
-    
-    // Cleanup
+
     public void clear() {
         accessToken = null;
         currentUsername = null;
@@ -141,4 +127,4 @@ public class TraineeTestContext {
         lastResponseStatus = 0;
         testData.clear();
     }
-} 
+}

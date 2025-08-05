@@ -3,7 +3,6 @@ package dev.sro.gym_service.cucumber.component;
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.UpdateTrainingRequest;
-import dev.sro.gym_service.dtos.v1.response.training.TrainingMutationResponse;
 import dev.sro.gym_service.util.response.ApiStandardResponse;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +34,6 @@ public class TrainingTestContext {
         this.testData.clear();
     }
 
-    // Access token management
     public String getAccessToken() {
         return accessToken;
     }
@@ -44,7 +42,6 @@ public class TrainingTestContext {
         this.accessToken = accessToken;
     }
 
-    // Credentials management
     public void setCurrentCredentials(String username, String password) {
         this.currentUsername = username;
         this.currentPassword = password;
@@ -58,7 +55,6 @@ public class TrainingTestContext {
         return currentPassword;
     }
 
-    // Request management
     public CreateTrainingRequest getCurrentCreateRequest() {
         return currentCreateRequest;
     }
@@ -83,7 +79,6 @@ public class TrainingTestContext {
         this.currentDeleteRequest = request;
     }
 
-    // Response management
     public ApiStandardResponse<?> getLastResponse() {
         return lastResponse;
     }
@@ -100,7 +95,6 @@ public class TrainingTestContext {
         this.lastResponseStatus = status;
     }
 
-    // Test data management
     public void setTestData(String key, Object value) {
         this.testData.put(key, value);
     }
@@ -109,15 +103,13 @@ public class TrainingTestContext {
         return this.testData.get(key);
     }
 
-    // Helper methods for creating valid requests
     public CreateTrainingRequest createValidCreateRequest() {
         return new CreateTrainingRequest(
                 "test.trainee",
                 "test.trainer",
                 "Zumba",
                 LocalDate.now(),
-                60
-        );
+                60);
     }
 
     public UpdateTrainingRequest createValidUpdateRequest() {
@@ -127,15 +119,13 @@ public class TrainingTestContext {
                 90,
                 "test.trainer",
                 "test.trainee",
-                "Zumba"
-        );
+                "Zumba");
     }
 
     public DeleteTrainingRequest createValidDeleteRequest() {
         return new DeleteTrainingRequest(
                 "test.trainee",
                 "test.trainer",
-                LocalDate.now()
-        );
+                LocalDate.now());
     }
-} 
+}

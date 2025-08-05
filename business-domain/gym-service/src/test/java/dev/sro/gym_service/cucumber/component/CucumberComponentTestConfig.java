@@ -5,6 +5,8 @@ import dev.sro.gym_service.service.WorkloadNotificationService;
 import dev.sro.gym_service.service.impl.auth.LoginAttemptService;
 import dev.sro.gym_service.service.impl.InMemoryTokenStorageServiceImpl;
 import io.cucumber.spring.CucumberContextConfiguration;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -16,24 +18,21 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.mockito.Mockito.mock;
 
 @CucumberContextConfiguration
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.cloud.discovery.enabled=false",
         "eureka.client.enabled=false",
         "spring.cloud.config.enabled=false",
         "spring.cloud.config.discovery.enabled=false",
         "spring.cloud.config.retry.enabled=false",
         "spring.cloud.config.fail-fast=false"
-    }
-)
-@EnableAutoConfiguration(exclude = {EurekaClientAutoConfiguration.class})
+})
+@EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
 @ActiveProfiles("test")
 public class CucumberComponentTestConfig {
 
     @TestConfiguration
     static class ComponentTestConfig {
-        
+
         @Bean
         @Primary
         public WorkloadNotificationService workloadNotificationService() {
@@ -62,22 +61,21 @@ public class CucumberComponentTestConfig {
         public LoginAttemptService loginAttemptService() {
             return mock(LoginAttemptService.class);
         }
-        
-        // Disable Eureka client for component tests
+
         @Bean
         @Primary
-        public org.springframework.cloud.client.discovery.DiscoveryClient discoveryClient() {
-            return new org.springframework.cloud.client.discovery.DiscoveryClient() {
+        public DiscoveryClient discoveryClient() {
+            return new DiscoveryClient() {
                 @Override
                 public String description() {
                     return "Mock Discovery Client for Tests";
                 }
-                
+
                 @Override
-                public java.util.List<org.springframework.cloud.client.ServiceInstance> getInstances(String serviceId) {
+                public java.util.List<ServiceInstance> getInstances(String serviceId) {
                     return java.util.Collections.emptyList();
                 }
-                
+
                 @Override
                 public java.util.List<String> getServices() {
                     return java.util.Collections.emptyList();
@@ -85,4 +83,4 @@ public class CucumberComponentTestConfig {
             };
         }
     }
-} 
+}

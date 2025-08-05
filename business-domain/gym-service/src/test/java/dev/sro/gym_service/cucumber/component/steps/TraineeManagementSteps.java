@@ -17,7 +17,6 @@ import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,37 +39,34 @@ public class TraineeManagementSteps extends CommonHttpSteps {
         testContext.clear();
     }
 
-    // Background steps
     @Given("the gym service is running")
     public void theGymServiceIsRunning() {
-        // Service is already running due to @SpringBootTest
         assertNotNull(webTestClient);
     }
 
     @Given("I have a valid authentication token")
     public void iHaveAValidAuthenticationToken() {
-        // Create a test trainee and authenticate to get a valid token
         RegisterTraineeRequest request = testContext.createValidRegistrationRequest();
-        
+
         ApiStandardResponse<RegisterTraineeResponse> response = webTestClient.post()
                 .uri("/api/v1/trainees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                })
                 .returnResult()
                 .getResponseBody();
 
         assertNotNull(response);
         assertNotNull(response.data());
-        
+
         String username = response.data().username();
         String password = response.data().plainPassword();
-        
+
         testContext.setCurrentCredentials(username, password);
-        
-        // Authenticate to get token
+
         LoginRequest loginRequest = new LoginRequest(username, password);
         ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
                 .uri("/api/v1/auth/login")
@@ -78,7 +74,8 @@ public class TraineeManagementSteps extends CommonHttpSteps {
                 .bodyValue(loginRequest)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {})
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                })
                 .returnResult()
                 .getResponseBody();
 
@@ -92,22 +89,17 @@ public class TraineeManagementSteps extends CommonHttpSteps {
         testContext.setAccessToken(null);
     }
 
-
-
-    // Given steps for data setup
     @Given("I want to register a new trainee with the following details:")
     public void iWantToRegisterANewTraineeWithTheFollowingDetails(DataTable dataTable) {
-        // Get the first row of data (header row is automatically handled)
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         RegisterTraineeRequest request = new RegisterTraineeRequest(
                 data.get("firstName"),
                 data.get("lastName"),
                 LocalDate.parse(data.get("dateOfBirth")),
-                data.get("address")
-        );
-        
+                data.get("address"));
+
         testContext.setCurrentRegistrationRequest(request);
     }
 
@@ -115,35 +107,34 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void iWantToRegisterANewTraineeWithInvalidDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         RegisterTraineeRequest request = new RegisterTraineeRequest(
                 data.get("firstName"),
                 data.get("lastName"),
-                data.get("dateOfBirth") != null && !data.get("dateOfBirth").isEmpty() 
-                    ? LocalDate.parse(data.get("dateOfBirth")) : null,
-                data.get("address")
-        );
-        
+                data.get("dateOfBirth") != null && !data.get("dateOfBirth").isEmpty()
+                        ? LocalDate.parse(data.get("dateOfBirth"))
+                        : null,
+                data.get("address"));
+
         testContext.setCurrentRegistrationRequest(request);
     }
 
     @Given("a trainee exists with username {string}")
     public void aTraineeExistsWithUsername(String username) {
-        // Create a trainee if it doesn't exist
         RegisterTraineeRequest request = new RegisterTraineeRequest(
                 "Test",
                 "User",
                 LocalDate.of(1990, 1, 1),
-                "Test Address"
-        );
-        
+                "Test Address");
+
         ApiStandardResponse<RegisterTraineeResponse> response = webTestClient.post()
                 .uri("/api/v1/trainees")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {})
+                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                })
                 .returnResult()
                 .getResponseBody();
 
@@ -154,7 +145,6 @@ public class TraineeManagementSteps extends CommonHttpSteps {
 
     @Given("no trainee exists with username {string}")
     public void noTraineeExistsWithUsername(String username) {
-        // Ensure the username is not used by creating a unique one
         testContext.setTestData("nonexistentUsername", username);
     }
 
@@ -162,15 +152,14 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void iWantToUpdateTheTraineeWithTheFollowingDetails(DataTable dataTable) {
         List<Map<String, String>> dataList = dataTable.asMaps(String.class, String.class);
         Map<String, String> data = dataList.get(0);
-        
+
         UpdateTraineeProfileRequest request = new UpdateTraineeProfileRequest(
                 data.get("firstName"),
                 data.get("lastName"),
                 LocalDate.parse(data.get("dateOfBirth")),
                 data.get("address"),
-                true
-        );
-        
+                true);
+
         testContext.setCurrentUpdateRequest(request);
     }
 
@@ -180,56 +169,60 @@ public class TraineeManagementSteps extends CommonHttpSteps {
         testContext.setCurrentUpdateRequest(request);
     }
 
-    // When steps for actions
     @When("I send a POST request to {string}")
     public void iSendAPostRequestTo(String endpoint) {
         RegisterTraineeRequest request = testContext.getCurrentRegistrationRequest();
         assertNotNull(request, "Registration request should be set before making POST request");
 
-        sendPostRequest(endpoint, request, new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {}, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
-            });
+        sendPostRequest(endpoint, request,
+                new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                },
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+                });
     }
 
     @When("I send a GET request to {string}")
     public void iSendAGetRequestTo(String endpoint) {
         String token = testContext.getAccessToken();
-        
-        sendGetRequest(endpoint, token, new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {}, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
-            });
+
+        sendGetRequest(endpoint, token, new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {
+        },
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+                });
     }
 
     @When("I send a PUT request to {string}")
     public void iSendAPutRequestTo(String endpoint) {
         UpdateTraineeProfileRequest request = testContext.getCurrentUpdateRequest();
         assertNotNull(request, "Update request should be set before making PUT request");
-        
+
         String token = testContext.getAccessToken();
-        
-        sendPutRequest(endpoint, request, token, new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {}, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
-            });
+
+        sendPutRequest(endpoint, request, token,
+                new ParameterizedTypeReference<ApiStandardResponse<TraineeProfileResponse>>() {
+                },
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+                });
     }
 
     @When("I send a DELETE request to {string}")
     public void iSendADeleteRequestTo(String endpoint) {
         String token = testContext.getAccessToken();
-        
-        sendDeleteRequest(endpoint, token, new ParameterizedTypeReference<ApiStandardResponse<Void>>() {}, 
-            (status, responseBody) -> {
-                testContext.setLastResponseStatus(status);
-                testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
-            });
+
+        sendDeleteRequest(endpoint, token, new ParameterizedTypeReference<ApiStandardResponse<Void>>() {
+        },
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
+                    testContext.setLastResponse((ApiStandardResponse<?>) responseBody);
+                });
     }
 
-    // Then steps for assertions
     @Then("the response status should be {int}")
     public void theResponseStatusShouldBe(int expectedStatus) {
         assertEquals(expectedStatus, testContext.getLastResponseStatus());
@@ -241,7 +234,7 @@ public class TraineeManagementSteps extends CommonHttpSteps {
         assertNotNull(response);
         assertNotNull(response.data());
         assertTrue(response.data() instanceof RegisterTraineeResponse);
-        
+
         RegisterTraineeResponse traineeResponse = (RegisterTraineeResponse) response.data();
         assertNotNull(traineeResponse.username());
         assertNotNull(traineeResponse.plainPassword());
@@ -251,12 +244,11 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void theResponseShouldIncludeGeneratedUsernameAndPassword() {
         ApiStandardResponse<?> response = testContext.getLastResponse();
         assertNotNull(response);
-        
+
         RegisterTraineeResponse traineeResponse = (RegisterTraineeResponse) response.data();
         assertFalse(traineeResponse.username().isEmpty());
         assertFalse(traineeResponse.plainPassword().isEmpty());
-        
-        // Store credentials for future use
+
         testContext.setCurrentCredentials(traineeResponse.username(), traineeResponse.plainPassword());
     }
 
@@ -272,7 +264,7 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void theProfileShouldHaveTheCorrectPersonalInformation() {
         ApiStandardResponse<?> response = testContext.getLastResponse();
         assertNotNull(response);
-        
+
         TraineeProfileResponse profile = (TraineeProfileResponse) response.data();
         assertNotNull(profile.firstName());
         assertNotNull(profile.lastName());
@@ -292,10 +284,10 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void theProfileShouldReflectTheUpdatedInformation() {
         ApiStandardResponse<?> response = testContext.getLastResponse();
         UpdateTraineeProfileRequest updateRequest = testContext.getCurrentUpdateRequest();
-        
+
         assertNotNull(response);
         assertNotNull(updateRequest);
-        
+
         TraineeProfileResponse profile = (TraineeProfileResponse) response.data();
         assertEquals(updateRequest.firstName(), profile.firstName());
         assertEquals(updateRequest.lastName(), profile.lastName());
@@ -303,13 +295,10 @@ public class TraineeManagementSteps extends CommonHttpSteps {
         assertEquals(updateRequest.address(), profile.address());
     }
 
-
-
     @Then("the response should contain validation errors")
     public void theResponseShouldContainValidationErrors() {
         ApiStandardResponse<?> response = testContext.getLastResponse();
         assertNotNull(response);
-        // Validation errors typically result in 400 status with error details
         assertTrue(testContext.getLastResponseStatus() >= 400);
     }
 
@@ -327,4 +316,4 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void theResponseShouldContainAnAuthorizationError() {
         assertEquals(403, testContext.getLastResponseStatus());
     }
-} 
+}

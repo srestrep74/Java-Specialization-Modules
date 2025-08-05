@@ -13,23 +13,19 @@ public class TraineeTestHooks {
 
     @Before
     public void setUp(Scenario scenario) {
-        // Clear any previous test data
         testContext.clear();
-        
-        // Log scenario start
+
         System.out.println("Starting scenario: " + scenario.getName());
     }
 
     @After
     public void tearDown(Scenario scenario) {
-        // Clean up test data
         testContext.clear();
-        
-        // Log scenario completion
+
         if (scenario.isFailed()) {
             System.out.println("Scenario failed: " + scenario.getName());
         } else {
             System.out.println("Scenario passed: " + scenario.getName());
         }
     }
-} 
+}

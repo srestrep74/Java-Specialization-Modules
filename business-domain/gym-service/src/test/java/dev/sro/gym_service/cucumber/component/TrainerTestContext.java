@@ -3,8 +3,6 @@ package dev.sro.gym_service.cucumber.component;
 import dev.sro.gym_service.dtos.v1.request.trainer.RegisterTrainerRequest;
 import dev.sro.gym_service.dtos.v1.request.trainer.UpdateTrainerActivation;
 import dev.sro.gym_service.dtos.v1.request.trainer.UpdateTrainerProfileRequest;
-import dev.sro.gym_service.dtos.v1.response.trainer.RegisterTrainerResponse;
-import dev.sro.gym_service.dtos.v1.response.trainer.TrainerProfileResponse;
 import dev.sro.gym_service.util.response.ApiStandardResponse;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +33,6 @@ public class TrainerTestContext {
         this.testData.clear();
     }
 
-    // Access token management
     public String getAccessToken() {
         return accessToken;
     }
@@ -44,7 +41,6 @@ public class TrainerTestContext {
         this.accessToken = accessToken;
     }
 
-    // Credentials management
     public void setCurrentCredentials(String username, String password) {
         this.currentUsername = username;
         this.currentPassword = password;
@@ -58,7 +54,6 @@ public class TrainerTestContext {
         return currentPassword;
     }
 
-    // Request management
     public RegisterTrainerRequest getCurrentRegistrationRequest() {
         return currentRegistrationRequest;
     }
@@ -83,7 +78,6 @@ public class TrainerTestContext {
         this.currentActivationRequest = request;
     }
 
-    // Response management
     public ApiStandardResponse<?> getLastResponse() {
         return lastResponse;
     }
@@ -100,7 +94,6 @@ public class TrainerTestContext {
         this.lastResponseStatus = status;
     }
 
-    // Test data management
     public void setTestData(String key, Object value) {
         this.testData.put(key, value);
     }
@@ -109,13 +102,11 @@ public class TrainerTestContext {
         return this.testData.get(key);
     }
 
-    // Helper methods for creating valid requests
     public RegisterTrainerRequest createValidRegistrationRequest() {
         return new RegisterTrainerRequest(
                 "Test",
                 "Trainer",
-                1L
-        );
+                1L);
     }
 
     public UpdateTrainerProfileRequest createValidUpdateRequest() {
@@ -123,11 +114,10 @@ public class TrainerTestContext {
                 "Test Updated",
                 "Trainer Updated",
                 1L,
-                true
-        );
+                true);
     }
 
     public UpdateTrainerActivation createValidActivationRequest() {
         return new UpdateTrainerActivation(false);
     }
-} 
+}
