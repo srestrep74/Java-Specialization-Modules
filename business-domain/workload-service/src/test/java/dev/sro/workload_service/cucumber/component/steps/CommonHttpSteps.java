@@ -1,24 +1,23 @@
 package dev.sro.workload_service.cucumber.component.steps;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 public abstract class CommonHttpSteps {
-    
+
     @Autowired
     protected WebTestClient webTestClient;
-    
-    // Common step for GET requests
-    protected void sendGetRequest(String endpoint, String token, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendGetRequest(String endpoint, String token, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         var request = webTestClient.get()
                 .uri(endpoint);
-        
+
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
         }
-        
+
         request.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -27,16 +26,16 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for GET requests with ParameterizedTypeReference
-    protected void sendGetRequest(String endpoint, String token, org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendGetRequest(String endpoint, String token,
+            org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
         var request = webTestClient.get()
                 .uri(endpoint);
-        
+
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
         }
-        
+
         request.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -45,9 +44,9 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for POST requests
-    protected void sendPostRequest(String endpoint, Object body, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPostRequest(String endpoint, Object body, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         webTestClient.post()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -60,18 +59,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for POST requests with token
-    protected void sendPostRequest(String endpoint, Object body, String token, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPostRequest(String endpoint, Object body, String token, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         var webRequest = webTestClient.post()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -80,18 +79,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for POST requests with token and ParameterizedTypeReference
-    protected void sendPostRequest(String endpoint, Object body, String token, org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPostRequest(String endpoint, Object body, String token,
+            org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
         var webRequest = webTestClient.post()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -100,9 +99,9 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for PUT requests
-    protected void sendPutRequest(String endpoint, Object body, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPutRequest(String endpoint, Object body, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         webTestClient.put()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -115,18 +114,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for PUT requests with token
-    protected void sendPutRequest(String endpoint, Object body, String token, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPutRequest(String endpoint, Object body, String token, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         var webRequest = webTestClient.put()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -135,18 +134,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for PUT requests with token and ParameterizedTypeReference
-    protected void sendPutRequest(String endpoint, Object body, String token, org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPutRequest(String endpoint, Object body, String token,
+            org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
         var webRequest = webTestClient.put()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -155,9 +154,9 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for PATCH requests
-    protected void sendPatchRequest(String endpoint, Object body, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPatchRequest(String endpoint, Object body, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         webTestClient.patch()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -170,18 +169,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for PATCH requests with token
-    protected void sendPatchRequest(String endpoint, Object body, String token, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPatchRequest(String endpoint, Object body, String token, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         var webRequest = webTestClient.patch()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -190,18 +189,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for PATCH requests with token and ParameterizedTypeReference
-    protected void sendPatchRequest(String endpoint, Object body, String token, org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendPatchRequest(String endpoint, Object body, String token,
+            org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
         var webRequest = webTestClient.patch()
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -210,16 +209,16 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for DELETE requests
-    protected void sendDeleteRequest(String endpoint, String token, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendDeleteRequest(String endpoint, String token, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         var request = webTestClient.delete()
                 .uri(endpoint);
-        
+
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
         }
-        
+
         request.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -228,16 +227,16 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for DELETE requests with ParameterizedTypeReference
-    protected void sendDeleteRequest(String endpoint, String token, org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendDeleteRequest(String endpoint, String token,
+            org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
         var request = webTestClient.delete()
                 .uri(endpoint);
-        
+
         if (token != null) {
             request = request.header("Authorization", "Bearer " + token);
         }
-        
+
         request.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -246,18 +245,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for DELETE requests with body
-    protected void sendDeleteRequest(String endpoint, Object body, String token, Class<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendDeleteRequest(String endpoint, Object body, String token, Class<?> responseType,
+            StepResponseHandler responseHandler) {
         var webRequest = webTestClient.method(org.springframework.http.HttpMethod.DELETE)
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -266,18 +265,18 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
-    // Common step for DELETE requests with body and ParameterizedTypeReference
-    protected void sendDeleteRequest(String endpoint, Object body, String token, org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
+
+    protected void sendDeleteRequest(String endpoint, Object body, String token,
+            org.springframework.core.ParameterizedTypeReference<?> responseType, StepResponseHandler responseHandler) {
         var webRequest = webTestClient.method(org.springframework.http.HttpMethod.DELETE)
                 .uri(endpoint)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(body);
-        
+
         if (token != null) {
             webRequest = webRequest.header("Authorization", "Bearer " + token);
         }
-        
+
         webRequest.exchange()
                 .expectBody(responseType)
                 .consumeWith(result -> {
@@ -286,9 +285,9 @@ public abstract class CommonHttpSteps {
                     }
                 });
     }
-    
+
     @FunctionalInterface
     protected interface StepResponseHandler {
         void handleResponse(int status, Object responseBody);
     }
-} 
+}
