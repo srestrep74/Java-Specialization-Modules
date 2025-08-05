@@ -20,7 +20,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -56,16 +55,11 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                 LocalDate.of(1990, 1, 1),
                 "Test Address");
 
-        webTestClient.post()
-                .uri("/api/v1/trainees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(traineeRequest)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
-                })
-                .consumeWith(response -> {
-                    ApiStandardResponse<RegisterTraineeResponse> apiResponse = response.getResponseBody();
+        sendPostRequest("/api/v1/trainees", traineeRequest,
+                new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                },
+                (status, responseBody) -> {
+                    ApiStandardResponse<RegisterTraineeResponse> apiResponse = (ApiStandardResponse<RegisterTraineeResponse>) responseBody;
                     assertNotNull(apiResponse);
                     assertNotNull(apiResponse.data());
 
@@ -84,34 +78,23 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                             "Trainer",
                             1L);
 
-                    webTestClient.post()
-                            .uri("/api/v1/trainers")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(trainerRequest)
-                            .exchange()
-                            .expectStatus().isCreated()
-                            .expectBody(RegisterTrainerResponse.class)
-                            .consumeWith(trainerResponse -> {
-                                RegisterTrainerResponse trainer = trainerResponse.getResponseBody();
+                    sendPostRequest("/api/v1/trainers", trainerRequest, RegisterTrainerResponse.class,
+                            (trainerStatus, trainerResponseBody) -> {
+                                RegisterTrainerResponse trainer = (RegisterTrainerResponse) trainerResponseBody;
                                 assertNotNull(trainer);
                                 testContext.setTestData("trainerUsername", trainer.username());
+
+                                LoginRequest loginRequest = new LoginRequest(username, password);
+                                sendPostRequest("/api/v1/auth/login", loginRequest,
+                                        new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                                        },
+                                        (loginStatus, loginResponseBody) -> {
+                                            ApiStandardResponse<LoginResponse> loginResponse = (ApiStandardResponse<LoginResponse>) loginResponseBody;
+                                            assertNotNull(loginResponse);
+                                            assertNotNull(loginResponse.data());
+                                            testContext.setAccessToken(loginResponse.data().token());
+                                        });
                             });
-
-                    LoginRequest loginRequest = new LoginRequest(username, password);
-                    ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
-                            .uri("/api/v1/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(loginRequest)
-                            .exchange()
-                            .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
-                            })
-                            .returnResult()
-                            .getResponseBody();
-
-                    assertNotNull(loginResponse);
-                    assertNotNull(loginResponse.data());
-                    testContext.setAccessToken(loginResponse.data().token());
                 });
     }
 
@@ -187,77 +170,57 @@ public class TrainingManagementSteps extends CommonHttpSteps {
                 LocalDate.of(1990, 1, 1),
                 "Test Address");
 
-        webTestClient.post()
-                .uri("/api/v1/trainees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(traineeRequest)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
-                })
-                .consumeWith(response -> {
-                    ApiStandardResponse<RegisterTraineeResponse> apiResponse = response.getResponseBody();
+        sendPostRequest("/api/v1/trainees", traineeRequest,
+                new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                },
+                (status, responseBody) -> {
+                    ApiStandardResponse<RegisterTraineeResponse> apiResponse = (ApiStandardResponse<RegisterTraineeResponse>) responseBody;
                     assertNotNull(apiResponse);
                     String traineeUsernameCreated = apiResponse.data().username();
                     String traineePassword = apiResponse.data().plainPassword();
                     testContext.setTestData("traineeUsername", traineeUsernameCreated);
                     testContext.setTestData("traineePassword", traineePassword);
-                });
 
-        RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
-                "Test",
-                "Trainer",
-                1L);
+                    RegisterTrainerRequest trainerRequest = new RegisterTrainerRequest(
+                            "Test",
+                            "Trainer",
+                            1L);
 
-        webTestClient.post()
-                .uri("/api/v1/trainers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(trainerRequest)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(RegisterTrainerResponse.class)
-                .consumeWith(response -> {
-                    RegisterTrainerResponse trainerResponse = response.getResponseBody();
-                    assertNotNull(trainerResponse);
-                    String trainerUsernameCreated = trainerResponse.username();
-                    testContext.setTestData("trainerUsername", trainerUsernameCreated);
+                    sendPostRequest("/api/v1/trainers", trainerRequest, RegisterTrainerResponse.class,
+                            (trainerStatus, trainerResponseBody) -> {
+                                RegisterTrainerResponse trainerResponse = (RegisterTrainerResponse) trainerResponseBody;
+                                assertNotNull(trainerResponse);
+                                String trainerUsernameCreated = trainerResponse.username();
+                                testContext.setTestData("trainerUsername", trainerUsernameCreated);
 
-                    String traineeUsernameFromContext = (String) testContext.getTestData("traineeUsername");
-                    String traineePassword = (String) testContext.getTestData("traineePassword");
+                                String traineeUsernameFromContext = (String) testContext.getTestData("traineeUsername");
+                                String traineePasswordFromContext = (String) testContext.getTestData("traineePassword");
 
-                    LoginRequest loginRequest = new LoginRequest(traineeUsernameFromContext, traineePassword);
-                    ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
-                            .uri("/api/v1/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(loginRequest)
-                            .exchange()
-                            .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
-                            })
-                            .returnResult()
-                            .getResponseBody();
+                                LoginRequest loginRequest = new LoginRequest(traineeUsernameFromContext,
+                                        traineePasswordFromContext);
+                                sendPostRequest("/api/v1/auth/login", loginRequest,
+                                        new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                                        },
+                                        (loginStatus, loginResponseBody) -> {
+                                            ApiStandardResponse<LoginResponse> loginResponse = (ApiStandardResponse<LoginResponse>) loginResponseBody;
+                                            assertNotNull(loginResponse);
+                                            String token = loginResponse.data().token();
 
-                    assertNotNull(loginResponse);
-                    String token = loginResponse.data().token();
+                                            LocalDate trainingDate = LocalDate.now();
+                                            CreateTrainingRequest trainingRequest = new CreateTrainingRequest(
+                                                    traineeUsernameFromContext,
+                                                    trainerUsernameCreated,
+                                                    "Zumba",
+                                                    trainingDate,
+                                                    60);
 
-                    LocalDate trainingDate = LocalDate.now();
-                    CreateTrainingRequest trainingRequest = new CreateTrainingRequest(
-                            traineeUsernameFromContext,
-                            trainerUsernameCreated,
-                            "Zumba",
-                            trainingDate,
-                            60);
-
-                    webTestClient.post()
-                            .uri("/api/v1/trainings")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer " + token)
-                            .bodyValue(trainingRequest)
-                            .exchange()
-                            .expectStatus().isOk();
-
-                    // Store the training date for later use
-                    testContext.setTestData("trainingDate", trainingDate);
+                                            sendPostRequest("/api/v1/trainings", trainingRequest, token,
+                                                    TrainingMutationResponse.class,
+                                                    (trainingStatus, trainingResponseBody) -> {
+                                                        testContext.setTestData("trainingDate", trainingDate);
+                                                    });
+                                        });
+                            });
                 });
     }
 

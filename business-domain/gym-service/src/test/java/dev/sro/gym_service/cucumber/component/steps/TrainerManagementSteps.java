@@ -19,7 +19,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -51,37 +50,25 @@ public class TrainerManagementSteps extends CommonHttpSteps {
     public void iHaveAValidAuthenticationTokenForTrainer() {
         RegisterTrainerRequest request = testContext.createValidRegistrationRequest();
 
-        webTestClient.post()
-                .uri("/api/v1/trainers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(RegisterTrainerResponse.class)
-                .consumeWith(response -> {
-                    RegisterTrainerResponse trainerResponse = response.getResponseBody();
+        sendPostRequest("/api/v1/trainers", request, RegisterTrainerResponse.class,
+                (status, responseBody) -> {
+                    RegisterTrainerResponse trainerResponse = (RegisterTrainerResponse) responseBody;
                     assertNotNull(trainerResponse);
 
                     String username = trainerResponse.username();
                     String password = trainerResponse.plainPassword();
-
                     testContext.setCurrentCredentials(username, password);
 
                     LoginRequest loginRequest = new LoginRequest(username, password);
-                    ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
-                            .uri("/api/v1/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(loginRequest)
-                            .exchange()
-                            .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
-                            })
-                            .returnResult()
-                            .getResponseBody();
-
-                    assertNotNull(loginResponse);
-                    assertNotNull(loginResponse.data());
-                    testContext.setAccessToken(loginResponse.data().token());
+                    sendPostRequest("/api/v1/auth/login", loginRequest,
+                            new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            },
+                            (loginStatus, loginResponseBody) -> {
+                                ApiStandardResponse<LoginResponse> loginResponse = (ApiStandardResponse<LoginResponse>) loginResponseBody;
+                                assertNotNull(loginResponse);
+                                assertNotNull(loginResponse.data());
+                                testContext.setAccessToken(loginResponse.data().token());
+                            });
                 });
     }
 
@@ -98,16 +85,11 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                 LocalDate.of(1990, 1, 1),
                 "Test Address");
 
-        webTestClient.post()
-                .uri("/api/v1/trainees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(traineeRequest)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
-                })
-                .consumeWith(response -> {
-                    ApiStandardResponse<RegisterTraineeResponse> apiResponse = response.getResponseBody();
+        sendPostRequest("/api/v1/trainees", traineeRequest,
+                new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                },
+                (status, responseBody) -> {
+                    ApiStandardResponse<RegisterTraineeResponse> apiResponse = (ApiStandardResponse<RegisterTraineeResponse>) responseBody;
                     assertNotNull(apiResponse);
                     assertNotNull(apiResponse.data());
 
@@ -119,20 +101,15 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                     assertNotNull(password, "Password should not be null");
 
                     LoginRequest loginRequest = new LoginRequest(username, password);
-                    ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
-                            .uri("/api/v1/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(loginRequest)
-                            .exchange()
-                            .expectStatus().isOk()
-                            .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
-                            })
-                            .returnResult()
-                            .getResponseBody();
-
-                    assertNotNull(loginResponse);
-                    assertNotNull(loginResponse.data());
-                    testContext.setAccessToken(loginResponse.data().token());
+                    sendPostRequest("/api/v1/auth/login", loginRequest,
+                            new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            },
+                            (loginStatus, loginResponseBody) -> {
+                                ApiStandardResponse<LoginResponse> loginResponse = (ApiStandardResponse<LoginResponse>) loginResponseBody;
+                                assertNotNull(loginResponse);
+                                assertNotNull(loginResponse.data());
+                                testContext.setAccessToken(loginResponse.data().token());
+                            });
                 });
     }
 
@@ -171,15 +148,9 @@ public class TrainerManagementSteps extends CommonHttpSteps {
                 "Trainer",
                 1L);
 
-        webTestClient.post()
-                .uri("/api/v1/trainers")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(RegisterTrainerResponse.class)
-                .consumeWith(response -> {
-                    RegisterTrainerResponse trainerResponse = response.getResponseBody();
+        sendPostRequest("/api/v1/trainers", request, RegisterTrainerResponse.class,
+                (status, responseBody) -> {
+                    RegisterTrainerResponse trainerResponse = (RegisterTrainerResponse) responseBody;
                     assertNotNull(trainerResponse);
                     testContext.setTestData("createdUsername", trainerResponse.username());
                     testContext.setTestData("createdPassword", trainerResponse.plainPassword());
@@ -272,16 +243,9 @@ public class TrainerManagementSteps extends CommonHttpSteps {
     public void iSendAGetRequestToRetrieveTrainerTrainings(String endpoint) {
         String token = testContext.getAccessToken();
 
-        var request = webTestClient.get().uri(endpoint);
-
-        if (token != null) {
-            request = request.header("Authorization", "Bearer " + token);
-        }
-
-        request.exchange()
-                .expectBodyList(Object.class)
-                .consumeWith(response -> {
-                    testContext.setLastResponseStatus(response.getStatus().value());
+        sendGetRequest(endpoint, token, Object.class,
+                (status, responseBody) -> {
+                    testContext.setLastResponseStatus(status);
                     testContext.setLastResponse(null);
                 });
     }
