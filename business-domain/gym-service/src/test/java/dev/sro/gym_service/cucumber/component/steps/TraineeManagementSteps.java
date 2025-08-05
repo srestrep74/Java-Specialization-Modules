@@ -16,7 +16,6 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -48,40 +47,29 @@ public class TraineeManagementSteps extends CommonHttpSteps {
     public void iHaveAValidAuthenticationToken() {
         RegisterTraineeRequest request = testContext.createValidRegistrationRequest();
 
-        ApiStandardResponse<RegisterTraineeResponse> response = webTestClient.post()
-                .uri("/api/v1/trainees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
-                })
-                .returnResult()
-                .getResponseBody();
+        sendPostRequest("/api/v1/trainees", request,
+                new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                },
+                (status, responseBody) -> {
+                    ApiStandardResponse<RegisterTraineeResponse> response = (ApiStandardResponse<RegisterTraineeResponse>) responseBody;
+                    assertNotNull(response);
+                    assertNotNull(response.data());
 
-        assertNotNull(response);
-        assertNotNull(response.data());
+                    String username = response.data().username();
+                    String password = response.data().plainPassword();
+                    testContext.setCurrentCredentials(username, password);
 
-        String username = response.data().username();
-        String password = response.data().plainPassword();
-
-        testContext.setCurrentCredentials(username, password);
-
-        LoginRequest loginRequest = new LoginRequest(username, password);
-        ApiStandardResponse<LoginResponse> loginResponse = webTestClient.post()
-                .uri("/api/v1/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(loginRequest)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
-                })
-                .returnResult()
-                .getResponseBody();
-
-        assertNotNull(loginResponse);
-        assertNotNull(loginResponse.data());
-        testContext.setAccessToken(loginResponse.data().token());
+                    LoginRequest loginRequest = new LoginRequest(username, password);
+                    sendPostRequest("/api/v1/auth/login", loginRequest,
+                            new ParameterizedTypeReference<ApiStandardResponse<LoginResponse>>() {
+                            },
+                            (loginStatus, loginResponseBody) -> {
+                                ApiStandardResponse<LoginResponse> loginResponse = (ApiStandardResponse<LoginResponse>) loginResponseBody;
+                                assertNotNull(loginResponse);
+                                assertNotNull(loginResponse.data());
+                                testContext.setAccessToken(loginResponse.data().token());
+                            });
+                });
     }
 
     @Given("I don't have a valid authentication token")
@@ -127,20 +115,15 @@ public class TraineeManagementSteps extends CommonHttpSteps {
                 LocalDate.of(1990, 1, 1),
                 "Test Address");
 
-        ApiStandardResponse<RegisterTraineeResponse> response = webTestClient.post()
-                .uri("/api/v1/trainees")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody(new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
-                })
-                .returnResult()
-                .getResponseBody();
-
-        assertNotNull(response);
-        testContext.setTestData("createdUsername", response.data().username());
-        testContext.setTestData("createdPassword", response.data().plainPassword());
+        sendPostRequest("/api/v1/trainees", request,
+                new ParameterizedTypeReference<ApiStandardResponse<RegisterTraineeResponse>>() {
+                },
+                (status, responseBody) -> {
+                    ApiStandardResponse<RegisterTraineeResponse> response = (ApiStandardResponse<RegisterTraineeResponse>) responseBody;
+                    assertNotNull(response);
+                    testContext.setTestData("createdUsername", response.data().username());
+                    testContext.setTestData("createdPassword", response.data().plainPassword());
+                });
     }
 
     @Given("no trainee exists with username {string}")
