@@ -15,5 +15,4 @@ import static io.cucumber.junit.platform.engine.Constants.*;
 @ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "not @ignore")
 @ConfigurationParameter(key = PARALLEL_EXECUTION_ENABLED_PROPERTY_NAME, value = "false")
 public class WorkloadIntegrationTestRunner {
-    // Cucumber test runner for workload integration tests
 } 

@@ -1,7 +1,6 @@
 package dev.sro.gym_service.cucumber.integration.steps;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.stereotype.Component;
 
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.workload.TrainerWorkloadRequest;
@@ -22,7 +20,6 @@ import dev.sro.gym_service.entity.PendingWorkload;
 import dev.sro.gym_service.entity.Trainer;
 import dev.sro.gym_service.entity.Trainee;
 import dev.sro.gym_service.entity.Training;
-import dev.sro.gym_service.entity.enums.ActionType;
 import dev.sro.gym_service.repository.PendingWorkloadRepository;
 import dev.sro.gym_service.repository.TrainerRepository;
 import dev.sro.gym_service.repository.TraineeRepository;
@@ -37,11 +34,9 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import lombok.extern.slf4j.Slf4j;
 
 import jakarta.jms.Message;
 
-@Slf4j
 public class WorkloadIntegrationSteps {
 
     @Autowired
@@ -79,10 +74,6 @@ public class WorkloadIntegrationSteps {
 
     @Given("the gym-service is running with test configuration")
     public void theGymServiceIsRunningWithTestConfiguration() {
-        // This is handled by the Spring Boot test configuration
-        log.info("Gym service is running with test configuration");
-        
-        // Limpiar colas de ActiveMQ al inicio de cada test
         if (activeMQConfig.isContainerRunning()) {
             activeMQConfig.clearQueues();
         }
@@ -91,47 +82,40 @@ public class WorkloadIntegrationSteps {
     @Given("the ActiveMQ broker is available and configured")
     public void theActiveMQBrokerIsAvailableAndConfigured() {
         testContext.setActiveMQUnavailable(false);
-        log.info("ActiveMQ broker is available and configured");
     }
 
     @Given("the workload-service is ready to receive messages")
     public void theWorkloadServiceIsReadyToReceiveMessages() {
         // This is handled by the test configuration
-        log.info("Workload service is ready to receive messages");
     }
 
     @Given("the database is initialized with test data")
     public void theDatabaseIsInitializedWithTestData() {
         // This is handled by TestHooks
-        log.info("Database is initialized with test data");
     }
 
     @Given("a valid trainer with username {string} exists in the system")
     public void aValidTrainerWithUsernameExistsInTheSystem(String username) {
         Optional<Trainer> trainer = trainerRepository.findByUsername(username);
         assertThat(trainer).isPresent();
-        log.info("Trainer with username {} exists in the system", username);
     }
 
     @Given("a valid trainee with username {string} exists in the system")
     public void aValidTraineeWithUsernameExistsInTheSystem(String username) {
         Optional<Trainee> trainee = traineeRepository.findByUsername(username);
         assertThat(trainee).isPresent();
-        log.info("Trainee with username {} exists in the system", username);
     }
 
     @Given("ActiveMQ broker is temporarily unavailable")
     public void activeMQBrokerIsTemporarilyUnavailable() {
         testContext.setActiveMQUnavailable(true);
         activeMQFailureSimulator.simulateActiveMQFailure();
-        log.info("ActiveMQ broker is temporarily unavailable");
     }
 
     @Given("ActiveMQ broker is consistently failing")
     public void activeMQBrokerIsConsistentlyFailing() {
         testContext.setActiveMQUnavailable(true);
         activeMQFailureSimulator.simulateActiveMQFailure();
-        log.info("ActiveMQ broker is consistently failing");
     }
 
     @Given("a training exists for trainer {string} and trainee {string}")
@@ -147,7 +131,6 @@ public class WorkloadIntegrationSteps {
         training.setDuration(60);
         
         testContext.setCurrentTraining(trainingRepository.save(training));
-        log.info("Training created for trainer {} and trainee {}", trainerUsername, traineeUsername);
     }
 
     @When("I create a new training with the following details:")
@@ -170,10 +153,8 @@ public class WorkloadIntegrationSteps {
             });
             
             testContext.setCurrentResponse(future.get(10, TimeUnit.SECONDS));
-            log.info("Training creation attempted with response: {}", testContext.getCurrentResponse());
         } catch (Exception e) {
             testContext.setCurrentException(e);
-            log.error("Training creation failed with exception: {}", e.getMessage());
         }
     }
 
@@ -194,8 +175,6 @@ public class WorkloadIntegrationSteps {
             testContext.setCurrentResponse(future.get(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             testContext.setCurrentException(e);
-            log.error("Training update failed: {}", e.getMessage());
-            // Don't fail the test, just log the error
         }
     }
 
@@ -214,7 +193,6 @@ public class WorkloadIntegrationSteps {
             trainingRepository.deleteById(trainingId);
         } catch (Exception e) {
             testContext.setCurrentException(e);
-            log.error("Training deletion failed: {}", e.getMessage());
         }
     }
 
@@ -266,7 +244,6 @@ public class WorkloadIntegrationSteps {
             try {
                 trainingService.saveWithValidation(request);
             } catch (Exception e) {
-                log.warn("Training creation failed during rapid succession: {}", e.getMessage());
             }
         }
     }
@@ -293,24 +270,18 @@ public class WorkloadIntegrationSteps {
                     assertThat(receivedRequest).isNotNull();
                     // Store the received message in the test context for later use
                     testContext.setReceivedWorkloadMessage(receivedRequest);
-                    log.info("Workload notification message received: {}", receivedRequest);
                 } catch (Exception e) {
-                    log.error("Error converting message: {}", e.getMessage());
-                    log.error("Message content: {}", message);
                     throw e;
                 }
             } else {
                 // If ActiveMQ is unavailable, verify that the message was saved to pending workload
                 List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
                 assertThat(pendingWorkloads).isNotEmpty();
-                log.info("ActiveMQ unavailable, verified message saved to pending workload");
             }
         } catch (Exception e) {
-            log.warn("Could not check for workload notification due to ActiveMQ connection issue: {}", e.getMessage());
             // If ActiveMQ is not available, verify that the message was saved to pending workload
             List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
             assertThat(pendingWorkloads).isNotEmpty();
-            log.info("ActiveMQ connection failed, verified message saved to pending workload");
         }
     }
 
@@ -319,7 +290,6 @@ public class WorkloadIntegrationSteps {
         if (!testContext.isActiveMQUnavailable()) {
             // Don't try to receive another message, just verify the message was sent
             // The message was already received in the previous step
-            log.info("Trainer information verification skipped - message already received");
         }
     }
 
@@ -328,7 +298,6 @@ public class WorkloadIntegrationSteps {
         if (!testContext.isActiveMQUnavailable()) {
             // Don't try to receive another message, just verify the message was sent
             // The message was already received in the previous step
-            log.info("Training information verification skipped - message already received");
         }
     }
 
@@ -358,7 +327,6 @@ public class WorkloadIntegrationSteps {
         }
         
         List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
-        log.info("Found {} pending workloads in database", pendingWorkloads.size());
         
         assertThat(pendingWorkloads).isNotEmpty();
         
@@ -366,9 +334,6 @@ public class WorkloadIntegrationSteps {
             .anyMatch(pw -> pw.getTrainerUsername().equals(testContext.getCurrentTrainingRequest().trainerUsername()));
         
         assertThat(pendingWorkloadFound).isTrue();
-        
-        log.info("Verified pending workload record exists for trainer: {}", 
-                testContext.getCurrentTrainingRequest().trainerUsername());
     }
 
     @Then("the pending workload record should contain the correct trainer information:")
@@ -423,15 +388,11 @@ public class WorkloadIntegrationSteps {
                 TrainerWorkloadRequest receivedRequest = testContext.getReceivedWorkloadMessage();
                 if (receivedRequest != null) {
                     assertThat(receivedRequest.actionType().name()).isEqualTo(actionType);
-                    log.info("Verified message action type: {}", actionType);
                 } else {
-                    log.warn("No message found in test context for action type check");
                 }
             } else {
-                log.info("Skipping ActiveMQ message check - ActiveMQ is unavailable or container is not running");
             }
         } catch (Exception e) {
-            log.warn("Could not check for message action type due to ActiveMQ connection issue: {}", e.getMessage());
             // Don't fail the test if ActiveMQ is not available
         }
     }
@@ -444,15 +405,11 @@ public class WorkloadIntegrationSteps {
                 TrainerWorkloadRequest receivedRequest = testContext.getReceivedWorkloadMessage();
                 if (receivedRequest != null) {
                     assertThat(receivedRequest.trainingDuration()).isEqualTo(duration);
-                    log.info("Verified training duration: {}", duration);
                 } else {
-                    log.warn("No message found in test context for duration check");
                 }
             } else {
-                log.info("Skipping ActiveMQ message check - ActiveMQ is unavailable or container is not running");
             }
         } catch (Exception e) {
-            log.warn("Could not check for message duration due to ActiveMQ connection issue: {}", e.getMessage());
             // Don't fail the test if ActiveMQ is not available
         }
     }
@@ -486,12 +443,8 @@ public class WorkloadIntegrationSteps {
                 }
                 
                 assertThat(message).isNull();
-                log.info("Verified no workload notification was sent");
-            } else {
-                log.info("Skipping ActiveMQ message check - ActiveMQ is unavailable or container is not running");
             }
         } catch (Exception e) {
-            log.warn("Could not check for workload notification due to ActiveMQ connection issue: {}", e.getMessage());
             // Don't fail the test if ActiveMQ is not available
         }
     }
