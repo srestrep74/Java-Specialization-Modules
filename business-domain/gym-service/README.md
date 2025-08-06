@@ -448,6 +448,118 @@ The integration tests cover comprehensive cross-service communication scenarios:
 - **Performance Testing**: Load testing and performance characteristic validation
 - **Integration Coverage**: Complete cross-service communication validation
 
+### 🏃‍♂️ Test Execution
+
+Tests can be run from the command line, with the ability to select a particular set of tests, either for a single endpoint or for all.
+
+#### Running Component Tests
+
+**Execute All Component Tests**
+```bash
+mvn test -Dtest=*ComponentTestSuite
+```
+
+**Execute Specific Domain Tests**
+```bash
+# Trainee Management Tests
+mvn test -Dtest=TraineeComponentTestSuite
+
+# Trainer Management Tests  
+mvn test -Dtest=TrainerComponentTestSuite
+
+# Training Management Tests
+mvn test -Dtest=TrainingComponentTestSuite
+```
+
+**Execute Tests by Cucumber Tags**
+```bash
+# Run only positive scenarios
+mvn test -Dcucumber.filter.tags="@positive"
+
+# Run only negative scenarios
+mvn test -Dcucumber.filter.tags="@negative"
+
+# Run authentication-related tests
+mvn test -Dcucumber.filter.tags="@authentication"
+
+# Run authorization-related tests
+mvn test -Dcucumber.filter.tags="@authorization"
+
+# Run specific domain with specific scenario type
+mvn test -Dtest=TraineeComponentTestSuite -Dcucumber.filter.tags="@positive"
+```
+
+#### Running Integration Tests
+
+**Execute All Integration Tests**
+```bash
+mvn test -Dtest=WorkloadIntegrationTestRunner
+```
+
+**Execute Integration Tests by Tags**
+```bash
+# Run workload integration scenarios
+mvn test -Dtest=WorkloadIntegrationTestRunner -Dcucumber.filter.tags="@workload"
+
+# Run circuit breaker scenarios
+mvn test -Dtest=WorkloadIntegrationTestRunner -Dcucumber.filter.tags="@circuit-breaker"
+
+# Run outbox pattern scenarios
+mvn test -Dtest=WorkloadIntegrationTestRunner -Dcucumber.filter.tags="@outbox"
+```
+
+#### Running Tests by Category
+
+**Execute All Tests (Component + Integration)**
+```bash
+mvn test
+```
+
+**Execute Tests with Specific Profile**
+```bash
+# Run with test profile
+mvn test -Dspring.profiles.active=test
+
+# Run with integration-test profile
+mvn test -Dspring.profiles.active=integration-test
+```
+
+**Execute Tests with Debug Information**
+```bash
+# Run with debug logging
+mvn test -Dlogging.level.dev.sro.gym_service=DEBUG
+
+# Run with ActiveMQ debug logging
+mvn test -Dlogging.level.org.apache.activemq=DEBUG
+```
+
+#### Test Execution Examples
+
+**Quick Component Test Run**
+```bash
+# Run only trainee registration tests
+mvn test -Dtest=TraineeComponentTestSuite -Dcucumber.filter.tags="@registration"
+```
+
+**Integration Test with Specific Scenario**
+```bash
+# Run only successful workload notification tests
+mvn test -Dtest=WorkloadIntegrationTestRunner -Dcucumber.filter.tags="@workload and @success"
+```
+
+**Comprehensive Test Run**
+```bash
+# Run all tests with full logging
+mvn test -Dlogging.level.dev.sro.gym_service=DEBUG -Dlogging.level.org.springframework.jms=DEBUG
+```
+
+#### Test Execution Benefits
+- **Selective Testing**: Run specific test suites or scenarios for focused development
+- **Tag-Based Filtering**: Use Cucumber tags to execute related test scenarios
+- **Profile-Based Configuration**: Different test configurations for different environments
+- **Debug Capabilities**: Enhanced logging for troubleshooting test issues
+- **CI/CD Integration**: Command-line execution suitable for automated pipelines
+
 ## 🔧 Configuration Management
 
 ### Environment-Specific Configuration
