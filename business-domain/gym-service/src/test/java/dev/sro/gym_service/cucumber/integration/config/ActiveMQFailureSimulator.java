@@ -1,13 +1,12 @@
 package dev.sro.gym_service.cucumber.integration.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-@Component
 public class ActiveMQFailureSimulator {
 
-    @Autowired
-    private ActiveMQTestcontainersConfig activeMQConfig;
+    private final ActiveMQTestcontainersConfig activeMQConfig;
+
+    public ActiveMQFailureSimulator(ActiveMQTestcontainersConfig activeMQConfig) {
+        this.activeMQConfig = activeMQConfig;
+    }
 
     private boolean failureMode = false;
 

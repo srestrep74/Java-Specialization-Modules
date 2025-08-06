@@ -12,22 +12,47 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.mockito.Mockito.mock;
 
 @CucumberContextConfiguration
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, 
+    properties = {
         "spring.cloud.discovery.enabled=false",
         "eureka.client.enabled=false",
         "spring.cloud.config.enabled=false",
         "spring.cloud.config.discovery.enabled=false",
         "spring.cloud.config.retry.enabled=false",
         "spring.cloud.config.fail-fast=false"
-})
+    }
+)
 @EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
 @ActiveProfiles("test")
+@ComponentScan(
+    basePackages = {
+        "dev.sro.gym_service",
+        "dev.sro.gym_service.cucumber.component"
+    },
+    excludeFilters = {
+        @ComponentScan.Filter(
+            type = FilterType.REGEX, 
+            pattern = "dev\\.sro\\.gym_service\\.cucumber\\.integration\\..*"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX, 
+            pattern = ".*Test\\$.*"
+        ),
+        @ComponentScan.Filter(
+            type = FilterType.REGEX, 
+            pattern = ".*ControllerTest\\$.*"
+        )
+    }
+)
 public class CucumberComponentTestConfig {
 
     @TestConfiguration

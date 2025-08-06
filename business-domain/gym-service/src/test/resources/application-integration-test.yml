@@ -29,16 +29,20 @@ spring:
     init:
       mode: always
   
-  # ActiveMQ Configuration for tests
+  # ActiveMQ Configuration for integration tests (will be overridden by Testcontainers)
   activemq:
-    broker-url: vm://embedded?broker.persistent=false
+    broker-url: ${ACTIVEMQ_BROKER_URL:vm://embedded?broker.persistent=false}
     user: admin
     password: admin
     packages:
       trust-all: true
+    # Configuraciones adicionales para estabilidad
+    close-timeout: 15000
+    send-timeout: 10000
+    receive-timeout: 10000
   jms:
     pub-sub-domain: false
-
+  
   # Disable Redis for tests
   data:
     redis:
@@ -48,13 +52,13 @@ spring:
       password: ""
   cache:
     type: none
-
+  
   # Disable cloud features for tests
   cloud:
     openfeign:
       circuitbreaker:
         enabled: false
-    # Disable Eureka client for component tests
+    # Disable Eureka client for integration tests
     discovery:
       enabled: false
     # Disable config server for tests
@@ -67,6 +71,11 @@ spring:
       fail-fast: false
       request-read-timeout: 5000
       connect-timeout: 5000
+  
+  # Disable scheduling for tests
+  task:
+    scheduling:
+      enabled: false
 
 # Disable Eureka client
 eureka:
@@ -125,3 +134,29 @@ management:
     metrics:
       export:
         enabled: false
+
+# Resilience4j Circuit Breaker configuration for integration tests
+resilience4j:
+  circuitbreaker:
+    instances:
+      activemq-producer:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 1
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.lang.RuntimeException
+          - jakarta.jms.JMSException
+          - org.springframework.jms.JmsException
+          - java.net.ConnectException
+          - java.io.IOException
+  timelimiter:
+    instances:
+      activemq-producer:
+        timeoutDuration: 5s 

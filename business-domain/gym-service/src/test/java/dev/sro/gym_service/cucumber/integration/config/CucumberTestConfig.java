@@ -9,7 +9,7 @@ import io.cucumber.spring.CucumberContextConfiguration;
 
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@ActiveProfiles("integration-test")
 @Import({IntegrationTestConfig.class, ActiveMQTestcontainersConfig.class, TestJmsConfig.class})
 @TestPropertySource(properties = {
     "spring.config.import=classpath:application-test.yml",
