@@ -1,5 +1,8 @@
 package dev.sro.workload_service.cucumber.component;
 
+import java.util.Collections;
+import java.util.List;
+
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,14 +15,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
 @CucumberContextConfiguration
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-        "spring.cloud.discovery.enabled=false",
-        "eureka.client.enabled=false",
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.discovery.enabled=false",
-        "spring.cloud.config.retry.enabled=false",
-        "spring.cloud.config.fail-fast=false"
-})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
 @ActiveProfiles("test")
 public class CucumberComponentTestConfig {
@@ -37,13 +33,13 @@ public class CucumberComponentTestConfig {
                 }
 
                 @Override
-                public java.util.List<ServiceInstance> getInstances(String serviceId) {
-                    return java.util.Collections.emptyList();
+                public List<ServiceInstance> getInstances(String serviceId) {
+                    return Collections.emptyList();
                 }
 
                 @Override
-                public java.util.List<String> getServices() {
-                    return java.util.Collections.emptyList();
+                public List<String> getServices() {
+                    return Collections.emptyList();
                 }
             };
         }

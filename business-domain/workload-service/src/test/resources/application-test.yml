@@ -24,6 +24,18 @@ spring:
       password: admin123
       auto-index-creation: true
   
+  # Spring Cloud Configuration for tests
+  cloud:
+    discovery:
+      enabled: false
+    config:
+      enabled: false
+      discovery:
+        enabled: false
+      retry:
+        enabled: false
+      fail-fast: false
+  
   # ActiveMQ Configuration for tests
   activemq:
     broker-url: vm://embedded?broker.persistent=false
@@ -33,6 +45,11 @@ spring:
       trust-all: true
   jms:
     pub-sub-domain: false
+
+# Eureka Configuration for tests
+eureka:
+  client:
+    enabled: false
 
 logging:
   level:
