@@ -348,13 +348,25 @@ public class WorkloadIntegrationSteps {
 
     @Then("the workload notification should be saved in the pending workload table")
     public void theWorkloadNotificationShouldBeSavedInThePendingWorkloadTable() {
+        // Wait a bit for the async operation to complete
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
         List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
+        log.info("Found {} pending workloads in database", pendingWorkloads.size());
+        
         assertThat(pendingWorkloads).isNotEmpty();
         
         boolean pendingWorkloadFound = pendingWorkloads.stream()
             .anyMatch(pw -> pw.getTrainerUsername().equals(testContext.getCurrentTrainingRequest().trainerUsername()));
         
         assertThat(pendingWorkloadFound).isTrue();
+        
+        log.info("Verified pending workload record exists for trainer: {}", 
+                testContext.getCurrentTrainingRequest().trainerUsername());
     }
 
     @Then("the pending workload record should contain the correct trainer information:")

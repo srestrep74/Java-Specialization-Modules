@@ -130,4 +130,30 @@ management:
   prometheus:
     metrics:
       export:
-        enabled: false 
+        enabled: false
+
+# Resilience4j Circuit Breaker configuration for tests
+resilience4j:
+  circuitbreaker:
+    instances:
+      activemq-producer:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 2
+        permittedNumberOfCallsInHalfOpenState: 1
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 2s
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.lang.RuntimeException
+          - jakarta.jms.JMSException
+          - org.springframework.jms.JmsException
+          - java.net.ConnectException
+          - java.io.IOException
+  timelimiter:
+    instances:
+      activemq-producer:
+        timeoutDuration: 5s 

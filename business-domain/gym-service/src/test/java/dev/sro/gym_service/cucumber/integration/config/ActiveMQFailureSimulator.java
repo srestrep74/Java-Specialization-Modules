@@ -12,8 +12,13 @@ public class ActiveMQFailureSimulator {
     @Autowired
     private ActiveMQTestcontainersConfig activeMQConfig;
 
+    private boolean failureMode = false;
+
     public void simulateActiveMQFailure() {
-        log.warn("Simulating ActiveMQ failure by stopping the container");
+        log.warn("Simulating ActiveMQ failure mode");
+        this.failureMode = true;
+        
+        // Also try to stop the container as a backup
         try {
             if (activeMQConfig.isContainerRunning()) {
                 activeMQConfig.stopContainer();
@@ -25,7 +30,10 @@ public class ActiveMQFailureSimulator {
     }
 
     public void restoreActiveMQ() {
-        log.info("Restoring ActiveMQ by restarting the container");
+        log.info("Restoring ActiveMQ from failure mode");
+        this.failureMode = false;
+        
+        // Also try to restart the container as a backup
         try {
             if (!activeMQConfig.isContainerRunning()) {
                 activeMQConfig.startContainer();
@@ -37,6 +45,10 @@ public class ActiveMQFailureSimulator {
     }
 
     public boolean isActiveMQAvailable() {
-        return activeMQConfig.isContainerRunning();
+        return !failureMode && activeMQConfig.isContainerRunning();
+    }
+
+    public boolean isInFailureMode() {
+        return failureMode;
     }
 } 
