@@ -1,4 +1,4 @@
-package dev.sro.gym_service.cucumber.component;
+package dev.sro.gym_service.cucumber.component.config;
 
 import dev.sro.gym_service.config.properties.JwtProperties;
 import dev.sro.gym_service.cucumber.component.config.properties.TestProperties;
