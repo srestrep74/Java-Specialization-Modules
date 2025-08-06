@@ -322,6 +322,127 @@ Business logic is encapsulated in service components that:
 - **Error Scenarios**: Extensive testing of failure modes and recovery mechanisms
 - **Performance Testing**: Load testing and performance characteristic validation
 
+## 🥒 Cucumber BDD Testing Implementation
+
+The Gym Service implements a comprehensive **Behavior-Driven Development (BDD)** testing strategy using **Cucumber** framework, providing both **Component Tests** and **Integration Tests** that bridge the gap between technical implementation and business requirements.
+
+### 🎯 BDD Philosophy & Benefits
+
+**Behavior-Driven Development** is implemented to ensure that:
+- **Business Stakeholders** can understand and validate test scenarios written in natural language
+- **Development Team** has clear, executable specifications that guide implementation
+- **Quality Assurance** can verify that the system behaves according to business requirements
+- **Documentation** is automatically generated and kept up-to-date with the codebase
+
+### 🏗️ Testing Architecture
+
+#### Component Tests (`@component/`)
+Component tests focus on **individual service components** and **API endpoints** in isolation. These tests validate the behavior of each component independently, ensuring that each part of the system works correctly before integration. The component tests are organized by domain areas:
+
+**Trainee Management Tests**: Cover all aspects of trainee profile management including registration, profile updates, authentication, and authorization scenarios. These tests ensure that trainee-related business rules are properly enforced and that the API responds correctly to both valid and invalid requests.
+
+**Trainer Management Tests**: Validate trainer registration, profile management, activation status changes, and training retrieval functionality. These tests verify that trainer-specific business logic works correctly and that proper authorization is enforced for trainer operations.
+
+**Training Management Tests**: Focus on training session lifecycle including creation, updates, deletion, and scheduling. These tests ensure that training business rules are properly implemented and that the system correctly handles training-related operations.
+
+#### Integration Tests (`@integration/`)
+Integration tests validate **cross-service communication** and **end-to-end workflows**. These tests ensure that different parts of the system work together correctly and that the overall business processes function as expected.
+
+**Workload Integration Tests**: Specifically test the communication between the Gym Service and Workload Service through ActiveMQ. These tests validate the outbox pattern implementation, circuit breaker behavior, and ensure that workload notifications are properly sent and processed.
+
+### 📋 Feature Files Structure
+
+#### Component Features
+Located in the component features directory, these files contain scenarios written in natural language that describe the expected behavior of each domain area:
+
+**Trainee Management Features**: Include scenarios for successful trainee registration, profile retrieval, updates, and various error conditions such as invalid data, authentication failures, and authorization issues. Each scenario is tagged for easy identification and selective execution.
+
+**Trainer Management Features**: Cover trainer registration, profile management, activation status changes, and training retrieval. The scenarios include both positive cases where operations succeed and negative cases where proper error handling is validated.
+
+**Training Management Features**: Focus on training session operations including creation, updates, deletion, and scheduling. These scenarios ensure that training business rules are properly enforced and that the system handles various edge cases correctly.
+
+#### Integration Features
+Located in the integration features directory, these files contain scenarios that test the interaction between different services and components:
+
+**Workload Integration Features**: Test the complete workflow of workload notification processing, including successful ActiveMQ communication, fallback scenarios when the message broker is unavailable, circuit breaker activation, and error handling for invalid scenarios.
+
+### 🎭 Test Scenarios Examples
+
+#### Positive Scenarios (Happy Path)
+Positive scenarios test the normal, expected behavior of the system when all conditions are favorable. These scenarios ensure that the system works correctly under normal circumstances and that business requirements are met.
+
+**Trainee Registration Success**: Tests the complete trainee registration process, including data validation, username and password generation, and proper response formatting. This scenario ensures that new trainees can be successfully registered in the system.
+
+**Training Session Creation**: Validates the training session creation process, ensuring that sessions can be properly scheduled between valid trainers and trainees, and that all necessary data is correctly stored and validated.
+
+**Workload Integration Success**: Tests the successful communication between services, ensuring that when a training is created, the appropriate workload notification is sent to the Workload Service through ActiveMQ, and that the message contains all necessary information.
+
+#### Negative Scenarios (Error Handling)
+Negative scenarios test how the system behaves when things go wrong or when invalid data is provided. These scenarios are crucial for ensuring robust error handling and proper system behavior under adverse conditions.
+
+**Invalid Data Validation**: Tests the system's response to invalid or missing data during registration and update operations. These scenarios ensure that proper validation errors are returned and that invalid data is not processed.
+
+**Authentication Failure**: Validates that the system properly rejects requests from unauthenticated users and returns appropriate error responses. These scenarios ensure that security measures are working correctly.
+
+**Circuit Breaker Activation**: Tests the circuit breaker pattern implementation, ensuring that when ActiveMQ communication fails repeatedly, the system gracefully degrades and continues to function using the outbox pattern.
+
+### 🔧 Test Configuration & Setup
+
+#### Component Test Configuration
+Component tests are configured to run in isolation with mocked external dependencies. This configuration ensures that tests focus on the specific component being tested without interference from external systems. The configuration includes proper authentication setup, database configuration, and external service mocking.
+
+#### Integration Test Configuration
+Integration tests are configured to test the interaction between different components and services. This includes embedded ActiveMQ broker setup, in-memory database configuration, and proper circuit breaker settings for testing resilience patterns.
+
+### 🏃‍♂️ Test Execution
+
+#### Running Component Tests
+Component tests can be executed individually or as a suite, allowing developers to focus on specific areas of functionality. Tests can be filtered by tags to run only specific types of scenarios, such as positive cases, negative cases, or authentication-related tests.
+
+#### Running Integration Tests
+Integration tests validate the complete workflow and can be executed to ensure that all components work together correctly. These tests are particularly important for validating cross-service communication and end-to-end business processes.
+
+#### Running Tests by Category
+The tagging system allows for selective test execution based on different criteria. Tests can be run by category (positive, negative, authentication, authorization) or by specific functionality areas, making it easy to focus testing efforts on particular aspects of the system.
+
+### 📊 Test Reports & Documentation
+
+#### Generated Reports
+The testing framework generates comprehensive reports in both HTML and JSON formats. These reports provide detailed information about test execution, including pass/fail status, execution time, and any errors encountered. The HTML reports are particularly useful for stakeholders who want to understand the current state of the system.
+
+#### Test Metrics
+The testing implementation provides various metrics including scenario coverage, positive/negative test balance, integration coverage, and authentication/authorization testing coverage. These metrics help ensure comprehensive testing coverage and identify areas that may need additional attention.
+
+### 🎯 BDD Benefits Realized
+
+#### For Business Stakeholders
+The BDD approach provides business stakeholders with readable specifications written in natural language. These specifications serve as living documentation that is always up-to-date with the current implementation. Stakeholders can easily understand what the system is supposed to do and validate that it meets their requirements.
+
+#### For Development Team
+Developers benefit from clear, executable specifications that guide implementation. The BDD scenarios serve as acceptance criteria and help ensure that the system is built according to business requirements. The automated nature of the tests provides confidence during refactoring and helps catch regressions early.
+
+#### For Quality Assurance
+QA teams can use the BDD scenarios to validate that the system behaves according to business requirements. The automated nature of the tests reduces manual testing effort while ensuring comprehensive coverage. The scenarios also serve as documentation of system behavior.
+
+### 🔄 Continuous Integration Integration
+
+#### CI/CD Pipeline Integration
+The BDD tests are integrated into the continuous integration pipeline, ensuring that all scenarios are executed automatically whenever code changes are made. This integration helps catch issues early and ensures that the system always meets the defined acceptance criteria.
+
+#### Test Execution Strategy
+The testing strategy includes both fast component tests for quick feedback and comprehensive integration tests for end-to-end validation. Tests are executed in parallel when possible to minimize execution time while maintaining thorough coverage.
+
+### 🛠️ Maintenance & Best Practices
+
+#### Feature File Maintenance
+Feature files should be kept synchronized with implementation changes. Regular updates ensure that the documentation remains accurate and that tests continue to validate the correct behavior. Proper tag management helps organize tests and makes selective execution easier.
+
+#### Step Definition Maintenance
+Step definitions should be designed for reusability and maintainability. Shared steps for common operations reduce duplication and make tests easier to maintain. Proper context management ensures that tests are isolated and don't interfere with each other.
+
+#### Test Data Management
+Test data should be realistic and representative of production scenarios. Each test scenario should have independent test data to ensure isolation. Proper cleanup between scenarios prevents data pollution and ensures consistent test results.
+
 ## 🔧 Configuration Management
 
 ### Environment-Specific Configuration
