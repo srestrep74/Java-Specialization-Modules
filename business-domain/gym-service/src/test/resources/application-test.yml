@@ -26,13 +26,17 @@ spring:
     init:
       mode: always
   
-  # ActiveMQ Configuration for tests
+  # ActiveMQ Configuration for tests (will be overridden by Testcontainers)
   activemq:
-    broker-url: vm://embedded?broker.persistent=false
+    broker-url: ${ACTIVEMQ_BROKER_URL:vm://embedded?broker.persistent=false}
     user: admin
     password: admin
     packages:
       trust-all: true
+    # Configuraciones adicionales para estabilidad
+    close-timeout: 15000
+    send-timeout: 10000
+    receive-timeout: 10000
   jms:
     pub-sub-domain: false
   
@@ -64,6 +68,11 @@ spring:
       fail-fast: false
       request-read-timeout: 5000
       connect-timeout: 5000
+  
+  # Disable scheduling for tests
+  task:
+    scheduling:
+      enabled: false
 
 # Disable Eureka client
 eureka:
