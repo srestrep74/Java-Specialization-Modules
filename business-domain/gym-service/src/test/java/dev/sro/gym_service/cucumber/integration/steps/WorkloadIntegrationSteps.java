@@ -241,7 +241,6 @@ public class WorkloadIntegrationSteps {
     public void aWorkloadNotificationMessageShouldBeSentToActiveMQ() throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                TimeUnit.MILLISECONDS.sleep(1000);
 
                 Message message = null;
                 for (int i = 0; i < 5; i++) {
@@ -249,7 +248,6 @@ public class WorkloadIntegrationSteps {
                     if (message != null) {
                         break;
                     }
-                    TimeUnit.MILLISECONDS.sleep(500);
                 }
 
                 if (message != null) {
@@ -313,12 +311,6 @@ public class WorkloadIntegrationSteps {
 
     @Then("the workload notification should be saved in the pending workload table")
     public void theWorkloadNotificationShouldBeSavedInThePendingWorkloadTable() {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
         List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
 
         assertThat(pendingWorkloads).isNotEmpty();
@@ -422,11 +414,8 @@ public class WorkloadIntegrationSteps {
     public void noWorkloadNotificationShouldBeSent() throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                TimeUnit.MILLISECONDS.sleep(500);
-
                 Message message = jmsTemplate.receive("workload-queue");
                 if (message == null) {
-                    TimeUnit.MILLISECONDS.sleep(200);
                     message = jmsTemplate.receive("workload-queue");
                 }
 
