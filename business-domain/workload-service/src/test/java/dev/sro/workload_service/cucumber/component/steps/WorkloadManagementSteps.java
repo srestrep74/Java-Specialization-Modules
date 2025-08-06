@@ -1,6 +1,7 @@
 package dev.sro.workload_service.cucumber.component.steps;
 
 import dev.sro.workload_service.cucumber.component.WorkloadTestContext;
+import dev.sro.workload_service.cucumber.component.config.properties.TestProperties;
 import dev.sro.workload_service.dtos.v1.request.TrainerWorkloadRequest;
 import dev.sro.workload_service.dtos.v1.response.TrainerMonthlySummaryResponse;
 import dev.sro.workload_service.dtos.v1.response.TrainerWorkloadResponse;
@@ -26,6 +27,9 @@ public class WorkloadManagementSteps extends CommonHttpSteps {
     @Autowired
     private WorkloadTestContext testContext;
 
+    @Autowired
+    private TestProperties testProperties;
+
     @Before
     public void setUp() {
         testContext.clear();
@@ -43,7 +47,7 @@ public class WorkloadManagementSteps extends CommonHttpSteps {
 
     @Given("I have a valid authentication token for workload")
     public void iHaveAValidAuthenticationTokenForWorkload() {
-        String internalToken = "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOIl0sInN1YiI6ImNsaWVudC5jbGllbnQiLCJpYXQiOjE3NTIzMzk3MTQsImV4cCI6MTc4Mzg3NTcxNCwianRpIjoiYWE4ZDEwODEtNjhkMy00OGMzLTg4N2EtM2Y0YjY0M2Q5Nzg1In0.1CF-fhhN5GoVDAIWmoTNYi8DBVa3PE_we0g-SULHvVwEphYT1zfF6KZmHoRDdppgER9uyZN-RwYC9V24J0W9ww";
+        String internalToken = testProperties.auth().internalToken();
         testContext.setAccessToken(internalToken);
     }
 

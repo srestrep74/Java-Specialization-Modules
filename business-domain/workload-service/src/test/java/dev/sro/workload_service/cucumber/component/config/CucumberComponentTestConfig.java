@@ -5,6 +5,7 @@ import java.util.List;
 
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.client.ServiceInstance;
@@ -15,9 +16,12 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
+import dev.sro.workload_service.cucumber.component.config.properties.TestProperties;
+
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
+@EnableConfigurationProperties(TestProperties.class)
 @Import(TestMongoDBConfig.class)
 @ActiveProfiles("test")
 public class CucumberComponentTestConfig {
