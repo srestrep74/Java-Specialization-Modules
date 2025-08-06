@@ -1,6 +1,6 @@
 package dev.sro.gym_service.cucumber.component.hooks;
 
-import dev.sro.gym_service.cucumber.component.TraineeTestContext;
+import dev.sro.gym_service.cucumber.component.context.TraineeTestContext;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;

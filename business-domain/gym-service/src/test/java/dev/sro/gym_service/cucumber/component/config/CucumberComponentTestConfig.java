@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.Mockito.mock;
 
 @CucumberContextConfiguration
@@ -74,13 +77,13 @@ public class CucumberComponentTestConfig {
                 }
 
                 @Override
-                public java.util.List<ServiceInstance> getInstances(String serviceId) {
-                    return java.util.Collections.emptyList();
+                public List<ServiceInstance> getInstances(String serviceId) {
+                    return Collections.emptyList();
                 }
 
                 @Override
-                public java.util.List<String> getServices() {
-                    return java.util.Collections.emptyList();
+                public List<String> getServices() {
+                    return Collections.emptyList();
                 }
             };
         }

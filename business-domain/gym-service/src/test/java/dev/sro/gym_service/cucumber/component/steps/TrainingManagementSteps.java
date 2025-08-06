@@ -1,6 +1,6 @@
 package dev.sro.gym_service.cucumber.component.steps;
 
-import dev.sro.gym_service.cucumber.component.TrainingTestContext;
+import dev.sro.gym_service.cucumber.component.context.TrainingTestContext;
 import dev.sro.gym_service.dtos.v1.request.auth.LoginRequest;
 import dev.sro.gym_service.dtos.v1.request.trainee.RegisterTraineeRequest;
 import dev.sro.gym_service.dtos.v1.request.trainer.RegisterTrainerRequest;

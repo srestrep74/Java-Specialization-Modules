@@ -1,4 +1,4 @@
-package dev.sro.gym_service.cucumber.component;
+package dev.sro.gym_service.cucumber.component.context;
 
 import dev.sro.gym_service.dtos.v1.request.training.CreateTrainingRequest;
 import dev.sro.gym_service.dtos.v1.request.training.DeleteTrainingRequest;
