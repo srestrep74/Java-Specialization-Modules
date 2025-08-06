@@ -29,8 +29,7 @@ public class TestJmsConfig {
         };
         template.setMessageConverter(testMessageConverter);
         template.setDefaultDestinationName("workload-queue");
-        // Set timeout to prevent hanging in tests
-        template.setReceiveTimeout(1000); // 1 second timeout
+        template.setReceiveTimeout(1000);
         return template;
     }
 } 

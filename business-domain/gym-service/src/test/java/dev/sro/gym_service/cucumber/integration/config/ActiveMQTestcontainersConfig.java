@@ -35,7 +35,6 @@ public class ActiveMQTestcontainersConfig {
 
             activeMQContainer.start();
 
-            // Wait for the container to be fully ready
             Thread.sleep(3000);
 
             String host = activeMQContainer.getHost();
@@ -43,10 +42,8 @@ public class ActiveMQTestcontainersConfig {
             brokerUrl = "tcp://" + host + ":" + port;
 
             System.setProperty("ACTIVEMQ_BROKER_URL", brokerUrl);
-            System.out.println("ActiveMQ container started with broker URL: " + brokerUrl);
 
         } catch (Exception e) {
-            System.out.println("Failed to start ActiveMQ container: " + e.getMessage());
             throw new RuntimeException("ActiveMQ container failed to start", e);
         }
     }
@@ -117,10 +114,8 @@ public class ActiveMQTestcontainersConfig {
                             .withReuse(true);
                 }
                 activeMQContainer.start();
-                Thread.sleep(3000); // Wait for container to be ready
-                System.out.println("ActiveMQ container restarted successfully");
+                Thread.sleep(3000);
             } catch (Exception e) {
-                System.out.println("Failed to restart ActiveMQ container: " + e.getMessage());
             }
         }
     }

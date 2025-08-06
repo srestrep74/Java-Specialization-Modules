@@ -146,14 +146,9 @@ public class WorkloadIntegrationSteps {
                 LocalDate.parse(data.get("trainingDate")),
                 Integer.parseInt(data.get("trainingDuration"))));
 
-        System.out.println("=== DEBUG: Creating training with request: " + testContext.getCurrentTrainingRequest() + " ===");
-        
         try {
-            // Usar el método del servicio directamente sin CompletableFuture
             testContext.setCurrentResponse(trainingService.saveWithValidation(testContext.getCurrentTrainingRequest()));
-            System.out.println("=== DEBUG: Training created successfully, response: " + testContext.getCurrentResponse() + " ===");
         } catch (Exception e) {
-            System.out.println("=== DEBUG: Error creating training: " + e.getMessage() + " ===");
             testContext.setCurrentException(e);
         }
     }
@@ -180,16 +175,13 @@ public class WorkloadIntegrationSteps {
     @When("I delete the training")
     public void iDeleteTheTraining() {
         assertThat(testContext.getCurrentTraining()).isNotNull();
-        
-        // Crear el request de eliminación usando los datos del training actual
+
         DeleteTrainingRequest deleteRequest = new DeleteTrainingRequest(
                 testContext.getCurrentTraining().getTrainee().getUsername(),
                 testContext.getCurrentTraining().getTrainer().getUsername(),
-                testContext.getCurrentTraining().getTrainingDate()
-        );
+                testContext.getCurrentTraining().getTrainingDate());
 
         try {
-            // Usar el método del servicio que maneja toda la lógica de eliminación
             testContext.setCurrentResponse(trainingService.deleteTraining(deleteRequest));
         } catch (Exception e) {
             testContext.setCurrentException(e);
@@ -247,28 +239,16 @@ public class WorkloadIntegrationSteps {
 
     @Then("a workload notification message should be sent to ActiveMQ")
     public void aWorkloadNotificationMessageShouldBeSentToActiveMQ() throws Exception {
-        System.out.println("=== DEBUG: Starting message verification ===");
-        System.out.println("ActiveMQ unavailable: " + testContext.isActiveMQUnavailable());
-        System.out.println("Container running: " + activeMQConfig.isContainerRunning());
-        System.out.println("Broker URL: " + activeMQConfig.getBrokerUrl());
-        
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                System.out.println("=== DEBUG: ActiveMQ is available, trying to receive message ===");
-                
-                // Wait a bit for the message to be sent
                 TimeUnit.MILLISECONDS.sleep(1000);
 
-                // Try multiple times to receive the message
                 Message message = null;
                 for (int i = 0; i < 5; i++) {
-                    System.out.println("=== DEBUG: Attempt " + (i + 1) + " to receive message ===");
                     message = jmsTemplate.receive("workload-queue");
                     if (message != null) {
-                        System.out.println("=== DEBUG: Message received successfully ===");
                         break;
                     }
-                    System.out.println("=== DEBUG: No message received, waiting 500ms ===");
                     TimeUnit.MILLISECONDS.sleep(500);
                 }
 
@@ -277,45 +257,25 @@ public class WorkloadIntegrationSteps {
                         TrainerWorkloadRequest receivedRequest = (TrainerWorkloadRequest) testMessageConverter
                                 .fromMessage(message);
                         assertThat(receivedRequest).isNotNull();
-                        // Store the received message in the test context for later use
                         testContext.setReceivedWorkloadMessage(receivedRequest);
-                        System.out.println("=== DEBUG: Message processed successfully ===");
                     } catch (Exception e) {
-                        System.out.println("=== DEBUG: Error processing message: " + e.getMessage() + " ===");
                         throw e;
                     }
                 } else {
-                    System.out.println("=== DEBUG: No message received from ActiveMQ, checking pending workload ===");
-                    // If we couldn't receive the message, check if it was saved to pending workload
-                    // This handles the case where the broker might be having issues
                     List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
-                    System.out.println("=== DEBUG: Found " + pendingWorkloads.size() + " pending workloads ===");
-                    
+
                     if (!pendingWorkloads.isEmpty()) {
-                        // Message was saved to pending workload, which is acceptable
-                        System.out.println("=== DEBUG: Message found in pending workload table - ACCEPTABLE ===");
                         return;
                     } else {
-                        // Neither received nor in pending - this is a real failure
-                        System.out.println("=== DEBUG: No message in ActiveMQ or pending workload - FAILURE ===");
-                        System.out.println("=== DEBUG: Current response: " + testContext.getCurrentResponse() + " ===");
                         assertThat(message).isNotNull();
                     }
                 }
             } else {
-                System.out.println("=== DEBUG: ActiveMQ unavailable, checking pending workload ===");
-                // If ActiveMQ is unavailable, verify that the message was saved to pending
-                // workload
                 List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
-                System.out.println("=== DEBUG: Found " + pendingWorkloads.size() + " pending workloads ===");
                 assertThat(pendingWorkloads).isNotEmpty();
             }
         } catch (Exception e) {
-            System.out.println("=== DEBUG: Exception occurred: " + e.getMessage() + " ===");
-            // If ActiveMQ is not available, verify that the message was saved to pending
-            // workload
             List<PendingWorkload> pendingWorkloads = pendingWorkloadRepository.findAll();
-            System.out.println("=== DEBUG: Found " + pendingWorkloads.size() + " pending workloads in exception handler ===");
             assertThat(pendingWorkloads).isNotEmpty();
         }
     }
@@ -323,8 +283,6 @@ public class WorkloadIntegrationSteps {
     @Then("the message should contain the correct trainer information:")
     public void theMessageShouldContainTheCorrectTrainerInformation(DataTable dataTable) throws Exception {
         if (!testContext.isActiveMQUnavailable()) {
-            // Don't try to receive another message, just verify the message was sent
-            // The message was already received in the previous step
         }
     }
 
@@ -355,7 +313,6 @@ public class WorkloadIntegrationSteps {
 
     @Then("the workload notification should be saved in the pending workload table")
     public void theWorkloadNotificationShouldBeSavedInThePendingWorkloadTable() {
-        // Wait a bit for the async operation to complete
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -422,7 +379,6 @@ public class WorkloadIntegrationSteps {
     public void theMessageActionTypeShouldBe(String actionType) throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                // Use the message already received and stored in the test context
                 TrainerWorkloadRequest receivedRequest = testContext.getReceivedWorkloadMessage();
                 if (receivedRequest != null) {
                     assertThat(receivedRequest.actionType().name()).isEqualTo(actionType);
@@ -431,7 +387,6 @@ public class WorkloadIntegrationSteps {
             } else {
             }
         } catch (Exception e) {
-            // Don't fail the test if ActiveMQ is not available
         }
     }
 
@@ -439,7 +394,6 @@ public class WorkloadIntegrationSteps {
     public void theMessageShouldContainTheUpdatedTrainingDurationOf(int duration) throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                // Use the message already received and stored in the test context
                 TrainerWorkloadRequest receivedRequest = testContext.getReceivedWorkloadMessage();
                 if (receivedRequest != null) {
                     assertThat(receivedRequest.trainingDuration()).isEqualTo(duration);
@@ -448,7 +402,6 @@ public class WorkloadIntegrationSteps {
             } else {
             }
         } catch (Exception e) {
-            // Don't fail the test if ActiveMQ is not available
         }
     }
 
@@ -469,14 +422,10 @@ public class WorkloadIntegrationSteps {
     public void noWorkloadNotificationShouldBeSent() throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                // Use a timeout to prevent hanging - wait a short time to ensure no message is
-                // sent
                 TimeUnit.MILLISECONDS.sleep(500);
 
-                // Use receive with timeout to prevent hanging indefinitely
                 Message message = jmsTemplate.receive("workload-queue");
                 if (message == null) {
-                    // Try one more time with a short delay to be sure
                     TimeUnit.MILLISECONDS.sleep(200);
                     message = jmsTemplate.receive("workload-queue");
                 }
@@ -484,7 +433,6 @@ public class WorkloadIntegrationSteps {
                 assertThat(message).isNull();
             }
         } catch (Exception e) {
-            // Don't fail the test if ActiveMQ is not available
         }
     }
 

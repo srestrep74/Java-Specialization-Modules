@@ -26,7 +26,6 @@ public class TestActiveMQConfig {
     @Bean
     @Primary
     public ConnectionFactory connectionFactory() {
-        // Usar el connection factory configurado por el contenedor
         return new CachingConnectionFactory();
     }
 }
