@@ -17,6 +17,7 @@ public class WorkloadIntegrationTestContext {
     private Training currentTraining;
     private Exception currentException;
     private boolean activeMQUnavailable = false;
+    private TrainerWorkloadRequest receivedWorkloadMessage;
     private Map<String, Object> testData = new HashMap<>();
 
     public void clear() {
@@ -25,6 +26,7 @@ public class WorkloadIntegrationTestContext {
         this.currentTraining = null;
         this.currentException = null;
         this.activeMQUnavailable = false;
+        this.receivedWorkloadMessage = null;
         this.testData.clear();
     }
 
@@ -66,6 +68,14 @@ public class WorkloadIntegrationTestContext {
 
     public void setActiveMQUnavailable(boolean activeMQUnavailable) {
         this.activeMQUnavailable = activeMQUnavailable;
+    }
+
+    public TrainerWorkloadRequest getReceivedWorkloadMessage() {
+        return receivedWorkloadMessage;
+    }
+
+    public void setReceivedWorkloadMessage(TrainerWorkloadRequest receivedWorkloadMessage) {
+        this.receivedWorkloadMessage = receivedWorkloadMessage;
     }
 
     public void setTestData(String key, Object value) {

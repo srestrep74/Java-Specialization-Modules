@@ -291,6 +291,8 @@ public class WorkloadIntegrationSteps {
                 try {
                     TrainerWorkloadRequest receivedRequest = (TrainerWorkloadRequest) testMessageConverter.fromMessage(message);
                     assertThat(receivedRequest).isNotNull();
+                    // Store the received message in the test context for later use
+                    testContext.setReceivedWorkloadMessage(receivedRequest);
                     log.info("Workload notification message received: {}", receivedRequest);
                 } catch (Exception e) {
                     log.error("Error converting message: {}", e.getMessage());
@@ -417,24 +419,13 @@ public class WorkloadIntegrationSteps {
     public void theMessageActionTypeShouldBe(String actionType) throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                // Add timeout for message reception
-                Message message = jmsTemplate.receive("workload-queue");
-                if (message == null) {
-                    // Try again with a longer timeout
-                    TimeUnit.MILLISECONDS.sleep(1000);
-                    message = jmsTemplate.receive("workload-queue");
-                }
-                
-                if (message != null) {
-                    try {
-                        TrainerWorkloadRequest receivedRequest = (TrainerWorkloadRequest) testMessageConverter.fromMessage(message);
-                        assertThat(receivedRequest.actionType().name()).isEqualTo(actionType);
-                    } catch (Exception e) {
-                        log.error("Error converting message in action type check: {}", e.getMessage());
-                        // Don't fail the test, just log the error
-                    }
+                // Use the message already received and stored in the test context
+                TrainerWorkloadRequest receivedRequest = testContext.getReceivedWorkloadMessage();
+                if (receivedRequest != null) {
+                    assertThat(receivedRequest.actionType().name()).isEqualTo(actionType);
+                    log.info("Verified message action type: {}", actionType);
                 } else {
-                    log.warn("No message received for action type check");
+                    log.warn("No message found in test context for action type check");
                 }
             } else {
                 log.info("Skipping ActiveMQ message check - ActiveMQ is unavailable or container is not running");
@@ -449,24 +440,13 @@ public class WorkloadIntegrationSteps {
     public void theMessageShouldContainTheUpdatedTrainingDurationOf(int duration) throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
-                // Add timeout for message reception
-                Message message = jmsTemplate.receive("workload-queue");
-                if (message == null) {
-                    // Try again with a longer timeout
-                    TimeUnit.MILLISECONDS.sleep(1000);
-                    message = jmsTemplate.receive("workload-queue");
-                }
-                
-                if (message != null) {
-                    try {
-                        TrainerWorkloadRequest receivedRequest = (TrainerWorkloadRequest) testMessageConverter.fromMessage(message);
-                        assertThat(receivedRequest.trainingDuration()).isEqualTo(duration);
-                    } catch (Exception e) {
-                        log.error("Error converting message in duration check: {}", e.getMessage());
-                        // Don't fail the test, just log the error
-                    }
+                // Use the message already received and stored in the test context
+                TrainerWorkloadRequest receivedRequest = testContext.getReceivedWorkloadMessage();
+                if (receivedRequest != null) {
+                    assertThat(receivedRequest.trainingDuration()).isEqualTo(duration);
+                    log.info("Verified training duration: {}", duration);
                 } else {
-                    log.warn("No message received for duration check");
+                    log.warn("No message found in test context for duration check");
                 }
             } else {
                 log.info("Skipping ActiveMQ message check - ActiveMQ is unavailable or container is not running");
@@ -494,8 +474,19 @@ public class WorkloadIntegrationSteps {
     public void noWorkloadNotificationShouldBeSent() throws Exception {
         try {
             if (!testContext.isActiveMQUnavailable() && activeMQConfig.isContainerRunning()) {
+                // Use a timeout to prevent hanging - wait a short time to ensure no message is sent
+                TimeUnit.MILLISECONDS.sleep(500);
+                
+                // Use receive with timeout to prevent hanging indefinitely
                 Message message = jmsTemplate.receive("workload-queue");
+                if (message == null) {
+                    // Try one more time with a short delay to be sure
+                    TimeUnit.MILLISECONDS.sleep(200);
+                    message = jmsTemplate.receive("workload-queue");
+                }
+                
                 assertThat(message).isNull();
+                log.info("Verified no workload notification was sent");
             } else {
                 log.info("Skipping ActiveMQ message check - ActiveMQ is unavailable or container is not running");
             }

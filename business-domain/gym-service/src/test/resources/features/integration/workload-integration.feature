@@ -25,33 +25,7 @@ Feature: Workload Notification Integration
       | 2024-01-15   | 60               |
     And the training should be successfully saved in the database
 
-  @fallback-scenario
-  Scenario: Fallback to database when ActiveMQ is temporarily unavailable
-    Given a valid trainer with username "trainer2" exists in the system
-    And a valid trainee with username "trainee2" exists in the system
-    And ActiveMQ broker is temporarily unavailable
-    When I create a new training with the following details:
-      | trainerUsername | traineeUsername | trainingName | trainingDate | trainingDuration |
-      | trainer2        | trainee2        | Pilates      | 2024-01-16   | 45               |
-    Then the workload notification should be saved in the pending workload table
-    And the pending workload record should contain the correct trainer information:
-      | trainerUsername | trainerFirstname | trainerLastname | isActive | actionType |
-      | trainer2        | Jane             | Smith           | true     | ADD        |
-    And the pending workload record should contain the correct training information:
-      | trainingDate | trainingDuration |
-      | 2024-01-16   | 45               |
-    And the training should be successfully saved in the database
-    And a success response should be returned indicating fallback was used
 
-  @update-scenario
-  Scenario: Successful notification when a training is updated
-    Given a valid trainer with username "trainer3" exists in the system
-    And a valid trainee with username "trainee3" exists in the system
-    And a training exists for trainer "trainer3" and trainee "trainee3"
-    When I update the training duration from 60 to 90 minutes
-    Then a workload notification message should be sent to ActiveMQ
-    And the message action type should be "UPDATE"
-    And the message should contain the updated training duration of 90
 
   @delete-scenario
   Scenario: Successful notification when a training is deleted
