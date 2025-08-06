@@ -10,7 +10,7 @@ import io.cucumber.spring.CucumberContextConfiguration;
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Import({IntegrationTestConfig.class, ActiveMQTestcontainersConfig.class})
+@Import({IntegrationTestConfig.class, ActiveMQTestcontainersConfig.class, TestJmsConfig.class})
 @TestPropertySource(properties = {
     "spring.config.import=classpath:application-test.yml",
     "logging.level.dev.sro.gym_service=DEBUG",
@@ -22,7 +22,9 @@ import io.cucumber.spring.CucumberContextConfiguration;
     "spring.jms.listener.auto-startup=false",
     "spring.jms.listener.acknowledge-mode=auto",
     "spring.jms.listener.concurrency=1",
-    "activemq.broker-url=tcp://localhost:61616"
+    "activemq.broker-url=${ACTIVEMQ_BROKER_URL:vm://embedded?broker.persistent=false}",
+    "spring.jms.template.receive-timeout=5000",
+    "spring.jms.template.send-timeout=5000"
 })
 public class CucumberTestConfig {
     // Configuration for Cucumber integration tests

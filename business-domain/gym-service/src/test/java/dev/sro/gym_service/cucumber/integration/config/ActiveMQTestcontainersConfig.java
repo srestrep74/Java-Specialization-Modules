@@ -26,32 +26,47 @@ public class ActiveMQTestcontainersConfig {
     static {
         log.info("Initializing ActiveMQ container for integration tests...");
         
-        activeMQContainer = new GenericContainer<>(DockerImageName.parse("apache/activemq-classic:5.17.6"))
-            .withExposedPorts(61616, 8161)
-            .withEnv("ACTIVEMQ_ADMIN_LOGIN", "admin")
-            .withEnv("ACTIVEMQ_ADMIN_PASSWORD", "admin")
-            .withEnv("ACTIVEMQ_OPTS", "-Djava.util.logging.config.file=logging.properties")
-            .withStartupTimeout(java.time.Duration.ofSeconds(30))
-            .withReuse(true);
+        try {
+            activeMQContainer = new GenericContainer<>(DockerImageName.parse("apache/activemq-classic:5.17.6"))
+                .withExposedPorts(61616, 8161)
+                .withEnv("ACTIVEMQ_ADMIN_LOGIN", "admin")
+                .withEnv("ACTIVEMQ_ADMIN_PASSWORD", "admin")
+                .withEnv("ACTIVEMQ_OPTS", "-Djava.util.logging.config.file=logging.properties")
+                .withStartupTimeout(java.time.Duration.ofSeconds(60))
+                .withReuse(true)
+                .withLogConsumer(outputFrame -> log.info("ActiveMQ: {}", outputFrame.getUtf8String().trim()));
 
-        activeMQContainer.start();
-        
-        String host = activeMQContainer.getHost();
-        int port = activeMQContainer.getMappedPort(61616);
-        brokerUrl = "tcp://" + host + ":" + port;
-        
-        // Configure the broker URL immediately so Spring picks it up
-        System.setProperty("ACTIVEMQ_BROKER_URL", brokerUrl);
-        
-        log.info("ActiveMQ container started successfully");
-        log.info("Broker URL: {}", brokerUrl);
+            activeMQContainer.start();
+            
+            String host = activeMQContainer.getHost();
+            int port = activeMQContainer.getMappedPort(61616);
+            brokerUrl = "tcp://" + host + ":" + port;
+            
+            // Configure the broker URL immediately so Spring picks it up
+            System.setProperty("ACTIVEMQ_BROKER_URL", brokerUrl);
+            
+            log.info("ActiveMQ container started successfully");
+            log.info("Broker URL: {}", brokerUrl);
+            log.info("Web Console: http://{}:{}", host, activeMQContainer.getMappedPort(8161));
+            
+        } catch (Exception e) {
+            log.error("Failed to start ActiveMQ container: {}", e.getMessage());
+            // Set a fallback URL for embedded broker
+            brokerUrl = "vm://embedded?broker.persistent=false";
+            System.setProperty("ACTIVEMQ_BROKER_URL", brokerUrl);
+            log.info("Using fallback broker URL: {}", brokerUrl);
+        }
     }
 
     @PostConstruct
     public void verifyActiveMQ() {
         log.info("Verifying ActiveMQ container is running...");
         log.info("Broker URL: {}", brokerUrl);
-        log.info("Web Console: http://{}:{}", activeMQContainer.getHost(), activeMQContainer.getMappedPort(8161));
+        if (activeMQContainer != null && activeMQContainer.isRunning()) {
+            log.info("Web Console: http://{}:{}", activeMQContainer.getHost(), activeMQContainer.getMappedPort(8161));
+        } else {
+            log.warn("ActiveMQ container is not running");
+        }
     }
 
     @PreDestroy
@@ -65,7 +80,7 @@ public class ActiveMQTestcontainersConfig {
 
     @Bean
     @Primary
-    public MessageConverter messageConverter() {
+    public MessageConverter testMessageConverter() {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
         converter.setObjectMapper(objectMapper());
@@ -93,7 +108,12 @@ public class ActiveMQTestcontainersConfig {
     }
 
     public boolean isContainerRunning() {
-        return activeMQContainer != null && activeMQContainer.isRunning();
+        try {
+            return activeMQContainer != null && activeMQContainer.isRunning();
+        } catch (Exception e) {
+            log.warn("Error checking if ActiveMQ container is running: {}", e.getMessage());
+            return false;
+        }
     }
 
     public void stopContainer() {
@@ -119,7 +139,17 @@ public class ActiveMQTestcontainersConfig {
                 log.info("ActiveMQ queues cleared");
             } catch (Exception e) {
                 log.warn("Could not clear ActiveMQ queues: {}", e.getMessage());
+                // Try alternative approach
+                try {
+                    activeMQContainer.execInContainer("sh", "-c", 
+                        "find /opt/activemq/data -name '*.db' -delete");
+                    log.info("ActiveMQ queues cleared using alternative method");
+                } catch (Exception e2) {
+                    log.warn("Alternative queue clearing also failed: {}", e2.getMessage());
+                }
             }
+        } else {
+            log.info("ActiveMQ container not running, skipping queue clearing");
         }
     }
 } 

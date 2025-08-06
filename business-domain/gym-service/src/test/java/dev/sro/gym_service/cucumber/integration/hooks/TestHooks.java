@@ -48,6 +48,9 @@ public class TestHooks {
         // Clear test context
         testContext.clear();
         
+        // Verify ActiveMQ container is running
+        verifyActiveMQContainer();
+        
         // Clear all test data before each scenario
         clearTestData();
         
@@ -118,5 +121,27 @@ public class TestHooks {
         trainee.setLastName(lastName);
         trainee.setPassword("password123");
         traineeRepository.save(trainee);
+    }
+
+    private void verifyActiveMQContainer() {
+        try {
+            if (!activeMQConfig.isContainerRunning()) {
+                log.warn("ActiveMQ container is not running, attempting to restart...");
+                activeMQConfig.startContainer();
+                
+                // Wait a bit for the container to be ready
+                Thread.sleep(2000);
+                
+                if (!activeMQConfig.isContainerRunning()) {
+                    log.error("Failed to start ActiveMQ container, tests may fail");
+                } else {
+                    log.info("ActiveMQ container restarted successfully");
+                }
+            } else {
+                log.info("ActiveMQ container is running");
+            }
+        } catch (Exception e) {
+            log.error("Error verifying ActiveMQ container: {}", e.getMessage());
+        }
     }
 } 
