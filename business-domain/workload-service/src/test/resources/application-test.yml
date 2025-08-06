@@ -1,9 +1,40 @@
 spring:
-  application:
-    name: workload-service
-  # Disable config server import for tests
-  config:
-    import: ""
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: workload_test_db
+      authentication-database: admin
+      username: admin
+      password: admin123
+      auto-index-creation: true
+  
+  # Spring Cloud Configuration for tests
+  cloud:
+    discovery:
+      enabled: false
+    config:
+      enabled: false
+      discovery:
+        enabled: false
+      retry:
+        enabled: false
+      fail-fast: false
   
   # ActiveMQ Configuration for tests
   activemq:
@@ -14,66 +45,54 @@ spring:
       trust-all: true
   jms:
     pub-sub-domain: false
-  
-  # MongoDB Configuration (Test)
-  data:
-    mongodb:
-      host: localhost
-      port: 27017
-      database: workload_test_db
-      username: admin
-      password: admin123
-      authentication-database: admin  
-      auto-index-creation: false
-      clean-on-startup: true
-    # Disable Redis for tests
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 5000
-      password: ""
-  cache:
-    type: none
-  
-  # Disable cloud features for tests
-  cloud:
-    openfeign:
-      circuitbreaker:
-        enabled: false
+
+# Eureka Configuration for tests
+eureka:
+  client:
+    enabled: false
+
+logging:
+  level:
+    dev.sro.workload_service: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+server:
+  port: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# JWT Configuration for tests
+jwt:
+  secret: 5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==
+  expiration: 1800000
+  refresh-expiration: 604800000
+  blacklist:
+    prefix: "blacklist:"
+    cleanup-interval: 3600000
+  refresh:
+    prefix: "refresh:"
+    expiry: 7
 
 # JMS Redelivery Configuration for tests
 app:
   jms:
-    max-redeliveries: 3
-    initial-redelivery-delay: 2000
-    redelivery-delay-max: 5000
+    maxRedeliveries: 3
+    initialRedeliveryDelay: 1000
+    backOffMultiplier: 2.0
+    useExponentialBackOff: true
 
-logging:
-  level:
-    org.springframework.web: DEBUG
-    org.springframework.test: DEBUG
-    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
-    org.springframework.data.mongodb: DEBUG
-    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
-
-# Token Storage Configuration (Test)
-jwt:
-  blacklist:
-    prefix: "blacklisted_token:"
-    cleanup-interval: 60000
-  refresh:
-    prefix: "user:refresh_tokens:"
-    expiry: 30
-  secret: "5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw=="
-  expiration: 120000
-  refresh-expiration: 604800000
-
-# Management and actuator
-management:
-  endpoint:
-    health:
-      show-details: always
-  prometheus:
-    metrics:
-      export:
-        enabled: false 
+# Test specific configurations
+test:
+  auth:
+    enabled: false
+    internal-token: "eyJhbGciOiJIUzUxMiJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOIl0sInN1YiI6ImNsaWVudC5jbGllbnQiLCJpYXQiOjE3NTIzMzk3MTQsImV4cCI6MTc4Mzg3NTcxNCwianRpIjoiYWE4ZDEwODEtNjhkMy00OGMzLTg4N2EtM2Y0YjY0M2Q5Nzg1In0.1CF-fhhN5GoVDAIWmoTNYi8DBVa3PE_we0g-SULHvVwEphYT1zfF6KZmHoRDdppgER9uyZN-RwYC9V24J0W9ww"
+  mock:
+    enabled: true 

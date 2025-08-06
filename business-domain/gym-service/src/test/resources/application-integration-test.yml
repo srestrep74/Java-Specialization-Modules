@@ -1,10 +1,8 @@
 spring:
   application:
     name: gym-service
-  # Allow bean definition overriding for tests
   main:
     allow-bean-definition-overriding: true
-  # Disable config server import for tests
   config:
     import: ""
   
@@ -29,16 +27,32 @@ spring:
     init:
       mode: always
   
-  # ActiveMQ Configuration for tests
+  # ActiveMQ Configuration for integration tests (will be overridden by Testcontainers)
   activemq:
-    broker-url: vm://embedded?broker.persistent=false
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
     user: admin
     password: admin
     packages:
       trust-all: true
+    close-timeout: 15000
+    send-timeout: 10000
+    receive-timeout: 10000
+    embedded:
+      enabled: false
+      persistent: false
+      data-directory: ""
+      broker-name: ""
   jms:
     pub-sub-domain: false
-
+    template:
+      default-destination: workload-queue
+      receive-timeout: 5000
+      send-timeout: 5000
+    listener:
+      auto-startup: false
+      acknowledge-mode: auto
+      concurrency: 1
+  
   # Disable Redis for tests
   data:
     redis:
@@ -48,13 +62,13 @@ spring:
       password: ""
   cache:
     type: none
-
+  
   # Disable cloud features for tests
   cloud:
     openfeign:
       circuitbreaker:
         enabled: false
-    # Disable Eureka client for component tests
+    # Disable Eureka client for integration tests
     discovery:
       enabled: false
     # Disable config server for tests
@@ -67,6 +81,14 @@ spring:
       fail-fast: false
       request-read-timeout: 5000
       connect-timeout: 5000
+  
+  # Disable scheduling for tests
+  task:
+    scheduling:
+      enabled: false
+      pool:
+        size: 1
+      thread-name-prefix: test-scheduler-
 
 # Disable Eureka client
 eureka:
@@ -92,6 +114,9 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.test: DEBUG
     org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
+    dev.sro.gym_service: DEBUG
+    org.springframework.jms: DEBUG
+    org.apache.activemq: DEBUG
 
 # Token Storage Configuration (Test)
 jwt:
@@ -138,3 +163,29 @@ management:
     metrics:
       export:
         enabled: false
+
+# Resilience4j Circuit Breaker configuration for integration tests
+resilience4j:
+  circuitbreaker:
+    instances:
+      activemq-producer:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 60s
+        failureRateThreshold: 80
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 10s
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.lang.RuntimeException
+          - jakarta.jms.JMSException
+          - org.springframework.jms.JmsException
+          - java.net.ConnectException
+          - java.io.IOException
+  timelimiter:
+    instances:
+      activemq-producer:
+        timeoutDuration: 30s 

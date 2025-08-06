@@ -13,8 +13,10 @@ import dev.sro.gym_service.repository.PendingWorkloadRepository;
 import dev.sro.gym_service.repository.TrainerRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class WorkloadMessageProducer {
 
     private final JmsTemplate jmsTemplate;
@@ -30,12 +32,17 @@ public class WorkloadMessageProducer {
     @CircuitBreaker(name = "activemq-producer", fallbackMethod = "fallbackSendWorkloadMessage")
     @TimeLimiter(name = "activemq-producer")
     public CompletableFuture<Void> sendWorkloadMessage(TrainerWorkloadRequest request) {
+        log.info("Attempting to send workload message for trainer: {}", request.trainerUsername());
         return CompletableFuture.runAsync(() -> {
             jmsTemplate.convertAndSend("workload-queue", request);
+            log.info("Successfully sent workload message for trainer: {}", request.trainerUsername());
         });
     }
 
     public CompletableFuture<Void> fallbackSendWorkloadMessage(TrainerWorkloadRequest request, Throwable throwable) {
+        log.warn("Circuit breaker fallback triggered for trainer: {}. Error: {}", 
+                request.trainerUsername(), throwable.getMessage());
+        
         return CompletableFuture.runAsync(() -> {
             Trainer trainer = trainerRepository.findByUsername(request.trainerUsername())
                 .orElseThrow(() -> new RuntimeException("Trainer not found: " + request.trainerUsername()));
@@ -50,6 +57,7 @@ public class WorkloadMessageProducer {
                     .actionType(ActionType.valueOf(request.actionType().name()))
                     .build();
             pendingWorkloadRepository.save(pendingWorkload);
+            log.info("Saved workload notification to pending workload table for trainer: {}", request.trainerUsername());
             });
     }
 }

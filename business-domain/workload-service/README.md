@@ -325,6 +325,67 @@ The service supports multiple configuration profiles:
 - **Summary Calculation**: Validation of aggregation logic with comprehensive datasets
 - **Performance Testing**: Load testing for high-volume workload processing
 
+### Component Testing
+The service implements comprehensive **Component Testing** using **Cucumber BDD (Behavior Driven Development)** framework to ensure end-to-end functionality validation in an isolated environment.
+
+#### Testing Architecture
+- **Cucumber Framework**: BDD testing with Gherkin syntax for readable test scenarios
+- **Spring Boot Test**: Full application context testing with embedded components
+- **MongoDB Embedded**: In-memory MongoDB database for isolated test execution
+- **WebTestClient**: Non-blocking HTTP client for API endpoint testing
+- **Test Context Management**: Centralized test state and data management
+
+#### Test Organization Structure
+```
+component/
+├── config/                    # Test configuration classes
+│   ├── TestMongoDBConfig.java # MongoDB cleanup configuration
+│   └── properties/            # Test properties management
+├── hooks/                     # Cucumber lifecycle hooks
+│   └── WorkloadTestHooks.java # Test setup and teardown
+├── steps/                     # Step definitions
+│   ├── CommonHttpSteps.java   # Shared HTTP operations
+│   └── WorkloadManagementSteps.java # Workload-specific steps
+├── WorkloadTestContext.java   # Test state management
+└── WorkloadComponentTestSuite.java # Test suite configuration
+```
+
+#### BDD Feature Scenarios
+The component tests cover comprehensive workload management scenarios using **Gherkin syntax**:
+
+**Positive Scenarios (Happy Path)**
+- ✅ **Workload Processing**: Successfully process trainer workload additions, updates, and deletions
+- ✅ **Monthly Summaries**: Retrieve trainer monthly summaries at different aggregation levels
+- ✅ **Data Validation**: Ensure proper data persistence and calculation accuracy
+- ✅ **Authentication**: Validate proper token-based authentication flow
+
+**Negative Scenarios (Error Handling)**
+- ✅ **Invalid Data**: Handle workload requests with missing or invalid data
+- ✅ **Authentication Failures**: Proper error responses for missing or invalid tokens
+- ✅ **Authorization Errors**: Validate role-based access control (TRAINER/ADMIN roles)
+- ✅ **Not Found Scenarios**: Handle requests for non-existent trainer data
+
+**API Endpoint Coverage**
+- ✅ **POST /api/v1/workloads**: Process trainer workload requests
+- ✅ **GET /api/v1/workloads/trainers/{username}/monthly-summary**: Retrieve complete trainer summary
+- ✅ **GET /api/v1/workloads/trainers/{username}/monthly-summary/{year}**: Get yearly summary
+- ✅ **GET /api/v1/workloads/trainers/{username}/monthly-summary/{year}/{month}**: Get monthly summary
+
+#### Test Configuration Features
+- **Externalized Configuration**: Test properties managed through `application-test.yml`
+- **Token Management**: Internal authentication tokens configured via YAML properties
+- **Database Cleanup**: Automatic MongoDB cleanup between test executions
+- **Mock Services**: Isolated testing environment with mocked external dependencies
+- **Test Data Management**: Centralized test context for state management across scenarios
+
+#### Testing Benefits
+- **BDD Approach**: Business-readable test scenarios that serve as living documentation
+- **Isolated Execution**: Each test runs in a clean, isolated environment
+- **Comprehensive Coverage**: Tests cover all major API endpoints and business scenarios
+- **Maintainable Tests**: Modular step definitions for easy maintenance and reuse
+- **Realistic Testing**: Tests use actual HTTP requests and database operations
+- **Error Scenario Validation**: Comprehensive negative testing for robust error handling
+
 ### Test Coverage
 - **Comprehensive Coverage**: High test coverage across all architectural layers
 - **Edge Case Testing**: Validation of boundary conditions and error scenarios
