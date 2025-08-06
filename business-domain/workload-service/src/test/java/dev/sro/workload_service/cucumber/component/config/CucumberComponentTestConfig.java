@@ -1,4 +1,4 @@
-package dev.sro.workload_service.cucumber.component;
+package dev.sro.workload_service.cucumber.component.config;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,12 +11,14 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
+@Import(TestMongoDBConfig.class)
 @ActiveProfiles("test")
 public class CucumberComponentTestConfig {
 
