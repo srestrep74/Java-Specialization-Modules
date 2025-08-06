@@ -1,6 +1,7 @@
 package dev.sro.gym_service.cucumber.component;
 
 import dev.sro.gym_service.config.properties.JwtProperties;
+import dev.sro.gym_service.cucumber.component.config.properties.TestProperties;
 import dev.sro.gym_service.service.WorkloadNotificationService;
 import dev.sro.gym_service.service.impl.auth.LoginAttemptService;
 import dev.sro.gym_service.service.impl.InMemoryTokenStorageServiceImpl;
@@ -8,6 +9,7 @@ import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
@@ -20,18 +22,9 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.mockito.Mockito.mock;
 
 @CucumberContextConfiguration
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, 
-    properties = {
-        "spring.cloud.discovery.enabled=false",
-        "eureka.client.enabled=false",
-        "spring.cloud.config.enabled=false",
-        "spring.cloud.config.discovery.enabled=false",
-        "spring.cloud.config.retry.enabled=false",
-        "spring.cloud.config.fail-fast=false"
-    }
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
+@EnableConfigurationProperties(TestProperties.class)
 @ActiveProfiles("test")
 @ComponentScan(
     basePackages = {
@@ -66,13 +59,19 @@ public class CucumberComponentTestConfig {
 
         @Bean
         @Primary
-        public JwtProperties jwtProperties() {
+        public JwtProperties jwtProperties(TestProperties testProperties) {
             return new JwtProperties(
-                    "5JI1p09GOcOlK9z8A/QBiLM7P+ZzS7DBvzIKM5G6Md2jYMkSvCbdQR13nPhJGwKkXZvRK9lNCPUXX/bSA44qzw==",
-                    120000L,
-                    604800000L,
-                    new JwtProperties.BlacklistProperties("blacklisted_token:", "60000"),
-                    new JwtProperties.RefreshProperties("user:refresh_tokens:", 30));
+                    testProperties.jwt().secret(),
+                    testProperties.jwt().expiration(),
+                    testProperties.jwt().refreshExpiration(),
+                    new JwtProperties.BlacklistProperties(
+                        testProperties.jwt().blacklist().prefix(),
+                        testProperties.jwt().blacklist().cleanupInterval()
+                    ),
+                    new JwtProperties.RefreshProperties(
+                        testProperties.jwt().refresh().prefix(),
+                        testProperties.jwt().refresh().expiry()
+                    ));
         }
 
         @Bean
