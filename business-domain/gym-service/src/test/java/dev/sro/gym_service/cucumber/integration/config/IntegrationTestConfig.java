@@ -28,7 +28,6 @@ public class IntegrationTestConfig {
         return new InMemoryTokenStorageServiceImpl(jwtProperties);
     }
 
-    // Mock the WorkloadRelayService to prevent background processing in tests
     @Bean
     @Primary
     public dev.sro.gym_service.service.WorkloadRelayService workloadRelayService() {

@@ -27,5 +27,4 @@ import io.cucumber.spring.CucumberContextConfiguration;
     "spring.jms.template.send-timeout=5000"
 })
 public class CucumberTestConfig {
-    // Configuration for Cucumber integration tests
 } 
