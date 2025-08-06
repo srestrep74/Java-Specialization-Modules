@@ -14,8 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -26,26 +24,6 @@ import static org.mockito.Mockito.mock;
 @EnableAutoConfiguration(exclude = { EurekaClientAutoConfiguration.class })
 @EnableConfigurationProperties(TestProperties.class)
 @ActiveProfiles("test")
-@ComponentScan(
-    basePackages = {
-        "dev.sro.gym_service",
-        "dev.sro.gym_service.cucumber.component"
-    },
-    excludeFilters = {
-        @ComponentScan.Filter(
-            type = FilterType.REGEX, 
-            pattern = "dev\\.sro\\.gym_service\\.cucumber\\.integration\\..*"
-        ),
-        @ComponentScan.Filter(
-            type = FilterType.REGEX, 
-            pattern = ".*Test\\$.*"
-        ),
-        @ComponentScan.Filter(
-            type = FilterType.REGEX, 
-            pattern = ".*ControllerTest\\$.*"
-        )
-    }
-)
 public class CucumberComponentTestConfig {
 
     @TestConfiguration
