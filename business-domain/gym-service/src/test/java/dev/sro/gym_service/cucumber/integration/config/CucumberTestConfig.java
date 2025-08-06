@@ -12,7 +12,7 @@ import io.cucumber.spring.CucumberContextConfiguration;
 @ActiveProfiles("integration-test")
 @Import({IntegrationTestConfig.class, ActiveMQTestcontainersConfig.class, TestJmsConfig.class})
 @TestPropertySource(properties = {
-    "spring.config.import=classpath:application-test.yml",
+    "spring.config.import=classpath:application-integration-test.yml",
     "logging.level.dev.sro.gym_service=DEBUG",
     "logging.level.org.springframework.jms=DEBUG",
     "logging.level.org.apache.activemq=DEBUG",
@@ -22,7 +22,8 @@ import io.cucumber.spring.CucumberContextConfiguration;
     "spring.jms.listener.auto-startup=false",
     "spring.jms.listener.acknowledge-mode=auto",
     "spring.jms.listener.concurrency=1",
-    "activemq.broker-url=${ACTIVEMQ_BROKER_URL:vm://embedded?broker.persistent=false}",
+    "activemq.broker-url=${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}",
+    "spring.activemq.embedded.enabled=false",
     "spring.jms.template.receive-timeout=5000",
     "spring.jms.template.send-timeout=5000"
 })

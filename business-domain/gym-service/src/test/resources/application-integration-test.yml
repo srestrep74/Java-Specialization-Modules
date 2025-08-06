@@ -31,7 +31,7 @@ spring:
   
   # ActiveMQ Configuration for integration tests (will be overridden by Testcontainers)
   activemq:
-    broker-url: ${ACTIVEMQ_BROKER_URL:vm://embedded?broker.persistent=false}
+    broker-url: ${ACTIVEMQ_BROKER_URL:tcp://localhost:61616}
     user: admin
     password: admin
     packages:
@@ -40,8 +40,17 @@ spring:
     close-timeout: 15000
     send-timeout: 10000
     receive-timeout: 10000
+    # Deshabilitar broker embebido completamente
+    embedded:
+      enabled: false
+      persistent: false
+      data-directory: ""
+      broker-name: ""
   jms:
     pub-sub-domain: false
+    # Forzar uso de broker externo
+    template:
+      default-destination: workload-queue
   
   # Disable Redis for tests
   data:
@@ -141,14 +150,14 @@ resilience4j:
     instances:
       activemq-producer:
         registerHealthIndicator: true
-        slidingWindowSize: 5
-        minimumNumberOfCalls: 1
-        permittedNumberOfCallsInHalfOpenState: 1
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 5
         automaticTransitionFromOpenToHalfOpenEnabled: true
-        waitDurationInOpenState: 10s
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: 2s
+        waitDurationInOpenState: 60s
+        failureRateThreshold: 80
+        slowCallRateThreshold: 80
+        slowCallDurationThreshold: 10s
         eventConsumerBufferSize: 10
         recordExceptions:
           - java.lang.RuntimeException
@@ -159,4 +168,4 @@ resilience4j:
   timelimiter:
     instances:
       activemq-producer:
-        timeoutDuration: 5s 
+        timeoutDuration: 30s 

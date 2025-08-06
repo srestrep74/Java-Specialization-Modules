@@ -35,15 +35,19 @@ public class ActiveMQTestcontainersConfig {
 
             activeMQContainer.start();
 
+            // Wait for the container to be fully ready
+            Thread.sleep(3000);
+
             String host = activeMQContainer.getHost();
             int port = activeMQContainer.getMappedPort(61616);
             brokerUrl = "tcp://" + host + ":" + port;
 
             System.setProperty("ACTIVEMQ_BROKER_URL", brokerUrl);
+            System.out.println("ActiveMQ container started with broker URL: " + brokerUrl);
 
         } catch (Exception e) {
-            brokerUrl = "vm://embedded?broker.persistent=false";
-            System.setProperty("ACTIVEMQ_BROKER_URL", brokerUrl);
+            System.out.println("Failed to start ActiveMQ container: " + e.getMessage());
+            throw new RuntimeException("ActiveMQ container failed to start", e);
         }
     }
 
@@ -103,6 +107,21 @@ public class ActiveMQTestcontainersConfig {
 
     public void startContainer() {
         if (activeMQContainer == null || !activeMQContainer.isRunning()) {
+            try {
+                if (activeMQContainer == null) {
+                    activeMQContainer = new GenericContainer<>(DockerImageName.parse("apache/activemq-classic:5.17.6"))
+                            .withExposedPorts(61616, 8161)
+                            .withEnv("ACTIVEMQ_ADMIN_LOGIN", "admin")
+                            .withEnv("ACTIVEMQ_ADMIN_PASSWORD", "admin")
+                            .withStartupTimeout(java.time.Duration.ofSeconds(60))
+                            .withReuse(true);
+                }
+                activeMQContainer.start();
+                Thread.sleep(3000); // Wait for container to be ready
+                System.out.println("ActiveMQ container restarted successfully");
+            } catch (Exception e) {
+                System.out.println("Failed to restart ActiveMQ container: " + e.getMessage());
+            }
         }
     }
 
